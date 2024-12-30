@@ -1,0 +1,10 @@
+{
+  "Statement" : {
+    "Actions" : ["sts:AssumeRole"],
+
+    "Principals" : {
+      "Type"        : "Service",
+      "Identifiers" : ["eks.amazonaws.com"]
+    }
+  }
+}
