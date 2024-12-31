@@ -82,6 +82,12 @@ variable "node_role_arn" {
 #   }))
 # }
 
+variable "region" {
+  description = "AWS Region"
+  type        = string
+  default     = "us-east-1"
+}
+
 variable "subnet_ids" {
   description = "List of Subnet IDs for the EKS cluster"
   type        = list(string)
