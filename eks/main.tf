@@ -2,7 +2,7 @@ resource "aws_eks_cluster" "this" {
   name    = var.cluster_name
   version = var.cluster_version
 
-  role_arn = var.node_role_arn
+  role_arn = var.existing_node_role_arn
 
   vpc_config {
     subnet_ids = var.subnet_ids
@@ -14,9 +14,8 @@ resource "aws_eks_cluster" "this" {
 }
 
 resource "aws_eks_node_group" "this" {
-  # for_each      = var.node_groups
   cluster_name  = aws_eks_cluster.this.name
-  node_role_arn = var.node_role_arn
+  node_role_arn = var.existing_node_role_arn
   subnet_ids    = var.subnet_ids
 
   scaling_config {
@@ -26,8 +25,7 @@ resource "aws_eks_node_group" "this" {
   }
 
   instance_types = [var.instance_type]
-  ami_type       = var.ami_worker
+  ami_type       = var.ami_type
   capacity_type  = var.capacity_type
   disk_size      = var.node_disk_size
-
 }

@@ -15,10 +15,15 @@ output "node_group_instance_type" {
 
 output "node_group_ami_type" {
   description = "AMI type for the node group"
-  value       = var.ami_worker
+  value       = var.ami_type
 }
 
 output "node_group_capacity_type" {
   description = "Capacity type for the node group"
   value       = var.capacity_type
 }
+
+# output "eks_private_endpoint" {
+#   description = "Private endpoint for the EKS cluster"
+#   value       = aws_vpc_endpoint.eks.dns_entry[0].dns_name
+# }
