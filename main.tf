@@ -31,3 +31,4 @@ resource "aws_eks_node_group" "this" {
   capacity_type  = var.capacity_type
   disk_size      = var.node_disk_size
 }
+
