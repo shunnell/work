@@ -24,6 +24,12 @@ output "node_group_capacity_type" {
 }
 
 output "cluster_security_group_id" {
-  description = "The security group ID of the EKS cluster"
+  description = "The security group ID of the EKS cluster" 
   value       = aws_eks_cluster.this.vpc_config[0].cluster_security_group_id
+}
+
+output "vpc_endpoint_security_group_id" {
+  description = "The security group ID of the VPC endpoint"
+  value       = data.aws_security_group.vpc_endpoint_sg.id
+  
 }
