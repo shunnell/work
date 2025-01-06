@@ -23,7 +23,14 @@ output "node_group_capacity_type" {
   value       = var.capacity_type
 }
 
-# output "eks_private_endpoint" {
-#   description = "Private endpoint for the EKS cluster"
-#   value       = aws_vpc_endpoint.eks.dns_entry[0].dns_name
-# }
+output "cluster_security_group_id" {
+  description = "The security group ID of the EKS cluster" 
+  # value       = module.eks.cluster_security_group_id
+  value       = aws_eks_cluster.this.vpc_config[0].cluster_security_group_id
+}
+
+output "vpc_endpoint_security_group_id" {
+  description = "The security group ID of the VPC endpoint"
+  value       = data.aws_security_group.vpc_endpoint_sg.id
+  
+}

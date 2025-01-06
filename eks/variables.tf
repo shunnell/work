@@ -57,7 +57,7 @@ variable "iam_role_name" {
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string
-  default     = "m5.large"
+  default     = "t3.medium"
 }
 
 variable "max_size" {
@@ -111,6 +111,11 @@ variable "tags" {
   default     = {}
 }
 
+variable "vpc_endpoint_sg_name" {
+  description = "VPC Endpoint Security Group Name"
+  type        = string
+  default     = "eks-vpc-endpoint-sg"
+}
 variable "vpc_id" {
   description = "VPC ID"
   type        = string
