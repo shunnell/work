@@ -1,0 +1,68 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "sts:AssumeRole",
+      "Resource": [
+        "arn:aws:iam::976193220746:role/terragrunter",
+        "arn:aws:iam::590183957203:role/terragrunter",
+        "arn:aws:iam::730335386746:role/terragrunter",
+        "arn:aws:iam::381492049355:role/terragrunter",
+        "arn:aws:iam::730335639457:role/terragrunter",
+        "arn:aws:iam::381492150796:role/terragrunter",
+        "arn:aws:iam::975050075035:role/terragrunter",
+        "arn:aws:iam::034362069573:role/terragrunter",
+        "arn:aws:iam::390402578610:role/terragrunter",
+        "arn:aws:iam::430118816674:role/terragrunter"
+      ]
+    },
+    {
+      "Sid": "AllowSpecifics",
+      "Action": [
+        "application-autoscaling:*",
+        "autoscaling:*",
+        "cloudfront:*",
+        "cloudtrail:*",
+        "cloudwatch:*",
+        "dynamodb:*",
+        "ec2:*",
+        "ecr:*",
+        "ecs:*",
+        "eks:*",
+        "elasticache:*",
+        "elasticloadbalancing:*",
+        "es:*",
+        "events:*",
+        "firehose:*",
+        "grafana:*",
+        "iam:*",
+        "kms:*",
+        "logs:*",
+        "rds:*",
+        "route53:*",
+        "s3:*",
+        "secretsmanager:*",
+        "sns:*",
+        "sqs:*"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ]
+    },
+    {
+      "Sid": "DenySpecifics",
+      "Action": [
+        "ec2:*ReservedInstances*",
+        "iam:*Group*",
+        "iam:*Login*",
+        "iam:*User*"
+      ],
+      "Effect": "Deny",
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}

@@ -1,21 +1,3 @@
-variable "aws_profile" {
-  description = "AWS Profile"
-  type        = string
-  default     = null
-}
-
-variable "ami_type" {
-  description = "AMI Type for Worker"
-  type        = string
-  default = "BOTTLEROCKET_x86_64"
-}
-
-variable "capacity_type" {
-  description = "Capacity type (ON_DEMAND or SPOT)"
-  type        = string
-  default     = "ON_DEMAND"
-}
-
 variable "cluster_log_types" {
   description = "Enabled Cluster Log Types"
   type        = list(string)
@@ -27,8 +9,8 @@ variable "cluster_name" {
   type        = string
 }
 
-variable "cluster_version" {
-  description = "Cluster Version"
+variable "kubernetes_version" {
+  description = "K8s Version"
   type        = string
   default     = "1.31"
 }
@@ -38,70 +20,28 @@ variable "cluster_role_arn" {
   type        = string
 }
 
-variable "desired_size" {
-  description = "Scale Desired Size"
-  type        = number
-}
-
-variable "existing_node_role_arn" {
-  description = "The ARN of the existing IAM role to use for the EKS node group"
-  type        = string
-}
-
-variable "iam_role_name" {
-  description = "IAM role name for EKS cluster"
-  type        = string
-  default     = "eks-node-group-role"
-}
-
-variable "instance_type" {
-  description = "EC2 instance type"
-  type        = string
-  default     = "t3.medium"
-}
-
-variable "max_size" {
-  description = "Scale Max Size"
-  type        = number
-}
-
-variable "min_size" {
-  description = "Scale Min Size"
-  type        = number
-}
-
-variable "node_disk_size" {
-  description = "Disk size"
-  type        = number
-  default     = 200
-}
-
-variable "node_role_arn" {
-  description = "Role ARN"
-  type        = string
-}
-
-variable "policy_file_path" {
-  description = "Path to the policy JSON file"
-  type        = string
-  default     = "../../live/_envcommon/platform/eks/policy/data.json"
-}
-
-variable "region" {
-  description = "AWS Region"
-  type        = string
-  default     = "us-east-1"
+variable "node_groups" {
+  description = "Node Groups"
+  type = list(object({
+    ami_type      = optional(string, "BOTTLEROCKET_x86_64")
+    capacity_type = optional(string, "ON_DEMAND")
+    desired_size  = optional(number, 3)
+    disk_size     = optional(number, 20)
+    instance_type = optional(string, "t3.medium")
+    max_size      = optional(number, 6)
+    min_size      = optional(number, 3)
+    name          = string
+    node_role_arn = string
+  }))
 }
 
 variable "security_group_ids" {
   description = "Security Group IDs"
   type        = list(string)
-  default = [ "sg-087f9ed0b107ba48b" ]
-
 }
 
 variable "subnet_ids" {
-  description = "List of Subnet IDs for the EKS cluster"
+  description = "Subnet IDs"
   type        = list(string)
 }
 
@@ -111,14 +51,36 @@ variable "tags" {
   default     = {}
 }
 
-variable "vpc_endpoint_sg_name" {
-  description = "VPC Endpoint Security Group Name"
+variable "vpc_endpoint_sg_id" {
+  description = "VPC Endpoint Security Group ID"
   type        = string
-  default     = "eks-vpc-endpoint-sg"
 }
+
 variable "vpc_id" {
   description = "VPC ID"
   type        = string
-  default     = "vpc-01912bb2c7a00113e"
+}
 
+variable "coredns_version" {
+  description = "The version of the CoreDNS addon."
+  type        = string
+  default     = "v1.8.0-eksbuild.1"
+}
+
+variable "kube_proxy_version" {
+  description = "The version of the kube-proxy addon."
+  type        = string
+  default     = "v1.19.6-eksbuild.1"
+}
+
+variable "vpc_cni_version" {
+  description = "The version of the VPC CNI addon."
+  type        = string
+  default     = "v1.7.5-eksbuild.1"
+}
+
+variable "cloudwatch_observability_version" {
+  description = "The version of the Amazon CloudWatch Observability agent addon."
+  type        = string
+  default     = "v0.0.1"
 }

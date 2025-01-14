@@ -1,0 +1,30 @@
+include:
+  - project: "cloud-city/platform/gitlab-templates"
+    ref: main
+    file: "templates/common.yml"
+
+stages:
+  - setup
+  - validate
+  - test
+  - dast
+
+image: $CONTAINER_REGISTRY_URL/$TERRAGRUNT_IMAGE:$TERRAGRUNT_IMAGE_TAG
+
+generate-config:
+  stage: setup
+  script:
+    - chmod a+rx generate_jobs.sh
+    - ./generate_jobs.sh $CONTAINER_REGISTRY_URL/$TERRAGRUNT_IMAGE:$TERRAGRUNT_IMAGE_TAG
+    - cat module-validations.yml
+  artifacts:
+    paths:
+      - module-validations.yml
+
+module-validations:
+  stage: validate
+  trigger:
+    include:
+      - artifact: module-validations.yml
+        job: generate-config
+    strategy: depend

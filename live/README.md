@@ -24,11 +24,16 @@ live/
 └── infra/                     # Infrastructure configurations, resources and bootstrap
 ```
 
-## Team Configuration
+## Account Configuration
 
-Each team directory contains a `terragrunt.hcl` file that defines:
-- Team-specific resource configurations
+Each account directory contains a `account.hcl` file that defines:
+- Account-specific resource configurations
 - Environment variables
+
+[infra/platform/gitops/iam/terragrunt/policy/iam_policy_terragrunter.json](infra/platform/gitops/iam/terragrunt/policy/iam_policy_terragrunter.json) will contain the accounts that are allowed to be maintained by this pipeline.
+
+In the case that an account(s) is (re)created, follow the steps in [### Local or New Account
+](#local-or-new-account) to restore/add the account(s).
 
 ### Component Configuration
 
@@ -40,10 +45,10 @@ Each component directory contains its own `terragrunt.hcl` file that defines:
 
 ## Prerequisites
 
-- AWS CLI with `infra` profile configured
 - Terragrunt
 - Terraform 
 - Access to Cloud City AWS account
+- An AWS profile configured with the `role_arn` set to the "terragrunter" role ARN in the `infra` account.  Set this as your default profile.
 
 ## Quick Start
 
@@ -87,6 +92,16 @@ Current services:
 
 ## Common Commands
 
+Validate HCL:
+```bash
+terragrunt hclvalidate
+```
+
+Format HCL:
+```bash
+terragrunt hclfmt
+```
+
 Apply changes to all services in an environment:
 ```bash
 cd dev
@@ -126,31 +141,29 @@ Common issues:
     terragrunt init --reconfigure
     ```
 
-### ! Complete Loss !
+### Local or New Account
 
-Account roles and policies need to be created for cross-account management through a pipeline.  Create these resources from a "local" system first, then allow a pipeline to manage them after.
-1. Uncomment the profile definition for the `remote_state` in [root.hcl](root.hcl).
-1. Get `infra` account ID and update [_envcommon\platform\gitops\iam\terragrunter\iam_role_assume_terragrunter.json](_envcommon\platform\gitops\iam\terragrunter\iam_role_assume_terragrunter.json).
-1. Get account IDs for other accounts and update [infra\platform\gitops\iam\terragrunt\policy\iam_policy_terragrunter.json](infra\platform\gitops\iam\terragrunt\policy\iam_policy_terragrunter.json).
-1. Open `bash` in [infra\platform\gitops\iam\terragrunt](infra\platform\gitops\iam\terragrunt) and perform `Terragrunt` operations.
-    ```bash
-    export AWS_PROFILE=infra
-    terragrunt run-all init
-    terragrunt run-all plan -out=infra.plan
-    terragrunt run-all show infra.plan
-    terragrunt run-all apply infra.plan
-    ```
-1. Open `bash` in other accounts `[account]\platform\gitops\iam\terragrunter` and perform `Terragrunt` operations (similar to above).
+Account roles and policies need to be created for cross-account management through a pipeline.  Create these resources from a "local" system for new or recreated accounts, then allow a pipeline to manage them after.
+
+1. Comment `assume_role` blocks in [root.hcl](root.hcl) and uncomment `profile`.
+1. Get `infra` account ID and `AWSReservedSSO_AWSAdministratorAccess_*` role arn, then update:
+    1. [infra/platform/gitops/iam/terragrunt/role/iam_role_terragrunter.json](infra/platform/gitops/iam/terragrunt/role/iam_role_terragrunter.json)
+    1. [_envcommon/platform/gitops/iam/terragrunter/iam_role_assume_terragrunter.json](_envcommon/platform/gitops/iam/terragrunter/iam_role_assume_terragrunter.json)
+1. Get account IDs for all accounts and update [infra/platform/gitops/iam/terragrunt/policy/iam_policy_terragrunter.json](infra/platform/gitops/iam/terragrunt/policy/iam_policy_terragrunter.json).
+1. Update `[account]` ID in all `[account]/account.hcl`.
+1. Starting with `infra`, and ending with `infra`, open `bash` in all accounts `[account]/platform/gitops/iam/terragrunter` and perform `Terragrunt` operations:
     ```bash
     export AWS_PROFILE=[account]
     terragrunt run-all init
     terragrunt run-all plan -out=[account].plan
-    terragrunt run-all show [account].plan
-    terragrunt run-all apply [account].plan
+    terragrunt run-all apply "[account].plan"
+    terragrunt run-all plan -out=[account].plan
+    terragrunt run-all apply "[account].plan"
     ```
-1. TODO :: setup GitLab
-1. TODO :: recreate and push repos to GitLab
-1. **!! Comment the profile definition for the `remote_state` in [root.hcl](root.hcl) !!**
+1. !! Uncomment/revert the `assume_role` blocks in [root.hcl](root.hcl) and `profile` !!
+1. Configure an AWS profile with the `role_arn` set to the "terragrunter" role ARN in the `infra` account.  Set this as your default profile.
+1. TODO :: setup GitLab steps
+1. TODO :: recreate and push repos to GitLab steps
 
 ## Support
 

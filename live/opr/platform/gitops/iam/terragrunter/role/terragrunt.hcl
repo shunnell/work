@@ -9,12 +9,12 @@ terraform {
 dependency "terragrunter_policy" {
   config_path = "../policy"
   mock_outputs = {
-    policy_arn = "arn:aws:iam::381492150796:policy/terragrunter"
+    policy_arn = "arn:aws:iam::111111111111:policy/terragrunter"
   }
 }
 
 inputs = {
-  role_name  = "terragrunter"
-  role_json  = file("${get_path_to_repo_root()}/_envcommon/platform/gitops/iam/terragrunter/iam_role_assume_terragrunter.json")
-  policy_arn = dependency.terragrunter_policy.outputs.policy_arn
+  role_name   = "terragrunter"
+  role_json   = file("${get_path_to_repo_root()}/_envcommon/platform/gitops/iam/terragrunter/iam_role_assume_terragrunter.json")
+  policy_arns = [dependency.terragrunter_policy.outputs.policy_arn]
 }

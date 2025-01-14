@@ -1,0 +1,33 @@
+include:
+  - project: "cloud-city/platform/gitlab-templates"
+    ref: main
+    file: "templates/common.yml"
+
+stages:
+  - test
+  - dast
+  - validate
+
+hcl-validate:
+  stage: validate
+  image:
+    name: $CONTAINER_REGISTRY_URL/$TERRAGRUNT_IMAGE:$TERRAGRUNT_IMAGE_TAG
+  script:
+    - terragrunt hclvalidate --terragrunt-no-auto-init
+    - terragrunt hclvalidate --terragrunt-no-auto-init | [[ $(grep -c "Error") -eq 0 ]]
+    - terragrunt hclfmt --terragrunt-check --terragrunt-diff
+
+tf-validate:
+  stage: validate
+  image:
+    name: $CONTAINER_REGISTRY_URL/$TERRAGRUNT_IMAGE:$TERRAGRUNT_IMAGE_TAG
+  script: |
+    echo TODO - Terraform not accessable yet
+    # echo "Checking Terraform formatting..."
+    # terragrunt run-all fmt -check -diff -recursive --terragrunt-no-auto-init
+    # echo "Terraform initialization"
+    # terragrunt run-all init -input=false -backend=false
+    # echo "Terraform validating..."
+    # terragrunt run-all validate --terragrunt-no-auto-init
+    # echo "Testing Terraform..."
+    # terragrunt run-all test --terragrunt-no-auto-init

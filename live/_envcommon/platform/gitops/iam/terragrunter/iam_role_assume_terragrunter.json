@@ -3,11 +3,12 @@
   "Statement": [
     {
       "Effect": "Allow",
-      "Principle": {
-        "AWS": "arn:aws:iam::381492150796:user/terragrunt"
+      "Principal": {
+        "AWS": [
+          "arn:aws:iam::381492150796:role/terragrunter"
+        ]
       },
-      "Action": "sts:AssumeRole",
-      "Condition": {}
+      "Action": "sts:AssumeRole"
     }
   ]
 }

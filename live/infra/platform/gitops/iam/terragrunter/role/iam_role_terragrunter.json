@@ -1,0 +1,41 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": [
+          "arn:aws:iam::381492150796:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AWSAdministratorAccess_2d4e086aea76b11a",
+          "arn:aws:iam::381492150796:role/terragrunter"
+        ]
+      },
+      "Action": [
+        "sts:AssumeRole"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::381492150796:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/599D6CD59E165C1AAD6541290DD14FC1"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "oidc.eks.us-east-1.amazonaws.com/id/599D6CD59E165C1AAD6541290DD14FC1:sub": "system:serviceaccount:gitlab-runner:terragrunt"
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::381492150796:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/97D3E14AA4F5EFFBBE2E7E9C1401EC13"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "oidc.eks.us-east-1.amazonaws.com/id/97D3E14AA4F5EFFBBE2E7E9C1401EC13:sub": "system:serviceaccount:gitlab-runner:terragrunt"
+        }
+      }
+    }
+  ]
+}
