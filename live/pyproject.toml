@@ -1,0 +1,152 @@
+[project]
+name = "bespin-tools"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "Zac Bentley", email = "BentleyZE@state.gov" }
+]
+dependencies = [
+    "attrs>=25.3.0",
+    "boto3>=1.37.34",
+    "click-log>=0.4.0",
+    "click>=8.1.8",
+    "gitpython>=3.1.44",
+    "lazy-object-proxy>=1.10.0",
+    # Should match boto3, or lag behind it for a few days before being updated to match.
+    "packaging>=24.2",
+    "parameterized>=0.9.0",
+    "pytest>=8.3.5",
+    "python-hcl2>=6.1.1",
+    "pyxdg>=0.28",
+    "pyyaml>=6.0.2",
+    "requests>=2.32.3",
+    "retrying>=1.3.4",
+    "tqdm>=4.67.1",
+    "types-boto3[full]>=1.37.20",
+    "rich>=14.0.0",
+    "aiohttp>=3.11.18",
+]
+readme = "README.md"
+requires-python = "== 3.13.2"
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3",
+  "Topic :: TODO",
+]
+
+[project.scripts]
+"bespinctl" = "bespin_tools.__main__:main"
+# TODO CICD:
+#'check:deptry' = "deptry ."
+#'check:safety' = ["safety", "check", "--ignore", "67599", "--full-report", "--file=requirements.lock", "--file=requirements-dev.lock"]
+#'check:pyright' = "pyright ."
+
+[build-system]
+build-backend = "flit_core.buildapi"
+requires = ["flit_core >=3.9,<4"]
+
+[tool.coverage.report]
+fail_under = 100
+show_missing = true
+
+[tool.deptry]
+experimental_namespace_package = true
+pep621_dev_dependency_groups = ["dev"]
+
+[tool.pyright]
+enableExperimentalFeatures = false
+reportImplicitOverride = "error"
+reportImplicitStringConcatenation = "error"
+reportImportCycles = "warning"
+# It's sometimes reasonable to override functions with differeng signatures, especially ones that differ in types:
+reportInconsistentOverload = "warning"
+reportMissingSuperCall = "error"
+reportMissingTypeStubs = "none"
+reportPropertyTypeMismatch = "warning"
+# Redeclaration is sometimes handy, when it's not accidental.
+reportRedeclaration = "none"
+reportShadowedImports = "error"
+reportUninitializedInstanceVariable = "error"
+reportUnnecessaryTypeIgnoreComment = "error"
+typeCheckingMode = "strict"
+
+[tool.pytest.ini_options]
+addopts = [
+  "--import-mode=importlib",
+  # Show 20 slowest invocations:
+  "--strict-markers",
+  "-svv"
+]
+python_files = "tests/**.py"
+pythonpath = ["src", "."]
+
+[tool.ruff]
+line-length = 120
+format.docstring-code-format = true
+format.skip-magic-trailing-comma = false
+
+[tool.ruff.lint]
+extend-select = [
+  "B",
+  "B9",
+  "C",
+  "D",
+  "PL",
+  "E",
+  "F",
+  "N",
+  "I",
+  "S",
+  "W",
+  "N",
+  "UP",
+  "ASYNC",
+  "S",
+  "B",
+  "A",
+  "C4",
+  "EXE",
+  "ISC",
+  "RUF",
+]
+ignore = [
+  "E203",
+  "E501",
+  "ISC001",
+  "D100",
+  "D101",
+  "D102",
+  "D103",
+  "D104",
+  "D105",
+  "D106",
+  "D107",
+  "D211",
+  # "RST201","RST203","RST301",
+  # "W503",
+  "D213",
+  "S101",
+  "S606",
+  "PLR2004",
+  "UP006",  # Compat with older Pythons
+  "UP032", # Compat with older Pythons
+  "S311",  # Yells about all uses of random
+  "C408", # I like dict() literals, bite me
+  "PLW2901", # For-loop variable rebinding: I think the potential efficiency cost outweighs the bug risk.
+  "E731", # Sometimes assigning a lambda is the clearest way to express something.
+  "PLR0913", # Long signatures are fine
+]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+lines-after-imports = 2
+required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.uv]
+dev-dependencies = ["ruff==0.5.0"]  # TODO set up CICD/linting/etc using these.
+managed = true

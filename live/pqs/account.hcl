@@ -7,4 +7,5 @@ locals {
   account_tags = {
     account = local.account
   }
+
 }

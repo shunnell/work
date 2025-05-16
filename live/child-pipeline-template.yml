@@ -1,0 +1,55 @@
+stages:
+  - plan
+  - apply
+  - destroy
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'parent_pipeline'
+
+cache:
+  - key: terragrunt-provider-cache
+    paths:
+      - ${TG_PROVIDER_CACHE_DIR}
+    policy: pull-push
+
+.common_terragrunt_template:
+  image: $TERRAGRUNT_IMAGE
+  before_script:
+    - git -c http.sslVerify=false clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.cloud-city/cloud-city/platform/iac/modules ../modules --depth 1
+
+.plan_job_template:
+  extends: .common_terragrunt_template
+  variables:
+    TG_PROVIDER_CACHE_DIR: $CI_PROJECT_DIR/tmp/terragrunt-provider-cache
+    TG_ROOT: $CI_PROJECT_DIR
+  stage: plan
+  script:
+    - cd "$DIR"
+    - terragrunt run-all init -input=false -reconfigure
+    - terragrunt run-all plan -input=false -out=plan.cache
+    - terragrunt run-all show -json plan.cache  > plan.json
+    - terragrunt run-all show -json plan.cache | jq -r '([.resource_changes[]?.change.actions?]|flatten)|{"create":(map(select(.=="create"))|length),"update":(map(select(.=="update"))|length),"delete":(map(select(.=="delete"))|length)}' | jq -s 'map(to_entries) | flatten | group_by(.key) | map({(.[0].key):map(.value) | add}) | add' > report_plan.json
+  artifacts:
+    paths:
+      - ${TG_ROOT}/**/plan.cache
+      - ${TG_ROOT}/${DIR}/plan.json
+      - ${TG_ROOT}/${DIR}/report_plan.json
+
+.apply_job_template:
+  extends: .plan_job_template
+  stage: apply
+  when: manual
+  script:
+    - cd "$DIR"
+    - terragrunt run-all init -input=false -reconfigure
+    - terragrunt run-all apply -input=false plan.cache
+
+.destroy_job_template:
+  extends: .plan_job_template
+  stage: destroy
+  when: manual
+  script:
+    - cd "$DIR"
+    - terragrunt run-all init -input=false -reconfigure
+    - terragrunt run-all destroy -input=false

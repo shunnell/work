@@ -1,33 +1,70 @@
 include:
   - project: "cloud-city/platform/gitlab-templates"
-    ref: main
-    file: "templates/common.yml"
+    ref: HEAD
+    file: "templates/iac.yml"
+
+variables:
+  TG_IAM_ASSUME_ROLE: arn:aws:iam::381492150796:role/terragrunter
+  TG_LOG_LEVEL: info
+  TG_NON_INTERACTIVE: true
+  TG_PROVIDER_CACHE: 1
 
 stages:
+  - detect
+  - generate
   - test
   - dast
-  - validate
+  - trigger
+  - summarize
 
-hcl-validate:
-  stage: validate
-  image:
-    name: $CONTAINER_REGISTRY_URL/$TERRAGRUNT_IMAGE:$TERRAGRUNT_IMAGE_TAG
+detect_changes:
+  image: $TERRAGRUNT_IMAGE
+  stage: detect
   script:
-    - terragrunt hclvalidate --terragrunt-no-auto-init
-    - terragrunt hclvalidate --terragrunt-no-auto-init | [[ $(grep -c "Error") -eq 0 ]]
-    - terragrunt hclfmt --terragrunt-check --terragrunt-diff
+    - git -c http.sslVerify=false fetch --unshallow || true
+    - git -c http.sslVerify=false fetch origin main
+    - chmod +x ./scripts/detect-changed-dirs.sh
+    - bash scripts/detect-changed-dirs.sh > changed_dirs.txt
+  artifacts:
+    paths:
+      - changed_dirs.txt
 
-tf-validate:
-  stage: validate
-  image:
-    name: $CONTAINER_REGISTRY_URL/$TERRAGRUNT_IMAGE:$TERRAGRUNT_IMAGE_TAG
-  script: |
-    echo TODO - Terraform not accessable yet
-    # echo "Checking Terraform formatting..."
-    # terragrunt run-all fmt -check -diff -recursive --terragrunt-no-auto-init
-    # echo "Terraform initialization"
-    # terragrunt run-all init -input=false -backend=false
-    # echo "Terraform validating..."
-    # terragrunt run-all validate --terragrunt-no-auto-init
-    # echo "Testing Terraform..."
-    # terragrunt run-all test --terragrunt-no-auto-init
+generate_child_pipeline:
+  stage: generate
+  needs: [detect_changes]
+  artifacts:
+    paths:
+      - .gitlab-ci-generated.yml
+  script:
+    - |
+      cat > .gitlab-ci-generated.yml << EOF
+      stages:
+        - plan
+        - apply
+        - destroy
+      
+      EOF
+    - |
+      while read dir; do
+        job=$(echo $dir | tr '/' '_')
+        cat >> .gitlab-ci-generated.yml << EOF
+      $job-plan:
+        extends: .plan_job_template
+        variables:
+          DIR: $dir
+
+      $job-apply:
+        extends: .apply_job_template
+        variables:
+          DIR: $dir
+        needs: ["$job-plan"]
+
+      $job-destroy:
+        extends: .destroy_job_template
+        variables:
+          DIR: $dir
+        when: manual
+        needs: ["$job-plan"]
+      
+      EOF
+      done < changed_dirs.txt

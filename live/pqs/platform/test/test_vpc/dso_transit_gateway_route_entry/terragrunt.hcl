@@ -1,0 +1,52 @@
+include "root" {
+  path = find_in_parent_folders("root.hcl")
+}
+
+terraform {
+  source = "${get_repo_root()}/../modules//network/transit_gateway_route_entry"
+}
+
+locals {
+  # Load common variables
+  vpc_vars = read_terragrunt_config(find_in_parent_folders("test_vpc.hcl"))
+
+  # Extract commonly used variables
+  dso_transit_gateway_route_table_id = local.vpc_vars.locals.dso_transit_gateway_route_table_id
+  vpc_cidr_block                     = local.vpc_vars.locals.vpc_cidr_block
+  network_terragrunter_role_arn      = local.vpc_vars.locals.network_terragrunter_role_arn
+  network_region                     = local.vpc_vars.locals.network_region
+}
+
+dependency "transit_gateway_attach" {
+  config_path = "../transit_gateway_attach"
+  mock_outputs = {
+    transit_gateway_attachment_id = "mock-tgw-att-id"
+  }
+}
+
+dependencies {
+  paths = ["../transit_gateway_attach_accept", "../transit_gateway_attach", "../vpc"]
+}
+
+inputs = {
+  tgw_routes = {
+    "dso_route" = {
+      transit_gateway_route_table_id = local.dso_transit_gateway_route_table_id
+      transit_gateway_attachment_id  = dependency.transit_gateway_attach.outputs.transit_gateway_attachment_id
+      destination_cidr_block         = local.vpc_cidr_block
+    }
+  }
+}
+
+generate "provider-network" {
+  path      = "provider.tf"
+  if_exists = "overwrite"
+  contents  = <<-EOF
+    provider "aws" {
+      region = "${local.network_region}"
+      assume_role {
+        role_arn = "${local.network_terragrunter_role_arn}"
+      }
+    }
+  EOF
+}

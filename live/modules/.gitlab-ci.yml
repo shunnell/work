@@ -1,0 +1,65 @@
+include:
+  - project: "cloud-city/platform/gitlab-templates"
+    ref: HEAD
+    file: "templates/iac.yml"
+
+stages:
+  - setup
+  - test
+  - dast
+
+sast:
+  rules:
+    - when: never # not supposed to be run
+
+iac-sast:
+  rules:
+    - when: never # doesn't work
+
+format:
+  stage: test
+  image:
+    name: $TERRAGRUNT_IMAGE
+  script:
+    - chmod a+rx *.sh
+    - ./terraform_format_loop.sh
+
+docs:
+  stage: test
+  image:
+    name: $TERRAFORM_DOCS_IMAGE
+    entrypoint: [""]
+  script:
+    - cd $CI_BUILDS_DIR/$CI_PROJECT_PATH
+    - chmod a+rx $CI_BUILDS_DIR/$CI_PROJECT_PATH/*.sh
+    - $CI_BUILDS_DIR/$CI_PROJECT_PATH/terraform_docs_loop.sh
+
+provider-checks:
+  stage: test
+  image:
+    name: $TERRAGRUNT_IMAGE
+  script:
+    - chmod a+rx *.sh
+    - ./terraform_provider_check_loop.sh
+
+# do this for performance
+generate-config:
+  stage: setup
+  image:
+    name: $TERRAGRUNT_IMAGE
+  script:
+    - chmod a+rx *.sh
+    - ./generate_test_jobs.sh $TERRAGRUNT_IMAGE
+    - cat module_tests.yml
+  artifacts:
+    expire_in: "1 days"
+    paths:
+      - module_tests.yml
+
+module-tests:
+  stage: test
+  trigger:
+    include:
+      - artifact: module_tests.yml
+        job: generate-config
+    strategy: depend

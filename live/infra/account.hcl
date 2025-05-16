@@ -5,6 +5,7 @@ locals {
   terragrunter_role_arn = "arn:aws:iam::${local.account_id}:role/terragrunter"
 
   account_tags = {
-    account = local.account
+    account     = local.account
+    Environment = "development"
   }
 }

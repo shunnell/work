@@ -3,7 +3,7 @@ include "root" {
 }
 
 terraform {
-  source = "${get_path_to_repo_root()}/../modules/monitoring/cloudwatch_log_group"
+  source = "${get_path_to_repo_root()}/../modules//monitoring/cloudwatch_log_group"
 }
 
 locals {
@@ -13,12 +13,9 @@ locals {
   # Extract commonly used variables
   common_identifier = local.inspection_firewall_vars.locals.common_identifier
   vpc_name          = local.inspection_firewall_vars.locals.vpc_name
-  default_tags      = local.inspection_firewall_vars.locals.default_tags
 }
 
 inputs = {
   log_group_name = "/aws/network-firewall/${local.common_identifier}/tls"
   retention_days = 30
-
-  tags = local.default_tags
 } 

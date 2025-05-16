@@ -1,169 +1,51 @@
 # Cloud City Live Infrastructure
 
-This repository contains the live infrastructure configurations for Cloud City environments. It uses Terragrunt to manage multiple environments and services in a DRY way.
+This repository contains the "live" (as in: currently deployed) infrastructure configuration and tools for infrastructure management for all AWS accounts in the Cloud City project.
 
-## Environment Structure
-  
-```
-live/
-├── dev/                       # Development environment
-│   └── opr/                   # OPR team resources
-│       ├── terragrunt.hcl     # OPR team configuration
-│       ├── s3/                # S3 component
-│       │   └── terragrunt.hcl # S3-specific configuration
-│       └── rds/               # RDS component
-│           └── terragrunt.hcl # RDS-specific configuration
-│   └── iva/                   # IVA team resources
-│       ├── terragrunt.hcl     # IVA team configuration
-│       ├── ec2/               # EC2 component
-│       │   └── terragrunt.hcl # EC2-specific configuration
-│       └── vpc/               # VPC component
-│           └── terragrunt.hcl # VPC-specific configuration
-├── staging/                   # Staging environment (future)
-├── prod/                      # Production environment (future)
-└── infra/                     # Infrastructure configurations, resources and bootstrap
-```
+# Documentation Index
 
-## Account Configuration
-
-Each account directory contains a `account.hcl` file that defines:
-- Account-specific resource configurations
-- Environment variables
-
-[infra/platform/gitops/iam/terragrunt/policy/iam_policy_terragrunter.json](infra/platform/gitops/iam/terragrunt/policy/iam_policy_terragrunter.json) will contain the accounts that are allowed to be maintained by this pipeline.
-
-In the case that an account(s) is (re)created, follow the steps in [### Local or New Account
-](#local-or-new-account) to restore/add the account(s).
-
-### Component Configuration
-
-Each component directory contains its own `terragrunt.hcl` file that defines:
-- Component-specific resources
-- Dependencies between components
-- Component-specific variables
-- Resource configurations
-
-## Prerequisites
-
-- Terragrunt
-- Terraform 
-- Access to Cloud City AWS account
-- An AWS profile configured with the `role_arn` set to the "terragrunter" role ARN in the `infra` account.  Set this as your default profile.
+- [First-time environment setup](_doc/setup.md)
+- [How Terragrunt and IaC are used in this repo](_doc/iac_organization.md)
+- [Making changes with Terragrunt](_doc/iac_usage.md)
 
 ## Quick Start
 
-1. Navigate to desired environment and service:
-    ```bash
-    cd dev/s3
-    ```
+1. [Set up your environment](_doc/setup.md).
+2. Navigate to the `OPR` account's `monitoring` configuration: `cd opr/platform/monitoring`
+3. Initialize Terragrunt: `bespinctl iac terragrunt run-all init`
+4. Review changes: `bespinctl iac terragrunt run-all plan`
+5. Apply changes (only after MR review by other engineers): `bespinctl iac terragrunt apply`
 
-1. Initialize Terragrunt:
-    ```bash
-    terragrunt init
-    ```
+# Repository Organization
 
-1. Review changes:
-    ```bash
-    terragrunt plan
-    ```
+There are several classes of files/folders at the top of this repository, which fit into the following rough categories:
 
-1. Apply changes:
-    ```bash
-    terragrunt apply
-    ```
+- Top-level [terragrunt Cloud City per-account folders](_doc/iac_organization.md).
+- Aspirational "someday" folders that will eventually be promoted to top-level Terragrunt per-account folders once the accounts they will represent are created.
+- Multi-use terraform/terragrunt "library"-type files used by multiple accounts' IaC systems.
+- Support and configuration assets used by developers and the CI/CD pipeline for performing common tasks (e.g. `.gitlab-ci.yml` or the files that comprise `bespinctl`).
 
-## Environment Configuration
+The roles/use-cases for important top-level resources are below:
 
-### Development (dev)
-
-Current services:
-
-- **S3**: Storage buckets
-  - Versioning enabled
-  - Encryption enabled
-  - Public access blocked
-
-### Remote State
-
-- Backend: AWS S3
-- Bucket: `dos-cloudcity-infra-terraform-state`
-- DynamoDB Table: `dos-cloudcity-infra-terraform-locks`
-- State Path: `<environment>/<service>/terraform.tfstate`
-
-## Common Commands
-
-Validate HCL:
-```bash
-terragrunt hclvalidate
-```
-
-Format HCL:
-```bash
-terragrunt hclfmt
-```
-
-Apply changes to all services in an environment:
-```bash
-cd dev
-terragrunt run-all apply
-```
-
-Destroy a specific service:
-```bash
-cd dev/s3
-terragrunt destroy
-```
-
-Format all Terragrunt files:
-```bash
-terragrunt hclfmt
-```
-
-## Best Practices
-
-1. Always work in the correct environment directory
-1. Review plans before applying
-1. Use consistent naming:
-   - Resources: `<environment>-<service>-<resource>`
-   - Tags: Follow organization standards
-
-## Troubleshooting
-
-Common issues:
-
-1. State Lock Issues
-    ```bash
-    terragrunt force-unlock <LOCK_ID>
-    ```
-
-1. Initialization Failures
-    ```bash
-    terragrunt init --reconfigure
-    ```
-
-### Local or New Account
-
-Account roles and policies need to be created for cross-account management through a pipeline.  Create these resources from a "local" system for new or recreated accounts, then allow a pipeline to manage them after.
-
-1. Comment `assume_role` blocks in [root.hcl](root.hcl) and uncomment `profile`.
-1. Get `infra` account ID and `AWSReservedSSO_AWSAdministratorAccess_*` role arn, then update:
-    1. [infra/platform/gitops/iam/terragrunt/role/iam_role_terragrunter.json](infra/platform/gitops/iam/terragrunt/role/iam_role_terragrunter.json)
-    1. [_envcommon/platform/gitops/iam/terragrunter/iam_role_assume_terragrunter.json](_envcommon/platform/gitops/iam/terragrunter/iam_role_assume_terragrunter.json)
-1. Get account IDs for all accounts and update [infra/platform/gitops/iam/terragrunt/policy/iam_policy_terragrunter.json](infra/platform/gitops/iam/terragrunt/policy/iam_policy_terragrunter.json).
-1. Update `[account]` ID in all `[account]/account.hcl`.
-1. Starting with `infra`, and ending with `infra`, open `bash` in all accounts `[account]/platform/gitops/iam/terragrunter` and perform `Terragrunt` operations:
-    ```bash
-    export AWS_PROFILE=[account]
-    terragrunt run-all init
-    terragrunt run-all plan -out=[account].plan
-    terragrunt run-all apply "[account].plan"
-    terragrunt run-all plan -out=[account].plan
-    terragrunt run-all apply "[account].plan"
-    ```
-1. !! Uncomment/revert the `assume_role` blocks in [root.hcl](root.hcl) and `profile` !!
-1. Configure an AWS profile with the `role_arn` set to the "terragrunter" role ARN in the `infra` account.  Set this as your default profile.
-1. TODO :: setup GitLab steps
-1. TODO :: recreate and push repos to GitLab steps
+| Folder name      | Used For          | Purpose                                                                                                                                                    | AWS Account ID | Language(s)          |
+|------------------|-------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|----------------------|
+| `infra`          | Platform IaC      | IaC code for `Platform-Infra`, the account containing the Platform GitLab instance                                                                         | 381492150796   | Terragrunt/Terraform |
+| `data`           | Tenant IaC        | IaC code for the CCD or "Data-Platform" tenant account                                                                                                     | 976193220746   | Terragrunt/Terraform |
+| `dev`            | Aspirational      | (TODO) IaC for a shared multi-tenant account for development                                                                                               | N/A            | Terragrunt/Terraform |
+| `_envcommon`     | IaC Support Code  | Common Terragrunt files that can be "included" as libraries from other terragrunt folders                                                                  | N/A            | Terragrunt/Terraform |
+| `_tests`         | Developer Support | Procedural tests used to validate infrastructure configuration                                                                                             | N/A            | Python               |
+| `doc`            | Developer Support | Documentation                                                                                                                                              | N/A            | Markdown             |
+| `iva`            | Tenant IaC        | IaC code for the `IVA` (or "Visas") tenant account                                                                                                         | 730335386746   | Terragrunt/Terraform |
+| `logs`           | Platform IaC      | IaC code for `Log Archive`, the account that centrally manages the platform's logs                                                                         | 381492049355   | Terragrunt/Terraform |
+| `management`     | Platform IaC      | IaC code for the AWS Organizations "master" account, named `FPT847 Dept of State Consular Affairs`                                                         | 590183957203   | Terragrunt/Terraform |
+| `network`        | Platform IaC      | IaC code for `Platform-Network`, the account that manages network access for Cloud City                                                                    | 975050075035   | Terragrunt/Terraform |
+| `opr`            | Tenant IaC        | IaC code for the "sandbox" (pre-prod/dev/test/staging) account used by the Online Passport Renewal `OPR3` tenant                                           | 730335639457   | Terragrunt/Terraform |
+| `pqs`            | Tenant IaC        | IaC code for the `PQS` tenant account                                                                                                                      | 034362069573   | Terragrunt/Terraform |
+| `prod`           | Tenant IaC        | IaC code for the `Production`  tenant account (currently used only for `OPR3` production; eventually to be used for other tenants' production deployments) | 390402578610   | Terragrunt/Terraform |
+| `src`            | Developer Support | Support code for `bespinctl` and other Python utilities used in this repo                                                                                  | N/A            | Python               |
+| `staging`        | Aspirational      | (TODO) IaC for a shared multi-tenant account for staging                                                                                                   | N/A            | Terragrunt/Terraform |
+| `subordinateca`  | Platform IaC      | IaC code for the `SubordinateCA` AWS account for platform certificate management                                                                           | 430118816674   | Terragrunt/Terraform |
+| `staging`        | Aspirational      | (TODO) IaC for a shared multi-tenant account for testing                                                                                                   | N/A            | Terragrunt/Terraform |
 
 ## Support
 

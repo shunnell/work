@@ -1,0 +1,30 @@
+{
+    "PolicySourceArn": "",
+    "PolicyInputList": [
+        ""
+    ],
+    "PermissionsBoundaryPolicyInputList": [
+        ""
+    ],
+    "ActionNames": [
+        ""
+    ],
+    "ResourceArns": [
+        ""
+    ],
+    "ResourcePolicy": "",
+    "ResourceOwner": "",
+    "CallerArn": "",
+    "ContextEntries": [
+        {
+            "ContextKeyName": "",
+            "ContextKeyValues": [
+                ""
+            ],
+            "ContextKeyType": "string"
+        }
+    ],
+    "ResourceHandlingOption": "",
+    "MaxItems": 0,
+    "Marker": ""
+}

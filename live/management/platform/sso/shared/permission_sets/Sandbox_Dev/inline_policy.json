@@ -1,0 +1,338 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowSelfManagedServices",
+      "Effect": "Allow",
+      "Action": [
+        "acm:*",
+        "acm-pca:*",
+        "apigateway:*",
+        "cloudfront:*",
+        "cloudfront-keyvaluestore:*",
+        "cloudformation:*",
+        "cloudwatch:*",
+        "databrew:*",
+        "dms:*",
+        "docdb-elastic:*",
+        "dynamodb:*",
+        "ebs:*",
+        "ecr:*",
+        "eks:AccessKubernetesApi",
+        "eks:List*",
+        "eks:Describe*",        
+        "elasticache:*",
+        "elasticloadbalancing:*",
+        "emr-containers:*",
+        "emr-serverless:*",
+        "events:*",
+        "firehose:*",
+        "glue:*",
+        "grafana:*",
+        "kafka:*",
+        "kafkaconnect:*",
+        "kinesis:*",
+        "kms:*",
+        "lakeformation:*",
+        "lambda:*",
+        "logs:*",
+        "mediaimport:*",
+        "opsworks:*",
+        "rds:*",
+        "redshift:*",
+        "route53:*",
+        "s3:*",
+        "s3tables:*",
+        "secretsmanager:*",
+        "sqs:*",
+        "ssm:*",
+        "sns:*",
+        "sts:GetServiceBearerToken",
+        "inspector2:BatchGet*",
+        "athena:*",
+        "datazone:*",
+        "states:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowSandboxDevAthenaAccess",
+      "Effect": "Allow",
+      "Action": [
+        "athena:*"  
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowEC2Tagging",
+      "Action": [
+        "ec2:CreateTags",
+        "ec2:DeleteTags"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenyKMSDecryptUnlessOnBehalfOfAWS",
+      "Action": [
+        "kms:Decrypt", "kms:ReEncrypt*"
+      ],
+      "Effect": "Deny",
+      "Resource": "*",
+      "Condition": {
+        "Null": {
+          "kms:ViaService": true
+        }
+      }
+    },
+    {
+      "Sid": "DenyPublicIPInstanceCreation",
+      "Action": [
+        "ec2:RunInstances"
+      ],
+      "Effect": "Deny",
+      "Resource": "*",
+      "Condition": {
+        "Bool": {
+          "ec2:AssociatePublicIpAddress": "true"
+        }
+      }
+    },
+    {
+      "Sid": "DenyPublicIPModification",
+      "Action": [
+        "ec2:ModifyInstanceAttribute",
+        "ec2:AssociateAddress"
+      ],
+      "Effect": "Deny",
+      "Resource": "arn:aws:ec2:*:*:instance/*",
+      "Condition": {
+        "BoolIfExists": {
+          "ec2:AssociatePublicIpAddress": "true"
+        }
+      }
+    },
+    {
+      "Sid": "DenyEIPAllocation",
+      "Action": [
+        "ec2:AllocateAddress"
+      ],
+      "Effect": "Deny",
+      "Resource": "arn:aws:ec2:*:*:instance/*",
+      "Condition": {
+        "StringEquals": {
+          "ec2:Domain": "vpc"
+        }
+      }
+    },
+    {
+      "Sid": "DenyPublicIPNetworkInterface",
+      "Action": [
+        "ec2:AttachNetworkInterface"
+      ],
+      "Effect": "Deny",
+      "Resource": "arn:aws:ec2:*:*:network-interface/*",
+      "Condition": {
+        "BoolIfExists": {
+          "ec2:AssociatePublicIpAddress": "true"
+        }
+      }
+    },
+    {
+      "Sid": "LimitedEC2Networking",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:AuthorizeSecurityGroup*",
+        "ec2:CreateSecurityGroup",
+        "ec2:DeleteSecurityGroup",
+        "ec2:ModifySecurityGroupRules",
+        "ec2:RevokeSecurityGroup*",
+        "ec2:UpdateSecurityGroupRuleDescriptions*",
+        "ec2:RunInstances",
+        "ec2:CreateNetworkInterface"
+      ],
+      "Resource": [
+        "arn:aws:ec2:*:*:security-group*",
+        "arn:aws:ec2:*:*:security-group-rule*",
+        "arn:aws:ec2:*:*:vpc*"
+      ]
+    },
+    {
+      "Sid": "LimitedEc2",
+      "Effect": "Allow",
+      "Action": "ec2:*",
+      "Resource": [
+        "arn:aws:ec2:*:*:declarative-policies-report*",
+        "arn:aws:ec2:*:*:elastic-gpu*",
+        "arn:aws:ec2:*:*:elastic-inference*",
+        "arn:aws:ec2:*:*:export-image-task*",
+        "arn:aws:ec2:*:*:export-instance-task*",
+        "arn:aws:ec2:*:*:fleet*",
+        "arn:aws:ec2:*:*:group*",
+        "arn:aws:ec2:*:*:image*",
+        "arn:aws:ec2:*:*:import-image-task*",
+        "arn:aws:ec2:*:*:import-snapshot-task*",
+        "arn:aws:ec2:*:*:instance*",
+        "arn:aws:ec2:*:*:instance-event-window*",
+        "arn:aws:ec2:*:*:key-pair*",
+        "arn:aws:ec2:*:*:launch-template*",
+        "arn:aws:ec2:*:*:license-configuration*",
+        "arn:aws:ec2:*:*:network-interface*",
+        "arn:aws:ec2:*:*:placement-group*",
+        "arn:aws:ec2:*:*:replace-root-volume-task*",
+        "arn:aws:ec2:*:*:reserved-instances*",
+        "arn:aws:ec2:*:*:role*",
+        "arn:aws:ec2:*:*:snapshot*",
+        "arn:aws:ec2:*:*:spot-fleet-request*",
+        "arn:aws:ec2:*:*:spot-instances-request*",
+        "arn:aws:ec2:*:*:volume*"
+      ]
+    },
+    {
+      "Sid": "LimitedEc2Subnet",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:ImportInstance",
+        "ec2:ModifyFleet",
+        "ec2:ModifySpotFleetRequest",
+        "ec2:RequestSpotFleet",
+        "ec2:RequestSpotInstances",
+        "ec2:RunInstances",
+        "ec2:CreateNetworkInterface"
+      ],
+      "Resource": "arn:aws:ec2:*:*:subnet*"
+    },
+    {
+      "Sid": "AllowIAMWithAttachedPermissionsBoundary",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole"
+      ],
+      "Resource": [
+        "arn:aws:iam::*:role/sandbox/*",
+        "arn:aws:iam::*:role/sandbox-*"
+      ],
+      "Condition": {
+        "ArnEquals": {
+          "iam:PermissionsBoundary": "arn:aws:iam::*:policy/platform/SandboxPermissionsBoundary"
+        }
+      }
+    },
+    {
+      "Sid": "AllowOIDCProviderForEKSSetup",
+      "Effect": "Allow",
+      "Action": [
+        "iam:AddClientIDToOpenIDConnectProvider",
+        "iam:CreateOpenIDConnectProvider",
+        "iam:DeleteOpenIDConnectProvider",
+        "iam:GetOpenIDConnectProvider",
+        "iam:ListOpenIDConnectProviderTags",
+        "iam:RemoveClientIDFromOpenIDConnectProvider",
+        "iam:TagOpenIDConnectProvider",
+        "iam:UntagOpenIDConnectProvider",
+        "iam:UpdateOpenIDConnectProviderThumbprint"
+      ],
+      "Resource": "arn:aws:iam::*:oidc-provider/oidc.eks.*.amazonaws.com/id/*"
+    },
+    {
+      "Sid": "AllowIAMModifications",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreatePolicy",
+        "iam:CreatePolicyVersion",
+        "iam:DeletePolicy",
+        "iam:DeletePolicyVersion",
+        "iam:SetDefaultPolicyVersion",
+        "iam:TagPolicy",
+        "iam:UntagPolicy",
+        "iam:AttachRolePolicy",
+        "iam:CreateRole",
+        "iam:DeleteRole",
+        "iam:DeleteRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:PutRolePolicy",
+        "iam:TagRole",
+        "iam:UntagRole",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:UpdateRole",
+        "iam:UpdateRoleDescription"
+      ],
+      "Resource": [
+        "arn:aws:iam::*:role/sandbox/*",
+        "arn:aws:iam::*:policy/sandbox/*",
+        "arn:aws:iam::*:role/sandbox-*",
+        "arn:aws:iam::*:policy/sandbox-*"
+      ]
+    },
+    {
+      "Sid": "AllowPassRole",
+      "Effect": "Allow",
+      "Action": "iam:PassRole",
+      "Resource": [
+        "arn:aws:iam::*:role/sandbox/*",
+        "arn:aws:iam::*:role/sandbox-*",
+        "arn:aws:iam::*:role/aws-service-role/*/sandbox*"
+      ]
+    },
+    {
+      "Sid": "AllowInstanceProfileModifications",
+      "Effect": "Allow",
+      "Action": "iam:*",
+      "Resource": "arn:aws:iam::*:instance-profile/*"
+    },
+    {
+      "Sid": "AllowAuditManagerAccess",
+      "Effect": "Allow",
+      "Action": [
+        "auditmanager:CreateAssessment",
+        "auditmanager:GetAccountStatus",
+        "auditmanager:ListAssessmentFrameworks",
+        "auditmanager:GetAssessmentFramework"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowWAFv2",
+      "Effect": "Allow",
+      "Action": [
+        "wafv2:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "DenyPermissionsBoundaryDeletion",
+      "Effect": "Deny",
+      "Action": "iam:DeleteRolePermissionsBoundary",
+      "Resource": "*",
+      "Condition": {
+        "ArnEquals": {
+          "iam:PermissionsBoundary": "arn:aws:iam::*:policy/platform/SandboxPermissionsBoundary"
+        }
+      }
+    },
+    {
+      "Sid": "DenyPermissionBoundaryChange",
+      "Effect": "Deny",
+      "Action": [
+        "iam:CreatePolicyVersion",
+        "iam:DeletePolicyVersion",
+        "iam:DeletePolicy",
+        "iam:AttachRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:SetDefaultPolicyVersion"
+      ],
+      "Resource": "arn:aws:iam::*:policy/platform/SandboxPermissionsBoundary"
+    },
+    {
+      "Sid": "AllowServiceLinkedRoleManagement",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateServiceLinkedRole",
+        "iam:DeleteServiceLinkedRole"
+      ],
+      "Resource": [
+        "arn:aws:iam::*:role/aws-service-role/*.amazonaws.com/*"
+      ]
+    }
+  ]
+}

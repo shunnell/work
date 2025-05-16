@@ -1,0 +1,26 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+      {
+          "Sid": "CloudWatchAccess",
+          "Action": [
+              "cloudwatch:GetDashboard"
+          ],
+          "Effect": "Allow",
+          "Resource": "arn:aws:cloudwatch:*::dashboard:pqs/*"
+        },
+        {
+          "Sid": "DenyPublicIPInstanceCreation",
+          "Action": [
+            "ec2:RunInstances"
+          ],
+          "Effect": "Deny",
+          "Resource": "*",
+          "Condition": {
+            "Bool": {
+              "ec2:AssociatePublicIpAddress": "true"
+            }
+          }
+        }
+  ]
+}

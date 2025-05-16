@@ -1,0 +1,24 @@
+include "root" {
+  path = find_in_parent_folders("root.hcl")
+}
+
+include "account" {
+  path   = find_in_parent_folders("account.hcl")
+  expose = true
+}
+
+dependency "cloudwatch_sharing_target" {
+  config_path = "${get_path_to_repo_root()}/logs/platform/monitoring/cloudwatch_to_splunk_shipment_destinations/aws_client_vpn"
+  mock_outputs = {
+    cloudwatch_destination_arn = "arn:aws:iam::111111111111:sink/12345678-4bf3-4d48-9632-908ca744edd7"
+  }
+}
+
+terraform {
+  source = "${get_path_to_repo_root()}/../modules//monitoring/cloudwatch_log_shipping_source"
+}
+
+inputs = {
+  destination_arn = dependency.cloudwatch_sharing_target.outputs.cloudwatch_destination_arn
+  log_group_arns  = ["arn:aws:logs:us-east-1:381492150796:log-group:client-vpn-log"]
+}

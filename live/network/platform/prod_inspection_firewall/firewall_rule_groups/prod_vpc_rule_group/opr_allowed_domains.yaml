@@ -1,0 +1,5 @@
+allowed_domains:
+  - api.collections.pay.gov
+  - api.usps.com
+  - email.us-east-1.amazonaws.com
+  - pay.gov
