@@ -3,5 +3,5 @@ include "root" {
 }
 
 terraform {
-  source = "${get_repo_root()}/../modules/iam/local_role_data"
+  source = "${get_repo_root()}/../modules/iam//local_role_data"
 }

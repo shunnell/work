@@ -69,6 +69,12 @@ variable "use_cloudwatch_observability" {
   default     = false
 }
 
+variable "use_external_dns" {
+  description = "Whether or not to set up permissions for this IRSA role to use the External DNS addon"
+  type        = bool
+  default     = false
+}
+
 variable "tags" {
   description = "A map of tags to add the the IAM role"
   type        = map(string)

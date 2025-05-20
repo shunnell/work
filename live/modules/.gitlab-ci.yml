@@ -1,10 +1,11 @@
 include:
   - project: "cloud-city/platform/gitlab-templates"
     ref: HEAD
-    file: "templates/iac.yml"
+    file: "templates/iac.gitlab-ci.yml"
 
 stages:
   - setup
+  - validate
   - test
   - dast
 

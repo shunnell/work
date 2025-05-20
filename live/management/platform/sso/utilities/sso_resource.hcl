@@ -11,7 +11,6 @@ dependency "sso_instance" {
 }
 
 inputs = {
-  instance_arn      = dependency.sso_instance.outputs.arn
-  identity_store_id = dependency.sso_instance.outputs.identity_store_id
-  session_duration  = "PT1H"
+  instance_arn     = dependency.sso_instance.outputs.arn
+  session_duration = "PT1H"
 }

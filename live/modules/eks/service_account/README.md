@@ -38,6 +38,7 @@ No requirements.
 | <a name="input_tags"></a> [tags](#input\_tags) | A map of tags to add the the IAM role | `map(string)` | `{}` | no |
 | <a name="input_use_cloudwatch_observability"></a> [use\_cloudwatch\_observability](#input\_use\_cloudwatch\_observability) | Whether or not to set up permissions for this IRSA role to use the CloudWatch observability addon | `bool` | `false` | no |
 | <a name="input_use_cluster_autoscaler"></a> [use\_cluster\_autoscaler](#input\_use\_cluster\_autoscaler) | Whether or not to set up permissions for this IRSA role to use the cluster autoscaler controller | `bool` | `false` | no |
+| <a name="input_use_external_dns"></a> [use\_external\_dns](#input\_use\_external\_dns) | Whether or not to set up permissions for this IRSA role to use the External DNS addon | `bool` | `false` | no |
 | <a name="input_use_load_balancer_controller"></a> [use\_load\_balancer\_controller](#input\_use\_load\_balancer\_controller) | Whether or not to set up permissions for this IRSA role to use the AWS Load Balancer controller | `bool` | `false` | no |
 | <a name="input_use_name_as_iam_role_prefix"></a> [use\_name\_as\_iam\_role\_prefix](#input\_use\_name\_as\_iam\_role\_prefix) | Name of the IRSA role will be distinct (not a prefix) | `bool` | `false` | no |
 

@@ -17,5 +17,6 @@ resource "aws_ssoadmin_application" "vpn" {
 }
 
 output "application_arn" {
-  value = aws_ssoadmin_application.vpn.application_arn
+  description = "ARN of the Application"
+  value       = aws_ssoadmin_application.vpn.application_arn
 }

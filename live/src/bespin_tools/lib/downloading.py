@@ -47,7 +47,7 @@ def first_live_url(urls: Iterable[str]):
 
 def download_file(url, chunk_size=8192) -> BytesIO:
     buffer = BytesIO()
-    with requests.get(url, stream=True) as response:
+    with requests.get(url, stream=True, timeout=1800) as response:
         response.raise_for_status()
         # https://stackoverflow.com/questions/37573483/progress-bar-while-download-file-over-http-with-requests
         total_size = int(response.headers.get("content-length", 0))

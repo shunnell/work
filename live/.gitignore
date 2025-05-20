@@ -4,6 +4,13 @@
 # Terragrunt cache directories
 **/.terragrunt-cache/
 
+# Terraform plans
+/.tfplan_json/
+/.tfplan/
+**/tfplan.json
+
+/changed_dirs.txt
+
 # .tfstate files
 *.tfstate
 *.tfstate.*
@@ -40,7 +47,7 @@ terraform.rc
 
 # Local scripts
 **/*.sh
-!scripts/*.sh
+!/_scripts/*.sh
 
 # Modules - maybe for ci/cd
 /__modules

@@ -45,6 +45,9 @@ module "irsa_role" {
 
   # LBC stuff:
   attach_load_balancer_controller_policy = var.use_load_balancer_controller
+
+  # External-DNS stuff:
+  attach_external_dns_policy = var.use_external_dns
 }
 
 # Creates Service account and points to above irsa role

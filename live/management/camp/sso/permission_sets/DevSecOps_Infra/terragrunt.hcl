@@ -12,4 +12,4 @@ include "infra_permission_set" {
 
 inputs = {
   tenant_subgroup_name = "DevSecOps"
-} 
+}

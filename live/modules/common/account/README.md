@@ -23,6 +23,7 @@ No requirements.
 | <a name="module_sandbox_permissions_boundary"></a> [sandbox\_permissions\_boundary](#module\_sandbox\_permissions\_boundary) | ../../iam/policy | n/a |
 | <a name="module_support_access_role"></a> [support\_access\_role](#module\_support\_access\_role) | ../../iam/role | n/a |
 | <a name="module_tenant_baseline"></a> [tenant\_baseline](#module\_tenant\_baseline) | ../../monitoring/tenant_baseline | n/a |
+| <a name="module_wiz"></a> [wiz](#module\_wiz) | ../../wiz | n/a |
 
 ## Resources
 
@@ -60,4 +61,6 @@ No requirements.
 | Name | Description |
 |------|-------------|
 | <a name="output_quotas"></a> [quotas](#output\_quotas) | n/a |
+| <a name="output_wiz_role_arn"></a> [wiz\_role\_arn](#output\_wiz\_role\_arn) | n/a |
+| <a name="output_wiz_user_arn"></a> [wiz\_user\_arn](#output\_wiz\_user\_arn) | n/a |
 <!-- END_TF_DOCS -->

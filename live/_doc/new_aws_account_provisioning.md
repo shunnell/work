@@ -49,6 +49,7 @@ These steps run a special terragrunt operation to provision just the `terragrunt
 
 # 5. Apply account baseline configuration and final cleanup
 
+1. Add an entry to the `.account_groups` GitLab template in [.gitlab-ci.yml](../.gitlab-ci.yml) with the same value as the `[ACCOUNT_NAME]`; as well as the associated subdirectory in [infra](../infra) and [management](../management).
 1. Plan and apply all IaC in `[ACCOUNT_NAME]/platform/common`. 
     - This will do a lot, and will take awhile. It's also not uncommon for "cold start" issues to be discovered here: cases where the complex code in `common` broke previously in ways that only become evident when applying it to a brand new account. Some fixes may be necessary.
 1. (optional) to ensure that SSO-related stuff beyond the platform team's access is fully configured, plan and apply all IaC in the `management/` top-level folder. This may take a very long time.

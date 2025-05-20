@@ -17,7 +17,6 @@ module "argocd" {
   recreate_pods = true
   timeout       = 1200 # Provisioning AWS NLBs takes ages.
   depends_on = [
-    module.external_secrets,
     module.awslbc,
   ]
 

@@ -41,6 +41,7 @@ No requirements.
 | <a name="module_argocd"></a> [argocd](#module\_argocd) | ../../helm | n/a |
 | <a name="module_awslbc"></a> [awslbc](#module\_awslbc) | ../../helm | n/a |
 | <a name="module_awslbc_irsa_role"></a> [awslbc\_irsa\_role](#module\_awslbc\_irsa\_role) | ../service_account | n/a |
+| <a name="module_external_dns_irsa_role"></a> [external\_dns\_irsa\_role](#module\_external\_dns\_irsa\_role) | ../service_account | n/a |
 | <a name="module_external_secrets"></a> [external\_secrets](#module\_external\_secrets) | ../../helm | n/a |
 
 ## Resources

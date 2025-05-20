@@ -88,9 +88,9 @@ data "aws_iam_policy_document" "terragrunter" {
       # IAM principals or reserved instances are not things BESPIN supports at this time, so terragrunter isn't allowed
       # to do them as a "hey, looks like you're making a mistake, please don't" guardrail for Platform staff.
       "ec2:*ReservedInstances*",
-      "iam:*Group*",
-      "iam:*Login*",
-      "iam:*User*",
+      # "iam:*Group*",
+      # "iam:*Login*",
+      # "iam:*User*",
     ]
     resources = ["*"]
   }

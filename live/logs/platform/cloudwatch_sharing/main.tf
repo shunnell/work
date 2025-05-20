@@ -5,7 +5,10 @@
 
 # Only one constant input variable = no need for separate inputs.tf. If more inputs are ever added, split this out into
 # a new file.
-variable "aws_organization_id" { type = string }
+variable "aws_organization_id" {
+  description = "ID of AWS Organization"
+  type        = string
+}
 
 # The below terraform does exactly what the official AWS cloudwatch log centralization (UCAS) docs suggest:
 # https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Unified-Cross-Account-Setup.html#Unified-Cross-Account-Setup-TemplateOrURL
@@ -25,7 +28,8 @@ resource "aws_oam_sink" "cloudwatch_sink" {
 }
 
 output "logging_account_oam_sink_id" {
-  value = aws_oam_sink.cloudwatch_sink.id
+  description = "ID for Cloudwatch Sink"
+  value       = aws_oam_sink.cloudwatch_sink.id
 }
 
 # This policy is derived from the one created by the AWS UCAS docs linked above; its default policy looks exactly like

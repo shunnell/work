@@ -11,7 +11,9 @@ include "runner_fleet" {
 }
 
 inputs = {
-  builder_volume = "10Gi"
+  # maximum timeout = 24h
+  builder_volume = "100Gi"
+  builder_memory = "3Gi"
   # Make sure the IAM role used inside the cluster matches the name of the role that the infra/gitops IAM code allows
   # terragrunter to assume. We're not having the terragrunter IAM IaC code depend on this module because the IAM for
   # terragrunter is "bootstrap phase" code that we want to be able to run before anything else (including EKS/GitLab) is
@@ -21,5 +23,5 @@ inputs = {
   # means of keeping them in sync.
   # If other teams need to set up special assumption policies for their runners' role, they should do that normally
   # by setting a dependency on the instantion of "runner_fleet" for that team and using that module's outputs.
-  # TODO : ../../../common/terragrunter
+  # ../../common/terragrunter
 }

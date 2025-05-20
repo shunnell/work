@@ -181,6 +181,9 @@ resource "aws_organizations_policy" "deny_sensitive_networking" {
       }
     ]
   })
+  tags = {
+    purpose = "Restrict any operations on sensitive network to Admin-only"
+  }
 }
 
 resource "aws_organizations_policy_attachment" "attach_policy_production" {

@@ -30,7 +30,7 @@ dependency "opr_staging_vpc" {
 
 inputs = {
   name_prefix      = "${local.common_identifier}-opr-rule-group"
-  home_net_cidrs   = ["172.41.0.0/23", dependency.opr_dev_vpc.outputs.vpc_cidr_block, dependency.opr_staging_vpc.outputs.vpc_cidr_block]
+  home_net_cidrs   = [dependency.opr_dev_vpc.outputs.vpc_cidr_block, dependency.opr_staging_vpc.outputs.vpc_cidr_block]
   enable_http_host = true
   allowed_domains  = yamldecode(file("allowed_domains.yaml")).allowed_domains
 }

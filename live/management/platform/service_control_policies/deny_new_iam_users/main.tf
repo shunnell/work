@@ -46,6 +46,9 @@ resource "aws_organizations_policy" "restrict_iam_users" {
       }
     ]
   })
+  tags = {
+    purpose = "Deny New IAM User Creation"
+  }
 }
 
 resource "aws_organizations_policy_attachment" "attach_policy_sandbox" {

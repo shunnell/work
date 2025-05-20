@@ -25,6 +25,9 @@ resource "aws_organizations_policy" "restrict_cloudshell" {
       }
     ]
   })
+  tags = {
+    purpose = "Deny cloudshell access"
+  }
 }
 # Attach SCP to Root or OU
 resource "aws_organizations_policy_attachment" "attach_to_root" {

@@ -1,3 +1,4 @@
 variable "organization_root_id" {
-  type = string
+  description = "ID of the Root Organization"
+  type        = string
 }

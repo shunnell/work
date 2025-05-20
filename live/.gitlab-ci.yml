@@ -1,70 +1,7 @@
 include:
-  - project: "cloud-city/platform/gitlab-templates"
-    ref: HEAD
-    file: "templates/iac.yml"
-
-variables:
-  TG_IAM_ASSUME_ROLE: arn:aws:iam::381492150796:role/terragrunter
-  TG_LOG_LEVEL: info
-  TG_NON_INTERACTIVE: true
-  TG_PROVIDER_CACHE: 1
-
-stages:
-  - detect
-  - generate
-  - test
-  - dast
-  - trigger
-  - summarize
-
-detect_changes:
-  image: $TERRAGRUNT_IMAGE
-  stage: detect
-  script:
-    - git -c http.sslVerify=false fetch --unshallow || true
-    - git -c http.sslVerify=false fetch origin main
-    - chmod +x ./scripts/detect-changed-dirs.sh
-    - bash scripts/detect-changed-dirs.sh > changed_dirs.txt
-  artifacts:
-    paths:
-      - changed_dirs.txt
-
-generate_child_pipeline:
-  stage: generate
-  needs: [detect_changes]
-  artifacts:
-    paths:
-      - .gitlab-ci-generated.yml
-  script:
-    - |
-      cat > .gitlab-ci-generated.yml << EOF
-      stages:
-        - plan
-        - apply
-        - destroy
-      
-      EOF
-    - |
-      while read dir; do
-        job=$(echo $dir | tr '/' '_')
-        cat >> .gitlab-ci-generated.yml << EOF
-      $job-plan:
-        extends: .plan_job_template
-        variables:
-          DIR: $dir
-
-      $job-apply:
-        extends: .apply_job_template
-        variables:
-          DIR: $dir
-        needs: ["$job-plan"]
-
-      $job-destroy:
-        extends: .destroy_job_template
-        variables:
-          DIR: $dir
-        when: manual
-        needs: ["$job-plan"]
-      
-      EOF
-      done < changed_dirs.txt
+  - local: accounts.gitlab-ci.yml
+    rules:
+      - if: ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) && $CI_PIPELINE_SOURCE != 'merge_request_event'
+  - local: changes.gitlab-ci.yml
+    rules:
+      - if: $CI_PIPELINE_SOURCE == 'merge_request_event'

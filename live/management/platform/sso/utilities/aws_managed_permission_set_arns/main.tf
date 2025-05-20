@@ -8,6 +8,7 @@ data "aws_ssoadmin_permission_set" "AWSPowerUserAccess" {
 }
 
 output "AWSPowerUserAccess" {
+  description = "The AWS Power User"
   value = {
     name = data.aws_ssoadmin_permission_set.AWSPowerUserAccess.name
     arn  = data.aws_ssoadmin_permission_set.AWSPowerUserAccess.arn
@@ -20,6 +21,7 @@ data "aws_ssoadmin_permission_set" "AWSAdministratorAccess" {
 }
 
 output "AWSAdministratorAccess" {
+  description = "The AWS Administrator"
   value = {
     name = data.aws_ssoadmin_permission_set.AWSPowerUserAccess.name
     arn  = data.aws_ssoadmin_permission_set.AWSPowerUserAccess.arn

@@ -50,14 +50,6 @@ inputs = {
         destination_cidr_block = "172.16.0.0/12"
         vpc_endpoint_id        = dependency.network_firewall.outputs.endpoint_ids[az].endpoint_id
     }],
-    # Temporary Routes for OPR Sandbox because it's outside of BESPIN CIDR (172.16.0.0/12)
-    # we need to handle it as an exception until we can move it into the BESPIN CIDR
-    [
-      for az, subnet in dependency.public_subnets.outputs.subnets : {
-        route_table_id         = subnet.route_table_id
-        destination_cidr_block = "172.41.0.0/23"
-        vpc_endpoint_id        = dependency.network_firewall.outputs.endpoint_ids[az].endpoint_id
-    }],
     # Private Outbound routes to the firewall
     [
       for az, subnet in dependency.vpc.outputs.private_subnets_by_az : {

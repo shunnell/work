@@ -2,7 +2,7 @@ module "gitlab_runner" {
   source = "../../helm"
 
   release_name  = local.runner_fleet_name
-  repository    = "https://charts.gitlab.io"
+  repository    = "${var.runner_image_registry_root}/helm/gitlab" #"https://charts.gitlab.io"
   chart         = "gitlab-runner"
   namespace     = kubernetes_namespace.fleet_namespace.metadata[0].name
   chart_version = "0.76.0"
@@ -66,16 +66,16 @@ module "gitlab_runner" {
             memory_limit = "${var.builder_memory}"
             memory_request_overwrite_max_allowed = "1Ti"
             memory_limit_overwrite_max_allowed = "1Ti"
+            helper_image = "${var.runner_image_registry_root}/ecr-public/gitlab/gitlab-runner-helper:x86_64-v{{.Chart.AppVersion}}"
+            helper_cpu_request_overwrite_max_allowed = "10"
+            helper_memory_request_overwrite_max_allowed = "1Ti"
+            helper_memory_limit_overwrite_max_allowed = "1Ti"
             service_cpu_request = "${var.service_cpu}"
             service_cpu_request_overwrite_max_allowed = "10"
             service_memory_request = "${var.service_memory}"
             service_memory_limit = "${var.service_memory}"
             service_memory_request_overwrite_max_allowed = "1Ti"
             service_memory_limit_overwrite_max_allowed = "1Ti"
-            helper_image = "${var.runner_image_registry_root}/ecr-public/gitlab/gitlab-runner-helper:x86_64-v{{.Chart.AppVersion}}"
-            helper_cpu_request_overwrite_max_allowed = "10"
-            helper_memory_request_overwrite_max_allowed = "1Ti"
-            helper_memory_limit_overwrite_max_allowed = "1Ti"
             namespace = "{{.Release.Namespace}}"
             privileged = ${var.runner_is_privilaged}
             # Default image used by runner jobs
@@ -90,7 +90,7 @@ module "gitlab_runner" {
               name = "${kubernetes_secret.gitlab_certificate.metadata[0].name}"
               mount_path = "${var.gitlab_certificate_path}"
             [[runners.kubernetes.pod_spec]]
-              # Using PVC instead of [ephemeral storage config](https://docs.gitlab.com/runner/executors/kubernetes/#storage-requests-and-limits)
+              # Using PVC instead of [ephemeral storage config](https://docs.gitlab.com/runner/executors/kubernetes/#create-a-pvc-for-each-build-job-by-modifying-the-pod-spec)
               # because that storage relies on the node volume - this is separate; therefore, more stable
               name = "ephemeral-build-pvc"
               patch = '''
