@@ -1,1 +1,0 @@
-variable runner_eks_cluster_name {type = string}

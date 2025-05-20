@@ -1,1 +1,0 @@
-#Placeholder for platform team terragrunt.hcl
