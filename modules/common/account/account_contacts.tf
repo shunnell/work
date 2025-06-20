@@ -2,6 +2,10 @@
 This module addresses some common Security Hub findings re: account owner and security contacts by uniformly managing
 the contact information here.
 
+[DS AWS Baseline Compliance](https://usdos.sharepoint.com/:x:/r/sites/DS/DS/CTS/TIE/ETD/TSF/_layouts/15/Doc.aspx?sourcedoc=%7B5CE146B0-8725-4F22-BC63-0BE6AB583EE9%7D&file=Amazon%20Web%20Services%20(AWS)%20Foundations%20Security%20Baseline.xlsx8):
+  - AWS-FDN-0001
+  - AWS-FDN-0002
+
 Example control: https://docs.aws.amazon.com/securityhub/latest/userguide/account-controls.html#account-1
 
 Note for posterity: originally, the 4Points contractor that provisioned all the accounts set the contact info below,

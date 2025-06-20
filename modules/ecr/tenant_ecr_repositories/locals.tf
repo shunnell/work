@@ -1,38 +1,26 @@
 locals {
-  repository_path_prefixes = [
-    # TODO legacy breakage: remove once tenants are all publishing/using images in the cloud-city/tenant-name/$image
-    #    hierarchy. Tenants should stop doing this and migrate to the new path, after which old images in those paths
-    #    can be removed and this rule removed:
-    "${var.tenant_name}/*",
-    # TODO legacy breakage; remove once tenants are not publishing to an image at the root of their tenant name. This is
-    #   an antipattern that should never have been allowed; only a few tenants are doing it and should stop, after which
-    #   old images in those paths can be deleted and this rule removed:
-    "cloud-city/${var.tenant_name}",
-    "cloud-city/${var.tenant_name}/*",
-  ]
-  tenant_repository_prefixes = setunion(var.legacy_ecr_repository_names_to_be_migrated, local.repository_path_prefixes)
-  per_repo_pull_policy       = length(module.per_repo_pull_policy) > 0 ? module.per_repo_pull_policy[0].json : "{}"
-  action_types               = toset(["pull", "push", "view"])
+  action_types = toset(["pull", "push", "view", "delete"])
   policy_outputs = { for t in local.action_types : t => {
     arn  = module.identity_policies[t].policy_arn
     path = module.identity_policies[t].policy_path,
     name = module.identity_policies[t].policy_name,
-    json = module.identity_policy_documents[t].json
   } }
-}
-
-module "identity_policy_documents" {
-  for_each     = local.action_types
-  source       = "../access_policy_document"
-  action       = each.key
-  repositories = local.tenant_repository_prefixes
-}
-
-# TODO this entire invocation should be removed if or when tenants are restricted to only publish images from within
-#   CI/CD. Even if that doesn't eventually happen, the legacy paths below should also be cleaned up regardless:
-module "per_repo_pull_policy" {
-  count      = length(var.aws_accounts_with_pull_access) > 0 ? 1 : 0
-  source     = "../access_policy_document"
-  action     = "pull"
-  principals = [for account in var.aws_accounts_with_pull_access : "arn:aws:iam::${account}:root"]
+  pull_through_prefix_to_uri = {
+    # NB: if adding pull-through sources here, prefer the shortest possible descriptive name as a key; see comments in
+    # the repository_creation_template resource in pull_through.tf for more information.
+    "docker"     = "registry-1.docker.io"
+    "ecr-public" = "public.ecr.aws"
+    "github"     = "ghcr.io"
+    "gitlab"     = "registry.gitlab.com"
+    "k8s"        = "registry.k8s.io"
+    "quay"       = "quay.io"
+  }
+  # TODO: hack to support platform-team legacy images, which have a huge list of legacy prefixes from the old pullthrough rules.
+  #   Passing the whole list verbatim hits a policy length limit that can't be raised by AWS, so we do a very crude
+  #   "compression" pass here.
+  legacy_repo_iam_prefixes = var.tenant_name != "platform" ? var.legacy_ecr_repository_names_to_be_migrated : concat(
+    [for prefix in keys(local.pull_through_prefix_to_uri) : "${prefix}/*"],
+    [for repo in var.legacy_ecr_repository_names_to_be_migrated : repo if !anytrue([for prefix in keys(local.pull_through_prefix_to_uri) : startswith(repo, prefix)])]
+  )
+  template_description = "Repositories for Cloud City tenant '${var.tenant_name}'; shared for pull with ${length(var.aws_accounts_with_pull_access)} accounts: ${join(",", var.aws_accounts_with_pull_access)}"
 }

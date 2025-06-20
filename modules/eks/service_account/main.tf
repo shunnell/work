@@ -1,5 +1,5 @@
 module "irsa_role" {
-  source = "git::https://gitlab.cloud-city/terraform-aws-modules/terraform-aws-iam.git//modules/iam-role-for-service-accounts-eks"
+  source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
 
   role_name          = var.use_name_as_iam_role_prefix ? null : var.name
   role_name_prefix   = var.use_name_as_iam_role_prefix ? "irsa-${var.name}" : null
@@ -15,14 +15,19 @@ module "irsa_role" {
   create_role            = true # The default
   # Since we always fully own the role, make destruction more reliable by forcibly detaching policies on destroy:
   force_detach_policies = true
+  # Allow for more complex service account matching with regex patterns
+  assume_role_condition_test = var.assume_role_condition_test
   oidc_providers = {
     default = {
       provider_arn = local.oidc_arn
       namespace_service_accounts = [
-        "${var.namespace}:${var.name}"
+        # This is useful for cases where multiple service accounts in the same namespace
+        # need to use the same IAM role, or when the exact service account name is not known
+        var.assume_role_condition_test == "StringLike" ? "${var.namespace}:*" : "${var.namespace}:${var.name}"
       ]
     }
   }
+
   # Below, we set up specific "pre-made" policies for various common EKS systems.
   # TODO it might be worth assessing whether we want to allow all of those, or whether the variable API of this module
   # should nudge folks towards creating an IRSA role that can only do one thing.

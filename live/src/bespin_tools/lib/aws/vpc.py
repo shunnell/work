@@ -25,8 +25,8 @@ class VPC(AWSDictResource):
         for additional_cidr in self.get('Ipv6CidrBlockAssociationSet', []):
             cidrs[additional_cidr['Ipv6CidrBlock']] = additional_cidr['Ipv6CidrBlockState']['State']
         del cidrs[self['CidrBlock']]
-        yield self['CidrBlock'], "default"
-        yield from cidrs.items()
+        yield self['CidrBlock']
+        yield from cidrs.keys()
 
     @cached_property
     def subnets(self) -> tuple[Subnet]:

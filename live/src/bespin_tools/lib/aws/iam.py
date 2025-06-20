@@ -1,7 +1,10 @@
-from typing import Literal
+from __future__ import annotations
+
+from typing import Literal, TYPE_CHECKING
 from bespin_tools.lib.aws.util import paginate
-from types_boto3_identitystore.client import IdentityStoreClient
-from types_boto3_sso_admin.client import SSOAdminClient
+
+if TYPE_CHECKING:
+    from types_boto3_sso_admin.client import SSOAdminClient
 
 def get_instance_arn(sso_client):
     response = sso_client.list_instances()

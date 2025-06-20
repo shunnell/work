@@ -18,7 +18,7 @@ variable "availability_zones" {
     error_message = "AZ names must be unique"
   }
   validation {
-    condition     = alltrue([for v in var.availability_zones : startswith(v, data.aws_region.current.name)])
+    condition     = alltrue([for v in var.availability_zones : startswith(v, data.aws_region.current.region)])
     error_message = "AZs must all be in the current region"
   }
 }

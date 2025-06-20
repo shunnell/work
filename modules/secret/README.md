@@ -41,5 +41,6 @@ No modules.
 | <a name="output_secret_arn"></a> [secret\_arn](#output\_secret\_arn) | Secret ARN. |
 | <a name="output_secret_id"></a> [secret\_id](#output\_secret\_id) | Secret ID. |
 | <a name="output_secret_id_version"></a> [secret\_id\_version](#output\_secret\_id\_version) | A pipe delimited combination of secret ID and version ID. |
+| <a name="output_secret_name"></a> [secret\_name](#output\_secret\_name) | Secret Name |
 | <a name="output_secret_version_id"></a> [secret\_version\_id](#output\_secret\_version\_id) | Unique identifier of this version of the secret. |
 <!-- END_TF_DOCS -->

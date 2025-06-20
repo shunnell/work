@@ -7,6 +7,22 @@ variable "cluster_name" {
   }
 }
 
+variable "kuberenetes_version" {
+  description = "Kubernetes version to install; change this for existing clusters with care, as upgrades may be disruptive and require changes to cluster workloads"
+  type        = string
+  default     = "1.32"
+}
+
+variable "nodegroup_change_unavailable_percentage" {
+  description = "Percentage of nodes that can be offline during an upgrade. Higher means faster terraform applies, but more potential for temporary workload unavailability"
+  type        = number
+  default     = 75
+  validation {
+    condition     = var.nodegroup_change_unavailable_percentage > 10 && var.nodegroup_change_unavailable_percentage <= 100
+    error_message = "Must be between 10 and 100"
+  }
+}
+
 variable "subnet_ids" {
   description = "Subnet IDs"
   type        = list(string)
@@ -66,9 +82,10 @@ variable "node_groups" {
     max_size = optional(number, null) # for decreasing size
     # Big enough to deploy infrastructure tooling and get started with tenant deployments:
     # preferably, one of https://docs.aws.amazon.com/ec2/latest/instancetypes/ec2-nitro-instances.html
-    instance_type = optional(string, "t3.xlarge")
-    volume_size   = optional(number, 20)
-    labels        = optional(map(string), {})
+    instance_type    = optional(string, "t3.xlarge")
+    volume_size      = optional(number, 20)
+    xvdb_volume_size = optional(number, null) # for EBS volume specified by the AMI
+    labels           = optional(map(string), {})
     security_group_rules = map(object({
       protocol = optional(string)
       type     = string

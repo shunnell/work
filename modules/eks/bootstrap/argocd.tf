@@ -1,5 +1,6 @@
 module "argocd" {
   source       = "../../helm"
+  repository   = "${local.image_path_root}/github/argoproj/argo-helm"
   chart        = "argo-cd"
   namespace    = kubernetes_namespace.namespaces["argocd"].metadata[0].name
   release_name = "argocd"
@@ -7,8 +8,7 @@ module "argocd" {
   # docker hub for redis) are intentional. Argo developers do not have a consistent publication practice
   # for their various components, and as such these values represent the places that can be counted upon to have the
   # appropriate, matching, latest versions of everything.
-  repository    = "${local.image_path_root}/github/argoproj/argo-helm"
-  chart_version = "7.8.8"
+  chart_version = "8.1.0"
   atomic        = true
   force_update  = true
   # The CRDs/application manifests stick around even if ArgoCD itself is removed, so recreate_pods is safe.
@@ -48,7 +48,7 @@ module "argocd" {
         repository: ${local.image_path_root}/github/dexidp/dex
     redis:
       image:
-        repository: ${local.image_path_root}/docker-hub/library/redis
+        repository: ${local.image_path_root}/docker/library/redis
     YAML
   ]
 }

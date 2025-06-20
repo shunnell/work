@@ -32,6 +32,12 @@ variable "iam_policy_arns" {
   default     = []
 }
 
+variable "assume_role_condition_test" {
+  description = "The condition test to use for the assume role policy"
+  type        = string
+  default     = "StringEquals"
+}
+
 variable "create_service_account" {
   description = "Whether to create the Kubernetes service acount that the IRSA role is bound to. Only disable this if the service account is unconditionally created elsewhere (e.g. in a helm chart which cannot disable the creation of its own SA)"
   type        = bool

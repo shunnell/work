@@ -2,17 +2,18 @@ include "root" {
   path = find_in_parent_folders("root.hcl")
 }
 
-terraform {
-  source = "${get_repo_root()}/../modules//ecr/tenant_ecr_repositories"
-}
-
-locals {
-  account_config = read_terragrunt_config("${get_repo_root()}/opr/account.hcl").locals
+include "team_repositories" {
+  path           = "${get_repo_root()}/_envcommon/platform/ecr/team_repositories.hcl"
+  merge_strategy = "deep"
 }
 
 inputs = {
-  tenant_name                   = local.account_config.account
-  aws_accounts_with_pull_access = [local.account_config.account_id]
+  aws_accounts_with_pull_access = [
+    # OPR is the sole tenant with production presence at this time, so prod is added to the list of accounts that can
+    # pull their images. NB: the "deep" merge strategy above results in this value being appended to the input variable
+    # rather than replacing it.
+    read_terragrunt_config("${get_repo_root()}/prod/account.hcl").locals.account_id
+  ]
   legacy_ecr_repository_names_to_be_migrated = [
     "dos-ca-opr-v3-application-repo",
     "dos-ca-opr-v3-helm-chart",
@@ -20,5 +21,7 @@ inputs = {
     "dos-ca-opr-v3-mock-apis-repo",
     "dos-ca-opr-v3-setup-ssl-certs-repo",
     "opr/application/opr-app-python",
+    "cloud-city/dh/mcr.microsoft.com/playwright",
+    "playwright",
   ]
 }

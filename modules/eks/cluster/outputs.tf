@@ -9,13 +9,14 @@ output "cloudwatch_log_group_arn" {
 }
 
 output "access_policy_associations" {
-  description = "Map of eks cluster access policy associations created and their attributes"
-  value       = module.eks.access_policy_associations
-}
-
-output "cluster_arn" {
-  description = "The Amazon Resource Name (ARN) of the cluster"
-  value       = module.eks.cluster_arn
+  description = "Map, keyed by accessing principal, of cluster access policy associations created and their attributes"
+  value = { for v in values(module.eks.access_policy_associations) : v.principal_arn => {
+    policy_arn    = v.policy_arn
+    associated_at = v.associated_at
+    modified_at   = v.modified_at
+    cluster       = anytrue([for s in v.access_scope : (s["type"] == "cluster")])
+    namespaces    = toset(flatten([[for s in v.access_scope : coalesce(s["namespaces"], [])]]))
+  } }
 }
 
 output "cluster_endpoint" {
@@ -74,7 +75,7 @@ output "oidc_provider_arn" {
   description = "The ARN of the OIDC Provider"
 }
 
-output "supported_instance_types" {
-  description = "Instance types supported by this module - reference for the engineer"
-  value       = local.instance_types
+output "eks_managed_node_groups_autoscaling_group_names" {
+  description = "List of the autoscaling group names created by EKS managed node groups"
+  value       = module.eks.eks_managed_node_groups_autoscaling_group_names
 }

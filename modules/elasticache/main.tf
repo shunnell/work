@@ -19,7 +19,6 @@ resource "aws_elasticache_replication_group" "this" {
   description                = var.description
   node_type                  = var.node_type
   engine                     = var.engine
-  num_node_groups            = var.num_node_groups
   security_group_ids         = [module.security_group.id]
   snapshot_retention_limit   = var.snapshot_retention_limit
   tags                       = var.tags
@@ -28,7 +27,8 @@ resource "aws_elasticache_replication_group" "this" {
   at_rest_encryption_enabled = true
   transit_encryption_enabled = true
   auto_minor_version_upgrade = true
-  cluster_mode               = "enabled"
+  num_cache_clusters         = var.num_cache_clusters
+  cluster_mode               = "disabled" # To do cluster mode should be disabled
   transit_encryption_mode    = "required"
   maintenance_window         = "sat:09:00-sat:23:59"
   snapshot_window            = "00:00-08:59"

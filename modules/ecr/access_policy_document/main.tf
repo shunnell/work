@@ -1,6 +1,6 @@
 data "aws_iam_policy_document" "this" {
   statement {
-    sid       = "RegistryCommonAccess"
+    sid       = "${var.action}RegistryCommonAccess"
     actions   = local.common
     resources = length(local.repositories) > 0 ? ["*"] : [] # These permissions don't apply to individual repos
     dynamic "principals" {
@@ -62,11 +62,11 @@ data "aws_iam_policy_document" "this" {
     }
   }
   dynamic "statement" {
-    for_each = var.action == "pull_through" ? [1] : []
+    for_each = var.action == "push" ? [1] : []
     content {
-      sid = "PullThroughAccess"
-      # Pull_through implies pull by definition:
-      actions   = setunion(local.pull, local.pull_through)
+      sid = "PushAccess"
+      # Push always implies pull, since I can't think of any circumstances where that would grant undesired access.
+      actions   = setunion(local.pull, local.push)
       resources = local.repositories
       dynamic "principals" {
         for_each = length(var.principals) > 0 ? [1] : []
@@ -86,9 +86,9 @@ data "aws_iam_policy_document" "this" {
     }
   }
   dynamic "statement" {
-    for_each = var.action == "push" ? [1] : []
+    for_each = var.action == "delete" ? [1] : []
     content {
-      sid = "PushAccess"
+      sid = "DeleteAccess"
       # Push always implies pull, since I can't think of any circumstances where that would grant undesired access.
       actions   = setunion(local.pull, local.push)
       resources = local.repositories

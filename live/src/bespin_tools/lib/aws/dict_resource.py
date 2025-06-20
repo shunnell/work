@@ -41,11 +41,13 @@ class AWSDictResource(ABC, Mapping):
         return hash(self.id)
 
     def __eq__(self, other):
-        assert isinstance(other, type(self)), f"Cannot compare {type(self)} to {type(other)}"
+        if not isinstance(other, type(self)):
+            raise ValueError(f"Cannot compare {type(self)} to {type(other)}")
         return self.id == other.id
 
     def __lt__(self, other):
-        assert isinstance(other, type(self)), f"Cannot compare {type(self)} to {type(other)}"
+        if not isinstance(other, type(self)):
+            raise ValueError(f"Cannot compare {type(self)} to {type(other)}")
         return self.id < other.id
 
     def __getitem__(self, item):

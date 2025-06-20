@@ -13,7 +13,7 @@ terraform {
 dependency "vpc" {
   config_path = "../dev_vpc/vpc"
   mock_outputs = {
-    vpc_id                = "vpc-1"
+    vpc_id                = ""
     private_subnets_by_az = {}
   }
 }
@@ -28,16 +28,19 @@ dependency "cloudwatch_sharing_target" {
 dependency "cloud_city_roles" {
   config_path = "../../cloud_city_roles"
   mock_outputs = {
-    most_privileged_users = []
+    most_privileged_users               = []
+    sso_role_arns_by_permissionset_name = { "Sandbox_Dev" = "" }
   }
 }
 
 inputs = {
-  cluster_name            = local.cluster_name
-  vpc_id                  = dependency.vpc.outputs.vpc_id
-  subnet_ids              = [for _, v in dependency.vpc.outputs.private_subnets_by_az : v.subnet_id]
-  administrator_role_arns = dependency.cloud_city_roles.outputs.most_privileged_users
-
+  cluster_name = local.cluster_name
+  vpc_id       = dependency.vpc.outputs.vpc_id
+  subnet_ids   = [for _, v in dependency.vpc.outputs.private_subnets_by_az : v.subnet_id]
+  administrator_role_arns = concat(
+    dependency.cloud_city_roles.outputs.most_privileged_users,
+    [dependency.cloud_city_roles.outputs.sso_role_arns_by_permissionset_name["Sandbox_Dev"]]
+  )
   node_groups = {
     "${local.cluster_name}-1" = {
       size = 3

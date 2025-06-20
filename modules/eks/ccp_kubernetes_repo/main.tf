@@ -17,7 +17,7 @@ resource "kubernetes_manifest" "kubernetes_repo_application" {
       source:
         repoURL: "${local.repo_url}"
         targetRevision: HEAD
-        path: "_base/_infrastructure"
+        path: "${var.config_path}"
       destination:
         server: https://kubernetes.default.svc
       syncPolicy:

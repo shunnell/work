@@ -1,11 +1,13 @@
+data "aws_caller_identity" "current" {}
+
 module "gitlab_runner" {
   source = "../../helm"
 
   release_name  = local.runner_fleet_name
-  repository    = "${var.runner_image_registry_root}/helm/gitlab" #"https://charts.gitlab.io"
+  repository    = "https://charts.gitlab.io"
   chart         = "gitlab-runner"
   namespace     = kubernetes_namespace.fleet_namespace.metadata[0].name
-  chart_version = "0.76.0"
+  chart_version = "0.77.3"
   # The below invocation should be complete and declarative, so things can be fully replaced:
   force_update = true
   atomic       = true
@@ -17,8 +19,8 @@ module "gitlab_runner" {
     <<-YAML
     image:
       # Default registry used to bootstrap runner pods (not the same as what's used in jobs):
-      registry: ${var.runner_image_registry_root}/ecr-public
-      image: gitlab/gitlab-runner
+      registry: ${var.runner_image_registry_root}
+      image: platform/docker/gitlab/gitlab-runner
       tag: alpine-v{{.Chart.AppVersion}}
     concurrent: ${var.concurrency_jobs_per_pod}
     replicas: ${var.concurrency_pods}
@@ -54,10 +56,26 @@ module "gitlab_runner" {
     runners:
       config: |
         [[runners]]
-          builds_dir = "${var.builds_dir}"
+          builds_dir = "${local.builds_dir}"
           # 'FF_USE_ADVANCED_POD_SPEC_CONFIGURATION' enables overwritting pod spec to add ephemeral PVC
           #     https://docs.gitlab.com/runner/executors/kubernetes/#overwrite-generated-pod-specifications
-          environment = ["FF_USE_ADVANCED_POD_SPEC_CONFIGURATION=true"]
+          environment = [
+            "FF_USE_ADVANCED_POD_SPEC_CONFIGURATION=true",
+            "FF_SCRIPT_SECTIONS=true",
+            "CLOUD_CITY_TENANT=${var.tenant_name}",
+            "CLOUD_CITY_CONTAINER_REGISTRY_ROOT=${var.runner_image_registry_root}",
+            "CLOUD_CITY_CONTAINER_REGISTRY=${var.runner_image_registry_root}/${var.tenant_name}",
+            "CLOUD_CITY_PLATFORM_AWS_ACCOUNT_ID=${data.aws_caller_identity.current.account_id}",
+            "TMPDIR=${local.tmp_dir}",
+          ]
+          # Many containers need tmp to have specific permissions, including the sticky bit set. Since different runner
+          # jobs can potentially have different users (depending on the image and the securityContext.fsGroup), there's
+          # not a Kubernetes-native way to force the volume mount to have the right perms without potentially breaking
+          # or contradicting some containers' behavior and expectation. Instead, we do a non-recursive chmod on /tmp
+          # in order to fix the issue. An example of a container that requires this behavior is
+          # 'docker/library/python:3.12.10-slim'. To observe the failure, run `apt-get update` in a build against that
+          # container with and without the below line.
+          pre_build_script = "chmod 1777 '${local.tmp_dir}'"
           [runners.kubernetes]
             # cpu and memory to maximize stability
             cpu_request = "${var.builder_cpu}"
@@ -66,7 +84,7 @@ module "gitlab_runner" {
             memory_limit = "${var.builder_memory}"
             memory_request_overwrite_max_allowed = "1Ti"
             memory_limit_overwrite_max_allowed = "1Ti"
-            helper_image = "${var.runner_image_registry_root}/ecr-public/gitlab/gitlab-runner-helper:x86_64-v{{.Chart.AppVersion}}"
+            helper_image = "${var.runner_image_registry_root}/platform/docker/gitlab/gitlab-runner-helper:x86_64-v{{.Chart.AppVersion}}"
             helper_cpu_request_overwrite_max_allowed = "10"
             helper_memory_request_overwrite_max_allowed = "1Ti"
             helper_memory_limit_overwrite_max_allowed = "1Ti"
@@ -79,7 +97,8 @@ module "gitlab_runner" {
             namespace = "{{.Release.Namespace}}"
             privileged = ${var.runner_is_privilaged}
             # Default image used by runner jobs
-            image = "${var.runner_image_registry_root}/ecr-public/docker/library/alpine"
+            # TODO change this once we have a canonical default runner image
+            image = "${var.runner_image_registry_root}/${var.tenant_name}/docker/library/alpine"
             # Credentials used by jobs (not just runner pods)
             service_account = "${module.runner_iam_role.service_account_name}"
             [[runners.kubernetes.volumes.secret]]
@@ -90,6 +109,22 @@ module "gitlab_runner" {
               name = "${kubernetes_secret.gitlab_certificate.metadata[0].name}"
               mount_path = "${var.gitlab_certificate_path}"
             [[runners.kubernetes.pod_spec]]
+              # Since build code can write anywhere in the build container and use up shared ephemeral storage on the
+              # runner nodes, we can restrict writes to only go to the ephemeral, cleaned-up-after-each-job volumes we
+              # provision below by mounting the container's filesystem as read-only. Doing this gives users whose code
+              # writes to shared storage a form of "early warning" that they need to fix their builds to write under
+              # the /builds mountpoint so as not to eventually cause problems for other tenants due to full disks.
+              # We don't use the chart-level podSecurityContext variable because it doesn't support the
+              # readOnlyRootFilesystem yet; that may change in a future enhancement by GitLab.
+              name = "build-root-read-only"
+              patch = '''
+                  containers:
+                  - name: build
+                    securityContext:
+                      readOnlyRootFilesystem: ${var.read_only_root}
+                '''
+              patch_type = "strategic"
+            [[runners.kubernetes.pod_spec]]
               # Using PVC instead of [ephemeral storage config](https://docs.gitlab.com/runner/executors/kubernetes/#create-a-pvc-for-each-build-job-by-modifying-the-pod-spec)
               # because that storage relies on the node volume - this is separate; therefore, more stable
               name = "ephemeral-build-pvc"
@@ -98,20 +133,26 @@ module "gitlab_runner" {
                 - name: build
                   volumeMounts:
                   - name: builds
-                    mountPath: ${var.builds_dir}
+                    mountPath: "${local.builds_dir}"
+                    subPath: "${trim(local.builds_dir, "/")}"
+                  - name: builds
+                    mountPath: "${local.tmp_dir}"
+                    subPath: "${trim(local.tmp_dir, "/")}"
                 - name: helper
                   volumeMounts:
                   - name: builds
-                    mountPath: ${var.builds_dir}
+                    mountPath: "${local.builds_dir}"
+                    subPath: "${trim(local.builds_dir, "/")}"
                 volumes:
                 - name: builds
                   ephemeral:
                     volumeClaimTemplate:
                       spec:
+                        storageClassName: "${kubernetes_storage_class.runner_ebs_sc.metadata[0].name}"
                         accessModes: [ ReadWriteOnce ]
                         resources:
                           requests:
-                            storage: ${var.builder_volume}
+                            storage: "${var.scratch_space_size_gb}Gi"
               '''
           # Ref: https://docs.gitlab.com/runner/configuration/advanced-configuration.html#the-runnerscaches3-section
           [runners.cache]

@@ -27,4 +27,5 @@ inputs = {
   k8s_repo_secret_name      = local.repo_secret.name
   k8s_repo_secret_user_key  = local.repo_secret.user_key
   k8s_repo_secret_token_key = local.repo_secret.token_key
+  config_path               = "infra/sandbox"
 }

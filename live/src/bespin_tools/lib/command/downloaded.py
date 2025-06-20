@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import itertools
 import platform
 import shutil
@@ -14,6 +15,7 @@ from packaging.version import Version
 from bespin_tools.lib.cache import cached_binary
 from bespin_tools.lib.command.base import BaseCommand
 from bespin_tools.lib.downloading import download_file, first_live_url, decompressors
+from bespin_tools.lib.errors import BespinctlError
 from bespin_tools.lib.util import WINDOWS
 
 
@@ -43,7 +45,10 @@ class DownloadedCommand(BaseCommand):
         for specifier in self.version_constraints:
             if specifier.version in self.version_constraints:
                 versions.append(Version(specifier.version))
-        assert len(versions), f"No valid versions exist in constraint {self.version_constraints}; version_constraints must be set to a valid value"
+        BespinctlError.invariant(
+            len(versions) > 0,
+            f"No valid versions exist in constraint {self.version_constraints}; version_constraints must be set to a valid value"
+        )
         versions.sort(reverse=True)  # Start with highest version
         return tuple(versions)
 
@@ -62,7 +67,10 @@ class DownloadedCommand(BaseCommand):
             architectures = ['arm64']  # TODO?
 
         for osname, arch, version, suffix in set(itertools.product(osnames, architectures, self._candidate_versions(), suffixes)):
-            assert isinstance(version, Version), f"Only Version objects are allowed for {type(self)}; got {version}"
+            BespinctlError.invariant(
+                isinstance(version, Version),
+                f"Only Version objects are allowed for {type(self)}; got {type(version)} {version}",
+            )
             yield self.source_uri_template.format(
                 name=self.name,
                 os=osname,
@@ -73,7 +81,7 @@ class DownloadedCommand(BaseCommand):
 
     def _download_best_and_decompress(self, target: Path):
         # Retrieve the local file path from the URL, e.g. https://foo.com/bar.zip -> bar.zip
-        url = first_live_url(self._candidate_urls())
+        url = asyncio.run(first_live_url(self._candidate_urls()))
         remote_name = Path(unquote(urlparse(url).path)).name
         for extension, decompressor in decompressors():
             if remote_name.endswith(extension):

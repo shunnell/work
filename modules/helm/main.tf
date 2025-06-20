@@ -2,6 +2,8 @@ terraform {
   required_providers {
     helm = {
       source = "hashicorp/helm"
+      # TODO : Upgrade to 3.x
+      version = "2.17.0"
     }
   }
 }

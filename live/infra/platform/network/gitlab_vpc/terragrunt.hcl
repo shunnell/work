@@ -18,6 +18,13 @@ dependency "cloudwatch_sharing_target" {
   }
 }
 
+dependency "route53_profile" {
+  config_path = "${get_path_to_repo_root()}/network/platform/route53"
+  mock_outputs = {
+    profile_id = ""
+  }
+}
+
 inputs = {
   vpc_name                     = "dos-devsecops-vpc"
   vpc_cidr                     = include.vpn_vars.locals.dso_cidr_block
@@ -55,4 +62,5 @@ inputs = {
     "autoscaling",
     "secretsmanager",
   ]
+  profile_id = dependency.route53_profile.outputs.profile_id
 }

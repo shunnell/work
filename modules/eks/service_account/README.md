@@ -14,7 +14,7 @@ No requirements.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_irsa_role"></a> [irsa\_role](#module\_irsa\_role) | git::https://gitlab.cloud-city/terraform-aws-modules/terraform-aws-iam.git//modules/iam-role-for-service-accounts-eks | n/a |
+| <a name="module_irsa_role"></a> [irsa\_role](#module\_irsa\_role) | terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks | n/a |
 
 ## Resources
 
@@ -28,6 +28,7 @@ No requirements.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_assume_role_condition_test"></a> [assume\_role\_condition\_test](#input\_assume\_role\_condition\_test) | The condition test to use for the assume role policy | `string` | `"StringEquals"` | no |
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | EKS Cluster name (required by terraform provider setup even if not used by this module) | `string` | n/a | yes |
 | <a name="input_create_service_account"></a> [create\_service\_account](#input\_create\_service\_account) | Whether to create the Kubernetes service acount that the IRSA role is bound to. Only disable this if the service account is unconditionally created elsewhere (e.g. in a helm chart which cannot disable the creation of its own SA) | `bool` | `true` | no |
 | <a name="input_description"></a> [description](#input\_description) | Description of the purpose of this role | `string` | `""` | no |

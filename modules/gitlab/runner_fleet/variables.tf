@@ -54,12 +54,18 @@ variable "gitlab_secret_id" {
   type        = string
 }
 
-variable "runner_fleet_name" {
+variable "tenant_name" {
+  description = "Name of the tenant whose jobs run on these runners"
   type        = string
-  description = "The string name of a runner fleet deployment. Must be unique across the account."
+}
+
+variable "runner_fleet_name_suffix" {
+  type        = string
+  description = "Suffix to be added to var.tenant name to identify resources related to these runners. $tenant_name-$runner_fleet_name_suffix must be globally unique in the account"
+  default     = "default"
   validation {
-    condition     = length(var.runner_fleet_name) > 0
-    error_message = "Must be a non-empty string"
+    condition     = can(regex("^\\w+$", var.runner_fleet_name_suffix))
+    error_message = "Must be set to a non-empty string containing no spaces"
   }
 }
 
@@ -107,14 +113,20 @@ variable "builder_memory" {
   }
 }
 
-variable "builder_volume" {
-  description = "Ephemeral volume size for runner main"
-  default     = "1Gi"
-  type        = string
+variable "scratch_space_size_gb" {
+  description = "Scratch space size that will be mounted at /builds"
+  default     = 6
+  type        = number
   validation {
-    condition     = can(regex("^[0-9]+(k|Ki|(G|M|T|P|E)i?)?$", var.builder_volume))
-    error_message = "'builder_volume' must be valid kubernetes quantity - https://kubernetes.io/docs/reference/kubernetes-api/common-definitions/quantity/"
+    condition     = var.scratch_space_size_gb >= 6
+    error_message = "Must be at least 6GB"
   }
+}
+
+variable "read_only_root" {
+  description = "If true, mount the filesystem in the root container as read-only. Only /builds (and a few other log/cache folders) will be read-write. This prevents ephemeral storage exhaustion by code that writes outside of /builds."
+  default     = false
+  type        = bool
 }
 
 variable "service_cpu" {
@@ -161,10 +173,4 @@ variable "code_artifact_repos" {
     ])
     error_message = "Each ARN must be a valid AWS ARN for a CodeArtifact respository or package"
   }
-}
-
-variable "builds_dir" {
-  description = "Custom directory for build home.  Match with `gitlab-templates/templates/common.yml`"
-  type        = string
-  default     = "/builds"
 }

@@ -7,7 +7,7 @@ terraform {
 }
 
 locals {
-  staging_vpc_vars = read_terragrunt_config(find_in_parent_folders("staging_vpc.hcl"))
+  vpc_vars = read_terragrunt_config(find_in_parent_folders("staging_vpc.hcl")).locals
 }
 
 dependency "firewall_subnets" {
@@ -20,8 +20,8 @@ dependency "firewall_subnets" {
 inputs = {
   routes = [for subnet in values(dependency.firewall_subnets.outputs.subnets) : {
     route_table_id         = subnet.route_table_id
-    destination_cidr_block = local.staging_vpc_vars.locals.vpc_cidr_block
-    transit_gateway_id     = local.staging_vpc_vars.locals.transit_gateway_id
+    destination_cidr_block = local.vpc_vars.vpc_cidr_block
+    transit_gateway_id     = local.vpc_vars.transit_gateway_id
   }]
 }
 
@@ -30,9 +30,9 @@ generate "provider_override" {
   if_exists = "overwrite_terragrunt"
   contents  = <<-EOF
     provider "aws" {
-      region = "us-east-1"
+      region = "${local.vpc_vars.region}"
       assume_role {
-        role_arn = "${local.staging_vpc_vars.locals.network_terragrunter_role_arn}"
+        role_arn = "${local.vpc_vars.network_terragrunter_role_arn}"
       }
     }
   EOF

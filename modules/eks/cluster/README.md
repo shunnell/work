@@ -20,73 +20,7 @@ Ensure that there is:
 Create and enter a directory in the `live` repository:
 `<account>/<team>/<product>/<cluster-name>_eks`
 
-Create a `terragrunt.hcl` file:
-```h
-include "root" {
-  path = find_in_parent_folders("root.hcl")
-}
-
-locals {
-  cluster_name = "<cluster_name>"
-  vpn_cidr_block = "<vpn_cidr_block>"
-}
-
-terraform {
-  source = "${get_repo_root()}/../modules//eks/cluster"
-}
-
-dependency "vpc" {
-  config_path = "../admin_vpc/vpc"
-  mock_outputs = {
-    vpc_id                = "vpc-1"
-    private_subnets_by_az = {}
-  }
-}
-
-dependency "cloudwatch_sharing_target" {
-  config_path = "${get_path_to_repo_root()}/logs/platform/monitoring/cloudwatch_to_splunk_shipment_destinations/eks"
-  mock_outputs = {
-    cloudwatch_destination_arn = "arn:aws:iam::111111111111:sink/12345678-4bf3-4d48-9632-908ca744edd7"
-  }
-}
-
-dependency "cloud_city_roles" {
-  config_path = "../../cloud_city_roles"
-  mock_outputs = {
-    most_privileged_users = []
-  }
-}
-
-inputs = {
-  cluster_name            = local.cluster_name
-  vpc_id                  = dependency.vpc.outputs.vpc_id
-  subnet_ids              = [for _, v in dependency.vpc.outputs.private_subnets_by_az : v.subnet_id]
-  administrator_role_arns = dependency.cloud_city_roles.outputs.most_privileged_users
-
-  node_groups = {
-    "${local.cluster_name}-general" = {
-      size = 3
-      security_group_rules = {
-        "VPN access" = {
-          type   = "ingress"
-          ports  = [443]
-          target = local.vpn_cidr_block
-        }
-      }
-    }
-  }
-
-  cloudwatch_log_shipping_destination_arn = dependency.cloudwatch_sharing_target.outputs.cloudwatch_destination_arn
-
-  cluster_security_group_rules = {
-    "VPN access" = {
-      type   = "ingress"
-      ports  = [443]
-      target = local.vpn_cidr_block
-    }
-  }
-}
-```
+Create a `terragrunt.hcl` file following the example of another cluster.
 
 ## Initialize and plan using Terragrunt
 
@@ -196,7 +130,7 @@ No requirements.
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_cluster_security_group"></a> [cluster\_security\_group](#module\_cluster\_security\_group) | ../../network/security_group | n/a |
-| <a name="module_eks"></a> [eks](#module\_eks) | git::https://gitlab.cloud-city/terraform-aws-modules/terraform-aws-eks.git | n/a |
+| <a name="module_eks"></a> [eks](#module\_eks) | terraform-aws-modules/eks/aws | n/a |
 | <a name="module_log_shipping"></a> [log\_shipping](#module\_log\_shipping) | ../../monitoring/cloudwatch_log_shipping_source | n/a |
 | <a name="module_node_security_groups"></a> [node\_security\_groups](#module\_node\_security\_groups) | ../../network/security_group | n/a |
 
@@ -216,7 +150,9 @@ No requirements.
 | <a name="input_cloudwatch_log_shipping_destination_arn"></a> [cloudwatch\_log\_shipping\_destination\_arn](#input\_cloudwatch\_log\_shipping\_destination\_arn) | ARN to ship CloudWatch logs generated in this cluster to (usually in a remote account for subsequent shipment to splunk). Temporarily allowed to be null, in which case logs will not be shipped, just stored locally. | `string` | n/a | yes |
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | EKS Cluster | `string` | n/a | yes |
 | <a name="input_cluster_security_group_rules"></a> [cluster\_security\_group\_rules](#input\_cluster\_security\_group\_rules) | Additional custom security group rules for the cluster control plane; should be a list of fields accepted by modules/network/security\_group\_traffic. Rules required for EKS operation and connection to VPC endpoints are automatically created and should not be specified. | <pre>map(object({<br/>    protocol = optional(string)<br/>    type     = string<br/>    ports    = list(number)<br/>    target   = string<br/>    // create_explicit_egress_to_target_security_group intentionally omitted; it is handled automatically internally for the cluster.<br/>  }))</pre> | n/a | yes |
-| <a name="input_node_groups"></a> [node\_groups](#input\_node\_groups) | Map of Node Group objects, each of which may | <pre>map(object({<br/>    # TODO if we ever use node autoscaling, this can be broadened to allow either a number (static size) or a tuple/map of min/desired/max:<br/>    size     = number<br/>    min_size = optional(number, null) # for increasing size<br/>    max_size = optional(number, null) # for decreasing size<br/>    # Big enough to deploy infrastructure tooling and get started with tenant deployments:<br/>    # preferably, one of https://docs.aws.amazon.com/ec2/latest/instancetypes/ec2-nitro-instances.html<br/>    instance_type = optional(string, "t3.xlarge")<br/>    volume_size   = optional(number, 20)<br/>    labels        = optional(map(string), {})<br/>    security_group_rules = map(object({<br/>      protocol = optional(string)<br/>      type     = string<br/>      ports    = list(number)<br/>      target   = string<br/>      # create_explicit_egress_to_target_security_group intentionally omitted and defaults to false, as the third party<br/>      # EKS module sets up an all-outbound rule.<br/>    }))<br/>    additional_iam_policy_arns = optional(list(string), [])<br/>  }))</pre> | n/a | yes |
+| <a name="input_kuberenetes_version"></a> [kuberenetes\_version](#input\_kuberenetes\_version) | Kubernetes version to install; change this for existing clusters with care, as upgrades may be disruptive and require changes to cluster workloads | `string` | `"1.32"` | no |
+| <a name="input_node_groups"></a> [node\_groups](#input\_node\_groups) | Map of Node Group objects, each of which may | <pre>map(object({<br/>    # TODO if we ever use node autoscaling, this can be broadened to allow either a number (static size) or a tuple/map of min/desired/max:<br/>    size     = number<br/>    min_size = optional(number, null) # for increasing size<br/>    max_size = optional(number, null) # for decreasing size<br/>    # Big enough to deploy infrastructure tooling and get started with tenant deployments:<br/>    # preferably, one of https://docs.aws.amazon.com/ec2/latest/instancetypes/ec2-nitro-instances.html<br/>    instance_type    = optional(string, "t3.xlarge")<br/>    volume_size      = optional(number, 20)<br/>    xvdb_volume_size = optional(number, null) # for EBS volume specified by the AMI<br/>    labels           = optional(map(string), {})<br/>    security_group_rules = map(object({<br/>      protocol = optional(string)<br/>      type     = string<br/>      ports    = list(number)<br/>      target   = string<br/>      # create_explicit_egress_to_target_security_group intentionally omitted and defaults to false, as the third party<br/>      # EKS module sets up an all-outbound rule.<br/>    }))<br/>    additional_iam_policy_arns = optional(list(string), [])<br/>  }))</pre> | n/a | yes |
+| <a name="input_nodegroup_change_unavailable_percentage"></a> [nodegroup\_change\_unavailable\_percentage](#input\_nodegroup\_change\_unavailable\_percentage) | Percentage of nodes that can be offline during an upgrade. Higher means faster terraform applies, but more potential for temporary workload unavailability | `number` | `75` | no |
 | <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | Subnet IDs | `list(string)` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to the EKS cluster | `map(string)` | `{}` | no |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC ID | `string` | n/a | yes |
@@ -226,17 +162,16 @@ No requirements.
 | Name | Description |
 |------|-------------|
 | <a name="output_access_entries"></a> [access\_entries](#output\_access\_entries) | Map of access entries created and their attributes |
-| <a name="output_access_policy_associations"></a> [access\_policy\_associations](#output\_access\_policy\_associations) | Map of eks cluster access policy associations created and their attributes |
+| <a name="output_access_policy_associations"></a> [access\_policy\_associations](#output\_access\_policy\_associations) | Map, keyed by accessing principal, of cluster access policy associations created and their attributes |
 | <a name="output_cloudwatch_log_group_arn"></a> [cloudwatch\_log\_group\_arn](#output\_cloudwatch\_log\_group\_arn) | Arn of cloudwatch log group created - cluster logs |
-| <a name="output_cluster_arn"></a> [cluster\_arn](#output\_cluster\_arn) | The Amazon Resource Name (ARN) of the cluster |
 | <a name="output_cluster_endpoint"></a> [cluster\_endpoint](#output\_cluster\_endpoint) | Endpoint for your Kubernetes API server |
 | <a name="output_cluster_iam_role_arn"></a> [cluster\_iam\_role\_arn](#output\_cluster\_iam\_role\_arn) | Cluster IAM role ARN |
 | <a name="output_cluster_name"></a> [cluster\_name](#output\_cluster\_name) | The name of the EKS cluster |
 | <a name="output_cluster_security_group_id"></a> [cluster\_security\_group\_id](#output\_cluster\_security\_group\_id) | ID of the cluster security group |
 | <a name="output_cluster_service_cidr"></a> [cluster\_service\_cidr](#output\_cluster\_service\_cidr) | The CIDR block where Kubernetes pod and service IP addresses are assigned from |
+| <a name="output_eks_managed_node_groups_autoscaling_group_names"></a> [eks\_managed\_node\_groups\_autoscaling\_group\_names](#output\_eks\_managed\_node\_groups\_autoscaling\_group\_names) | List of the autoscaling group names created by EKS managed node groups |
 | <a name="output_node_groups"></a> [node\_groups](#output\_node\_groups) | n/a |
 | <a name="output_oidc_provider"></a> [oidc\_provider](#output\_oidc\_provider) | The OpenID Connect identity provider (issuer URL without leading https:// or trailing slash) |
 | <a name="output_oidc_provider_arn"></a> [oidc\_provider\_arn](#output\_oidc\_provider\_arn) | The ARN of the OIDC Provider |
-| <a name="output_supported_instance_types"></a> [supported\_instance\_types](#output\_supported\_instance\_types) | Instance types supported by this module - reference for the engineer |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | The cluster's VPC ID |
 <!-- END_TF_DOCS -->

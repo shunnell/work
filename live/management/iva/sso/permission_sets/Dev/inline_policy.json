@@ -21,6 +21,18 @@
           "ec2:AssociatePublicIpAddress": "true"
         }
       }
+    },
+    {
+      "Sid": "TemporaryIVAtoDataPlatformMSK",
+      "Effect": "Allow",
+      "Action": [
+        "kafka:Describe*",
+        "kafka:Get*",
+        "kafka:List*"
+      ],
+      "Resource": [
+        "arn:aws:kafka:us-east-1:976193220746:cluster/ccd-mod-data-platform-dev-vpc23-msk-us-east1/e6085df9-155c-42f9-b51b-ed853eaf5404-22"
+      ]
     }
   ]
 }

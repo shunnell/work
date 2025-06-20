@@ -30,7 +30,9 @@ def terraform_docs():
     # Terraform-docs' version output is in a weird output format, do a custom parse for it:
     class TerraformDocsCommand(DownloadedCommand):
         def _get_version(self, cmd: Path) -> str:
-            parts: list[str] = check_output((cmd, '--version')).decode().split()
+            cmd = (cmd, '--version')
+            output: bytes = check_output(cmd, shell=False)
+            parts = tuple(s.lower() for s in output.decode().split())
             return parts[parts.index('version') + 1]
 
     return TerraformDocsCommand(
@@ -79,7 +81,6 @@ def terragrunt():
         # Always use the same cache settings so multiple invocations can share the cache server.
         'TG_PROVIDER_CACHE': True,
         'TG_PROVIDER_CACHE_DIR': terraform_provider_cache(),
-        'TG_PROVIDER_CACHE_TOKEN': 'feedbeef',
     }
     cmd.env.update({
         k: str(v).lower() if isinstance(v, bool) else str(v) for k, v in terragrunt_env_vars.items()

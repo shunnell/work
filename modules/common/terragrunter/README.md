@@ -1,6 +1,7 @@
 # Terragrunter IAM Role
 
-This module provisions the role used by Platform administrators to do IaC management across Cloud City.
+This module provisions the `terragrunter` IAM role and associated policies used by Platform administrators to do IaC 
+management across Cloud City.
 
 Each AWS account in Cloud City will have an instance of the `terragrunter` role with an accompanying policy that allows
 broad IaC changes. As a result, Terragrunt is a sensitive, controlled resource that should be used (and given access to)

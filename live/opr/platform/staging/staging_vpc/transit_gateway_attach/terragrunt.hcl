@@ -8,11 +8,8 @@ terraform {
 
 locals {
   # Load common variables
-  staging_vpc_vars = read_terragrunt_config(find_in_parent_folders("staging_vpc.hcl"))
+  vpc_vars = read_terragrunt_config(find_in_parent_folders("staging_vpc.hcl")).locals
 
-  # Extract commonly used variables
-  common_identifier  = local.staging_vpc_vars.locals.common_identifier
-  transit_gateway_id = local.staging_vpc_vars.locals.transit_gateway_id
 }
 dependency "vpc" {
   config_path = "../vpc"
@@ -28,14 +25,12 @@ dependencies {
   ]
 }
 inputs = {
-  name                                            = "${local.common_identifier}-tgw-attach"
-  transit_gateway_id                              = local.transit_gateway_id
-  vpc_id                                          = dependency.vpc.outputs.vpc_id
-  subnet_ids                                      = [for _, v in dependency.vpc.outputs.private_subnets_by_az : v.subnet_id]
-  transit_gateway_default_route_table_propagation = true
-  transit_gateway_default_route_table_association = true
+  name               = "${local.vpc_vars.common_identifier}-tgw-attach"
+  transit_gateway_id = local.vpc_vars.transit_gateway_id
+  vpc_id             = dependency.vpc.outputs.vpc_id
+  subnet_ids         = [for _, v in dependency.vpc.outputs.private_subnets_by_az : v.subnet_id]
   tags = {
-    name = "${local.common_identifier}-tgw-attach"
+    name = "${local.vpc_vars.common_identifier}-tgw-attach"
   }
 }
 

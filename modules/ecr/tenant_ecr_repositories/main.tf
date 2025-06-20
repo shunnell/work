@@ -1,16 +1,21 @@
-resource "aws_ecr_repository" "legacy_repositories" {
-  for_each = var.legacy_ecr_repository_names_to_be_migrated
-  # NB: deletion requires repos to be *created* with the force-delete flag:
-  # https://github.com/hashicorp/terraform-provider-aws/issues/33523
-  force_delete         = true
-  name                 = each.key
-  image_tag_mutability = "IMMUTABLE"
-  encryption_configuration {
-    encryption_type = "AES256"
-  }
-  image_scanning_configuration {
-    scan_on_push = true
-  }
+module "resource_policies" {
+  for_each   = toset(["view", "pull"])
+  source     = "../access_policy_document"
+  action     = each.key
+  principals = [for account in var.aws_accounts_with_pull_access : "arn:aws:iam::${account}:root"]
+}
+
+module "identity_policy_documents" {
+  for_each = local.action_types
+  source   = "../access_policy_document"
+  action   = each.key
+  repositories = setunion(
+    local.legacy_repo_iam_prefixes,
+    ["${var.tenant_name}/internal/*"],
+    # Don't let people push to pull-through targets, but let them delete/pull/view/etc.:
+    [for prefix in keys(local.pull_through_prefix_to_uri) : "${var.tenant_name}/${prefix}/*" if each.key != "push"],
+  )
+  depends_on = [aws_ecr_repository_creation_template.template]
 }
 
 module "identity_policies" {
@@ -19,33 +24,39 @@ module "identity_policies" {
   policy_name = "${var.tenant_name}-ECR${title(each.key)}"
   policy_path = "/CloudCity/${var.tenant_name}/"
   policy_json = module.identity_policy_documents[each.key].json
+  tags        = var.tags
 }
 
-resource "aws_ecr_repository_policy" "legacy_repository_policies" {
-  for_each   = var.legacy_ecr_repository_names_to_be_migrated
-  repository = each.key
-  policy     = local.per_repo_pull_policy
+data "aws_iam_policy_document" "repo_policy" {
+  source_policy_documents = values(module.resource_policies)[*].json
 }
 
-# NB: This creation template *looks* unused, but code in the "bespinctl aws ecr" family reads from it when determining
-# what policies propagate onto existent repos. This is done because creation templates only auto-apply when AWS itself
-# creates a repo (via replication or pull-through), but not when users create a repo by pushing to a prefix they have
-# permission to create new repos in. While the basically-undocumented "ROOT" creation template could be used to
+# NB: This creation template is used for two things (rather than separate creation templates per-image-type; an
+# account-wide hard limit of 50 creation templates prevents this):
+# 1. Setting permissions/config on new images created via pull-through.
+# 2. Propagating permissions onto tenant-created repositories. Code in the "bespinctl aws ecr" family reads from it
+# when determining what policies propagate onto existent repos. This is done because creation templates only auto-apply
+# when AWS itself creates a repo (via replication or pull-through), but not when users create a repo by pushing to a
+# prefix they have permission to create new repos in.
+# While the basically-undocumented "ROOT" creation template could be used to
 # automatically create repos with appropriate per-tenant permissions (which mostly boil down to what other AWS accounts
 # a repo should be pullable by), that's both sketchy/undocumented, and requires creating a complex composite ROOT
 # creation template that knows about all tenants' desired repo policies, leading to some pretty ugly terraform code.
-# Instead, we create templates for pullthrough sources and also create nominally-unused templates like this one.
+# Instead, we create one template for all of a tenant's images, pulled through or not, here.
 # Procedural code running in a periodic job will discover these templates and "retcon" their content onto repositories
 # which match a given template's prefix.
 resource "aws_ecr_repository_creation_template" "template" {
-  description          = "Template for ${var.tenant_name}'s first-party published images, to be shared for pull with accounts: ${join(",", var.aws_accounts_with_pull_access)}"
-  applied_for          = ["REPLICATION"] # Even though we aren't replicating at the moment, this needs a value, and calling it pull-through would be misleading.
-  prefix               = "cloud-city/${var.tenant_name}"
+  description = length(local.template_description) > 255 ? "${substr(local.template_description, 0, 250)}..." : local.template_description
+  applied_for = ["PULL_THROUGH_CACHE"]
+  # NB: while it would be ideal to use a longer path, e.g. '<tenant>/pullthrough/<key>' or 'cloud-city/<tenant>/...',
+  # AWS imposes a 30chr max length limit on pullthrough prefixes. Given that space is precious, we use the shortest
+  # possible identifiers which correspond to tenant names and upstreams.
+  prefix               = var.tenant_name
   image_tag_mutability = "IMMUTABLE"
   encryption_configuration {
     encryption_type = "AES256"
   }
-  repository_policy = local.per_repo_pull_policy
+  repository_policy = data.aws_iam_policy_document.repo_policy.json
   lifecycle_policy = jsonencode({
     "rules" : [
       {
@@ -62,4 +73,5 @@ resource "aws_ecr_repository_creation_template" "template" {
       }
     ]
   })
+  resource_tags = var.tags
 }

@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import subprocess
 from abc import ABC, abstractmethod
+from contextlib import nullcontext
 from pathlib import Path
 from time import monotonic
 
@@ -33,7 +34,8 @@ class BaseCommand(ABC, LoggingMixin):
     path: Path | None = attr.field(init=False, default=None)
 
     def __attrs_post_init__(self):
-        super().__init__('_')
+        super().__init__(None)
+        self.env.setdefault('PYTHONDONTWRITEBYTECODE', '1')  # Python subprocesses shouldn't create cache files
         self._logger.change_prefix(self._logger_prefix(False))
         self.path = self._resolve()
         self._logger.change_prefix(self._logger_prefix(True), append=False)
@@ -45,12 +47,16 @@ class BaseCommand(ABC, LoggingMixin):
         else:
             parts.append(self.name if installed else f"installing '{self.name}'")
         parts.extend(args)
-        return " ".join(parts)
+        return " ".join(map(str, parts))
 
     def _get_version(self, cmd: Path) -> str:
         # If we're in a directory stack or nonexistent directory, version checking can crash, which is weird, so always
         # set cwd to a place that we know exists.
-        version_info = subprocess.check_output((cmd, '--version'), cwd=cache_root()).decode().split('\n')[0].strip()
+        version_info = subprocess.check_output(
+            (cmd, '--version'),
+            cwd=cache_root(),
+            shell=False,
+        ).decode().split('\n')[0].strip()
         return version_info.rsplit()[-1]
 
     def _validate_local_executable(self, value: str | Path | None) -> Path:
@@ -75,21 +81,22 @@ class BaseCommand(ABC, LoggingMixin):
         raise NotImplemented
 
     # TODO return output optionally printing as well
-    def run(self, *args):
+    def run(self, *args, cwd=None, quiet=False):
         args = tuple(str(a) if isinstance(a, Path) else a for a in args)
         resolve_directory(Path())  # Assert that cwd exists; if it doesn't, inscrutable errors can occur.
-        self._logger.change_prefix(self._logger_prefix(True, *args), append=False)
-        self._logger.info("Starting subprocess")
-        t0 = monotonic()
-        try:
-            subprocess.check_call((self.path, *args), env=self.env, shell=False)
-            t0 = round(monotonic() - t0, 2)
-            self._logger.success(f"Subprocess succeeded after {t0}sec")
-        except subprocess.CalledProcessError as ex:
-            t0 = round(monotonic() - t0, 2)
-            raise self._exc(
-                f"Subprocess failed after {t0}sec with exit status {ex.returncode}; check above error output for failure",
-                exit_code=ex.returncode,
-            ) from ex
-        finally:
-            self._logger.change_prefix(self._logger_prefix(True), append=False)
+        with self._logger.temporary_level('ERROR') if quiet else nullcontext():
+            self._logger.change_prefix(self._logger_prefix(True, *args), append=False)
+            self._logger.info("Starting subprocess")
+            t0 = monotonic()
+            try:
+                subprocess.check_call((self.path, *args), env=self.env, shell=False, cwd=cwd)
+                t0 = round(monotonic() - t0, 2)
+                self._logger.success(f"Subprocess succeeded after {t0}sec")
+            except subprocess.CalledProcessError as ex:
+                t0 = round(monotonic() - t0, 2)
+                raise self._exc(
+                    f"Subprocess failed after {t0}sec with exit status {ex.returncode}; check above error output for failure",
+                    exit_code=ex.returncode,
+                ) from ex
+            finally:
+                self._logger.change_prefix(self._logger_prefix(True), append=False)

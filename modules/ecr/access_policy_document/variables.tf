@@ -9,11 +9,11 @@ variable "repositories" {
 }
 
 variable "action" {
-  description = "'view', 'push', 'pull', or 'pull_through'"
+  description = "'view', 'push', 'delete', or 'pull'"
   type        = string
   validation {
-    condition     = contains(["view", "push", "pull", "pull_through"], var.action)
-    error_message = "Must be one of 'push', 'pull', or 'pull_through'"
+    condition     = contains(["view", "push", "pull", "delete"], var.action)
+    error_message = "Must be one of 'view', 'push', 'delete', or 'pull'"
   }
 }
 

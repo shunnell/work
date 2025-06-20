@@ -34,7 +34,7 @@ dependency "license" {
   config_path = "license"
   mock_outputs = {
     license_base64 = {
-      "sonatype-license-2024-09-20T172110Z.lic.base64" = ""
+      "sonatype_license_2024-09-20T172110Z_base64" = ""
     }
   }
 }
@@ -55,7 +55,7 @@ inputs = {
 
   set_sensitive = {
     "secret.db.password"                              = dependency.db.outputs.aurora_serverless_v2_cluster_credentials.password
-    "secret.license.licenseSecret.fileContentsBase64" = dependency.license.outputs.license_base64["sonatype-license-2024-09-20T172110Z.lic.base64"]
+    "secret.license.licenseSecret.fileContentsBase64" = dependency.license.outputs.license_base64["sonatype_license_2024-09-20T172110Z_base64"]
   }
   values = [<<-YAML
     namespaces:

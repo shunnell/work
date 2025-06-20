@@ -34,10 +34,9 @@ dependency "visas_dev_infra" {
 }
 
 locals {
-  tenant_account_id  = read_terragrunt_config("${get_repo_root()}/visas/account.hcl").locals.account_id
-  infra_account_id   = read_terragrunt_config("${get_repo_root()}/infra/account.hcl").locals.account_id
-  prod_account_id    = read_terragrunt_config("${get_repo_root()}/prod/account.hcl").locals.account_id
-  network_account_id = read_terragrunt_config("${get_repo_root()}/network/account.hcl").locals.account_id
+  tenant_account_id = read_terragrunt_config("${get_repo_root()}/visas/account.hcl").locals.account_id
+  infra_account_id  = read_terragrunt_config("${get_repo_root()}/infra/account.hcl").locals.account_id
+  prod_account_id   = read_terragrunt_config("${get_repo_root()}/prod/account.hcl").locals.account_id
 }
 
 inputs = {

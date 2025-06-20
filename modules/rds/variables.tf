@@ -102,6 +102,12 @@ variable "enabled_cloudwatch_logs_exports" {
   default     = ["postgresql", "instance", "iam-db-auth-error"]
 }
 
+variable "security_group_rules" {
+  description = "Security group rules to apply to the RDS instance"
+  type        = any
+  default     = {}
+}
+
 variable "tags" {
   description = "Tags for the RDS instance"
   type        = map(string)

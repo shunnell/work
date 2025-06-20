@@ -7,32 +7,24 @@ variable "external_id" {
   }
 }
 
-variable "master_account_id" {
-  type        = string
-  description = "AWS Account ID of the account which will contain the static IAM user used (temporarily, pending Wiz's resolution of Gov/Commercial integration defects) by Wiz actual"
-}
-
-variable "assume_role_principals" {
+variable "wiz_external_role_arns" {
   type        = set(string)
   default     = []
-  description = "IAM principals (in addition to any static IAM user/role principals created inside this module) that can assume the Wiz role(s) created in this module. Assuming principals must authenticate via 'external_id' in order to assume the Wiz role(s)."
+  description = "IAM roles that can assume the Wiz role(s) created in this module. Assuming principals must authenticate via 'external_id' in order to assume the Wiz role(s)."
 }
 
 variable "lightsail-scanning" {
   type        = bool
-  default     = false
   description = "Enable Lightsail scanning"
 }
 
 variable "data-scanning" {
   type        = bool
-  default     = false
   description = "Enable DSPM data scanning"
 }
 
 variable "eks-scanning" {
   type        = bool
-  default     = false
   description = "Enable EKS scanning"
 }
 
@@ -61,12 +53,10 @@ variable "wiz-defend-awslogs-policy" {
 
 variable "terraform-bucket-scanning" {
   type        = bool
-  default     = true
   description = "Enable Terraform Bucket scanning"
 }
 
 variable "cloud-cost-scanning" {
   type        = bool
-  default     = true
   description = "Enable Cloud Cost scanning"
 }

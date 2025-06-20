@@ -5,11 +5,11 @@ import threading
 from functools import cache
 from typing import TYPE_CHECKING, Iterable
 
-import click
 from botocore.exceptions import ClientError
 
 from bespin_tools.lib.cache import dummy_aws_config_file
 from bespin_tools.lib.command.environment import EnvironmentVariables
+from bespin_tools.lib.errors import BespinctlError
 from bespin_tools.lib.util import background_initialized
 
 if TYPE_CHECKING:
@@ -31,6 +31,7 @@ if TYPE_CHECKING:
     from types_boto3_cloudfront import CloudFrontClient
     from types_boto3_athena import AthenaClient
     from types_boto3_s3 import S3Client
+    from types_boto3_ecr import ECRClient
     from types_boto3_organizations import OrganizationsClient
 
 DEFAULT_REGION = 'us-east-1'
@@ -41,17 +42,17 @@ UNNAMED = '<no name>'
 def convert_tags_for_display(item: Iterable[dict]) -> dict:
     rv = dict()
     for pair in item:
-        assert set(pair.keys()) == {'Key', 'Value'}, f"Input doesn't look like an AWS API tag array: {item}"
+        BespinctlError.invariant(set(pair.keys()) == {'Key', 'Value'}, f"Input doesn't look like an AWS API tag array: {item}")
         rv[pair['Key']] = pair['Value']
     rv.setdefault('Name', UNNAMED)
     return rv
 
 def paginate(func: callable,  **kwargs):
-    assert callable(func), f"Expected a bound method, got {func}"
+    BespinctlError.invariant(callable(func), f"Expected a bound method, got {type(func)} {func}")
     from botocore.client import BaseClient
 
     client = func.__self__
-    assert isinstance(client, BaseClient), f"Expected a boto3 client method, but got a method bound to {client}: {func}"
+    BespinctlError.invariant(isinstance(client, BaseClient), f"Expected a boto3 client method, but got a method bound to {client}: {func}")
     # Cute trick from https://www.reddit.com/r/aws/comments/7p5rhl/comment/dsfvb0f/:
     paginator = client.get_paginator(func.__name__)
     for page in paginator.paginate(**kwargs).result_key_iters():
@@ -72,7 +73,10 @@ def _mutate_environment_to_isolate_bespinctl() -> bool:
     This mutation can be disabled if the DOS_CLOUD_CITY_BESPINCTL_MUTATE_ENV is set to 0. That capability shouldn't be
     widely used, but it can be useful when debugging behavior differences between bespinctl and AWSCLI, or in CICD.
     """
-    assert threading.current_thread() == threading.main_thread()
+    BespinctlError.invariant(
+        threading.current_thread() == threading.main_thread(),
+        f"Method can only be called from the main thread, not {threading.current_thread()}",
+    )
     if rv := os.environ.get('DOS_CLOUD_CITY_BESPINCTL_MUTATE_ENV', '1').lower() in ('true', '1'):
         client_init_args = {'region_name': DEFAULT_REGION}
         # Even when overriden with a boto3.Cofig object, boto3 clients sometimes attempt to "merge" data in from ~/.aws.config.
@@ -129,7 +133,10 @@ class ClientGetter:
         session_kwargs.setdefault('region_name', DEFAULT_REGION)
         if _mutate_environment_to_isolate_bespinctl():
             existing_profile_name = session_kwargs.get('profile_name', 'bespinctl')
-            assert existing_profile_name == 'bespinctl', f"Session requested invalid profile name: {existing_profile_name} != bespinctl"
+            BespinctlError.invariant(
+                existing_profile_name == 'bespinctl',
+                f"Session requested invalid profile name: {existing_profile_name} != bespinctl",
+            )
             session_kwargs['profile_name'] = 'bespinctl'
         return self.__background_create_client(kind, **session_kwargs)
 
@@ -138,6 +145,9 @@ class ClientGetter:
 
     def ec2_client(self, **kwargs) -> EC2Client:
         return self._get_client('ec2', **kwargs)
+
+    def ecr_client(self, **kwargs) -> ECRClient:
+        return self._get_client('ecr', **kwargs)
 
     def sts_client(self, **kwargs) -> STSClient:
         return self._get_client('sts', **kwargs)

@@ -1,25 +1,16 @@
 #!/bin/bash
 set +x
 # perform terragrunt action of list of changed directories from file
-while read dir
+while read TERRA_UNIT_DIR
 do
-  echo "directory: $dir"
-  if [ -d $dir ]
+  echo "directory: $TERRA_UNIT_DIR"
+  if [ -d $TERRA_UNIT_DIR ]
   then
-    # export TERRA_UNIT_DIR=$dir
-    # export TG_OUT_DIR=$CI_PROJECT_DIR/.tfplan/$TERRA_UNIT_DIR
-    # export TG_JSON_OUT_DIR=$CI_PROJECT_DIR/.tfplan_json/$TERRA_UNIT_DIR
-    # echo $TG_OUT_DIR
-    # echo $TG_JSON_OUT_DIR
-    cd $dir
+    cd $TERRA_UNIT_DIR
+    pwd
     terragrunt $ACTION
-    if [[ $ACTION == *"plan"* ]]; then
-      terragrunt show -json tfplan.tfplan > tfplan.json
-      # mkdir -p $TG_OUT_DIR
-      # mkdir -p $TG_JSON_OUT_DIR
-      # cp ./**/tfplan.tfplan $TG_OUT_DIR/
-      # cp tfplan.json $TG_JSON_OUT_DIR/
-    fi
+    if [[ $ACTION == *"plan"* ]]; then terragrunt show -json tfplan.tfplan > tfplan.json; fi
   fi
   cd $CI_PROJECT_DIR
 done < $CHANGED_DIRS
+df -ah

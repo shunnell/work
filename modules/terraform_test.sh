@@ -1,7 +1,5 @@
-#!/bin/bash
-
-# https://olivergondza.github.io/2019/10/01/bash-strict-mode.html
-set -euo pipefail
+#!/bin/sh
+set -eu
 
 cd "${1:?Directory is required as first argument}"
 

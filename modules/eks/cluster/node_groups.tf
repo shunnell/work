@@ -58,7 +58,7 @@ locals {
       )) : p => p }
       labels = merge(v.labels, { "cloudcity-node-group" = k })
       block_device_mappings = {
-        data = {
+        xvda = {
           device_name = "/dev/xvda"
           ebs = {
             delete_on_termination = true
@@ -66,8 +66,15 @@ locals {
             volume_size           = v.volume_size
           }
         }
+        xvdb = v.xvdb_volume_size != null ? {
+          device_name = "/dev/xvdb"
+          ebs = {
+            delete_on_termination = true
+            encrypted             = true
+            volume_size           = v.xvdb_volume_size
+          }
+        } : null
       }
-      # disk_size = v.disk_size # not valid with custom launch template enabled
       # Constant/default values below this point:
       ami_type                       = "BOTTLEROCKET_x86_64"
       use_latest_ami_release_version = true
@@ -75,6 +82,9 @@ locals {
       # use_custom_launch_template   = true # for user data
       node_repair_config = {
         enabled = true
+      }
+      update_config = {
+        max_unavailable_percentage = var.nodegroup_change_unavailable_percentage
       }
       bootstrap_extra_args = <<-TOML
       # Ref https://aws.amazon.com/blogs/containers/validating-amazon-eks-optimized-bottlerocket-ami-against-the-cis-benchmark/
@@ -105,6 +115,10 @@ locals {
       # 3.2.4
       "net.ipv4.conf.all.log_martians" = "1"
       "net.ipv4.conf.default.log_martians" = "1"
+      
+      [settings.kubernetes]
+      image-gc-high-threshold-percent = "50"
+      image-gc-low-threshold-percent = "40"
       TOML
     }
   }

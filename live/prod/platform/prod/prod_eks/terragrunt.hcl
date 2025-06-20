@@ -3,7 +3,6 @@ include "root" {
 }
 
 locals {
-  vpc_vars     = read_terragrunt_config("../prod_vpc/prod_vpc.hcl").locals
   cluster_name = "production"
 }
 

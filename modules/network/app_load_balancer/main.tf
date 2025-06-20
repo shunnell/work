@@ -1,0 +1,98 @@
+provider "aws" {
+  region = var.region
+}
+
+locals {
+  processed_tenants = {
+    for tenant_key, cfg in var.tenants :
+    tenant_key => merge(
+      {
+        protocol          = lookup(cfg, "protocol", "HTTP")
+        health_check_path = lookup(cfg, "health_check_path", "/")
+      },
+      cfg
+    )
+  }
+}
+
+resource "aws_lb" "this" {
+  name                       = "${var.name_prefix}-alb"
+  load_balancer_type         = "application"
+  internal                   = false
+  subnets                    = var.subnets
+  security_groups            = var.security_group_ids
+  enable_deletion_protection = false
+
+  tags = merge(var.tags, { Name = "${var.name_prefix}-alb" })
+}
+
+resource "aws_lb_listener" "http_redirect" {
+  load_balancer_arn = aws_lb.this.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+    redirect {
+      protocol    = "HTTPS"
+      port        = "443"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.this.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = var.certificate_arn
+
+  default_action {
+    type = "fixed-response"
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "Not Found"
+      status_code  = "404"
+    }
+  }
+}
+
+resource "aws_lb_target_group" "tenant" {
+  for_each = local.processed_tenants
+
+  name     = "${var.name_prefix}-${each.key}-tg"
+  port     = each.value.port
+  protocol = each.value.protocol
+  vpc_id   = var.vpc_id
+
+  health_check {
+    path                = each.value.health_check_path
+    protocol            = each.value.protocol
+    matcher             = "200-399"
+    interval            = 30
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    timeout             = 5
+  }
+
+  tags = merge(var.tags, { Name = "${var.name_prefix}-${each.key}-tg" })
+}
+
+resource "aws_lb_listener_rule" "tenant" {
+  for_each = local.processed_tenants
+
+  listener_arn = aws_lb_listener.https.arn
+  priority     = each.value.priority
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.tenant[each.key].arn
+  }
+
+  condition {
+    host_header {
+      values = [each.value.host_header]
+    }
+  }
+}

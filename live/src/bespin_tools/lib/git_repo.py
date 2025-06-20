@@ -10,19 +10,10 @@ from urllib.parse import urlparse, ParseResult
 import git
 
 from bespin_tools.lib.errors import BespinctlError
-from bespin_tools.lib.util import is_empty_dir
+from bespin_tools.lib.util import is_empty_dir, iterdir
 
 CLOUD_CITY_GITLAB_URI = 'gitlab.cloud-city'
 
-def iterdir(path: Path, topdown=True) -> Iterable[Path]:
-    assert path.is_dir()
-    for root, dirs, files in os.walk(path, topdown=topdown, followlinks=True):
-        if '.git' in dirs:
-            dirs.remove('.git')
-        for name in files:
-            yield Path(root).joinpath(name)
-        for name in dirs:
-            yield Path(root).joinpath(name)
 
 def _parsed_remotes(repo: git.Repo) -> Iterable[ParseResult]:
     for remote in repo.remotes:
@@ -45,6 +36,7 @@ def cloud_city_repos() -> Iterable[tuple[git.Repo, Path, ParseResult]]:
 
 def empty_dirs(path: Path) -> Iterable[Path]:
     yield from filter(is_empty_dir, iterdir(path, topdown=False))
+
 
 def git_repo_or_none(path: Path | str) -> tuple[git.Repo, Path] | None:
     from bespin_tools.lib.logging import logger # Local import to avoid import loops

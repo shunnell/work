@@ -9,7 +9,7 @@ module "k8s_secret_access_service_account" {
 
 resource "kubernetes_manifest" "secret_store" {
   manifest = yamldecode(<<-YAML
-    apiVersion: external-secrets.io/v1beta1
+    apiVersion: external-secrets.io/v1
     kind: SecretStore
     metadata:
       name: aws-secretsmanager
@@ -18,7 +18,7 @@ resource "kubernetes_manifest" "secret_store" {
       provider:
         aws:
           service: SecretsManager
-          region: ${data.aws_region.current.name}
+          region: ${data.aws_region.current.region}
           auth:
             jwt:
               serviceAccountRef:
@@ -30,7 +30,7 @@ resource "kubernetes_manifest" "secret_store" {
 resource "kubernetes_manifest" "repo_secret" {
   depends_on = [kubernetes_manifest.secret_store]
   manifest = yamldecode(<<-YAML
-    apiVersion: external-secrets.io/v1beta1
+    apiVersion: external-secrets.io/v1
     kind: ExternalSecret
     metadata:
       name: ${module.k8s_secret_access_service_account.service_account_name}

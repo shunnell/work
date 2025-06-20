@@ -7,50 +7,59 @@ stages:
   - setup
   - validate
   - test
-  - dast
-
-sast:
-  rules:
-    - when: never # not supposed to be run
-
-iac-sast:
-  rules:
-    - when: never # doesn't work
 
 format:
   stage: test
   image:
+    # Should match the TF version used in "live"
     name: $TERRAGRUNT_IMAGE
   script:
-    - chmod a+rx *.sh
-    - ./terraform_format_loop.sh
+    - find . -wholename './*.tf' -exec dirname {} \; > dirs
+    - sort -u dirs | tee dirs.sorted
+    - |
+      while read path; do
+        if ! terraform fmt -check -diff -recursive "$path"; then
+          echo "Terraform files in $path are not formatted; run 'bespinctl iac lint --fix' in the repo root to resolve"
+          exit 1
+        fi
+      done <dirs.sorted
 
 docs:
   stage: test
   image:
+    # NB: Version pin is temporary; to match the version used by "bespinctl iac lint" in the live repo:
     name: $TERRAFORM_DOCS_IMAGE
     entrypoint: [""]
   script:
-    - cd $CI_BUILDS_DIR/$CI_PROJECT_PATH
-    - chmod a+rx $CI_BUILDS_DIR/$CI_PROJECT_PATH/*.sh
-    - $CI_BUILDS_DIR/$CI_PROJECT_PATH/terraform_docs_loop.sh
+    - find . -wholename './*.tf' -exec dirname {} \; > dirs
+    - sort -u dirs | tee dirs.sorted
+    - |
+      while read path; do
+        # First command gives error y/n; second command updates the docs so we can print the diff.
+        if ! terraform-docs markdown table "$path" --lockfile=false --output-check --output-file README.md; then
+          cp "$path/README.md" "$path/README.md.old"
+          terraform-docs markdown table "$path" --lockfile=false --output-file README.md
+          diff "$path/README.md.old" "$path/README.md" || true
+          echo "$path/README.md is out of date; run 'bespinctl iac lint --fix' in the repo root to resolve"
+          exit 1
+        fi
+      done <dirs.sorted
 
 provider-checks:
   stage: test
-  image:
-    name: $TERRAGRUNT_IMAGE
   script:
-    - chmod a+rx *.sh
-    - ./terraform_provider_check_loop.sh
+    - find . -wholename './*.tf' -exec dirname {} \; > dirs
+    - sort -u dirs | tee dirs.sorted
+    - |
+      while read path; do
+        ./terraform_provider_check.sh "$path";
+      done <dirs.sorted
 
 # do this for performance
-generate-config:
-  stage: setup
-  image:
-    name: $TERRAGRUNT_IMAGE
+generate-module-tests:
+  stage: test
   script:
-    - chmod a+rx *.sh
-    - ./generate_test_jobs.sh $TERRAGRUNT_IMAGE
+    - ./generate_test_jobs.sh "$TERRAGRUNT_IMAGE"
     - cat module_tests.yml
   artifacts:
     expire_in: "1 days"
@@ -59,8 +68,9 @@ generate-config:
 
 module-tests:
   stage: test
+  needs: [generate-module-tests]
   trigger:
     include:
       - artifact: module_tests.yml
-        job: generate-config
+        job: generate-module-tests
     strategy: depend

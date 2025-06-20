@@ -56,6 +56,7 @@ No requirements.
 |------|-------------|------|---------|:--------:|
 | <a name="input_argocd_namespace"></a> [argocd\_namespace](#input\_argocd\_namespace) | Kubernetes namespace which contains ArgoCD | `string` | `"argocd"` | no |
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | EKS Cluster | `string` | n/a | yes |
+| <a name="input_config_path"></a> [config\_path](#input\_config\_path) | Root path for the cluster deployment | `string` | `"_base/_infrastructure"` | no |
 | <a name="input_k8s_repo_secret_name"></a> [k8s\_repo\_secret\_name](#input\_k8s\_repo\_secret\_name) | Name of the deploy key and user for the repo in Secret Manager | `string` | n/a | yes |
 | <a name="input_k8s_repo_secret_token_key"></a> [k8s\_repo\_secret\_token\_key](#input\_k8s\_repo\_secret\_token\_key) | Name of the deploy key for the repo in Secret Manager | `string` | `"key"` | no |
 | <a name="input_k8s_repo_secret_user_key"></a> [k8s\_repo\_secret\_user\_key](#input\_k8s\_repo\_secret\_user\_key) | Name of the deploy user for the repo in Secret Manager | `string` | `"user"` | no |

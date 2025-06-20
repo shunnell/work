@@ -1,7 +1,7 @@
 module "eks" {
-  source          = "git::https://gitlab.cloud-city/terraform-aws-modules/terraform-aws-eks.git"
+  source          = "terraform-aws-modules/eks/aws"
   cluster_name    = var.cluster_name
-  cluster_version = "1.32"
+  cluster_version = var.kuberenetes_version
   enable_irsa     = true
   depends_on      = [module.cluster_security_group]
   access_entries = merge(var.access_entries, {
@@ -10,6 +10,7 @@ module "eks" {
       principal_arn     = arn
       kubernetes_groups = ["cluster-admin"]
       type              = "STANDARD"
+      tags              = var.tags
       policy_associations = {
         "AmazonEKSClusterAdminPolicy" = {
           policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
@@ -20,7 +21,17 @@ module "eks" {
       }
     }
   })
-
+  node_security_group_additional_rules = {
+    node_metrics_server_to_cluster = {
+      # https://github.com/terraform-aws-modules/terraform-aws-eks/issues/3311
+      description                   = "Cluster API to metrics-server"
+      protocol                      = "tcp"
+      from_port                     = 10251
+      to_port                       = 10251
+      type                          = "ingress"
+      source_cluster_security_group = true
+    }
+  }
   cluster_addons = {
     # We set addon versions to most_recent in anticipation of this module defaulting that in the future:
     # https://github.com/terraform-aws-modules/terraform-aws-eks/blob/5c8ac85c5c428779fd905c2819bb69fd518e7992/main.tf#L734
@@ -54,6 +65,17 @@ module "eks" {
       most_recent = true
     }
     eks-node-monitoring-agent = {
+      most_recent = true
+    }
+    metrics-server = { # Supplies metrics to the HPA
+      # NB: metrics-server's ApiService needs the cluster to access the metrics server at its default port, 10251.
+      # That security group rule is added above.
+      most_recent = true
+    }
+    kube-state-metrics = { # Supplies metrics for Prometheus
+      most_recent = true
+    }
+    prometheus-node-exporter = { # Supplies metrics for Prometheus
       most_recent = true
     }
     amazon-cloudwatch-observability = {

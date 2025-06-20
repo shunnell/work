@@ -1,17 +1,7 @@
-# `local_role_data`
+# DEPRECATED: `local_role_data`
 
-This module manages no resources, and exists to read account-local state and produce outputs corresponding to various
-SSO roles and IaC roles in use in a given account.
-
-The intended use of this module is for IAM policies/access control documents that need specifically named principals
-(rather than, say, wildcarded ones) for various purposes--specific `"AWS"` principals, cross-account principal identification,
-and the like. In those cases, the ARNs of the AWS SSO-created roles are not predictable, nor can they be discovered
-via the output of management-account IAM resources (e.g. permission set attachments). To cope with that, this module
-is offered as a convenient place to identify SSO (and eventually IaC) roles by canonical name.
-
-**This module generally should not be used from other code in `modules`. Instead, it should be instantiated once per 
-account in `live` and passed around as a Terragrunt `dependency`.** Doing this minimizes redundant/slow data variable
-fetching.
+**This module is deprecated and should no longer be used. Existing invocations of it should be migrated to use the 
+equivalent outputs supplied by `commmon/account/account_info.tf`. Once no invocations exist, this module should be deleted.**
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements

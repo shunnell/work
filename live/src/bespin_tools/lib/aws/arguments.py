@@ -16,4 +16,4 @@ class AwsAccounts(ParamType):
                 self.fail(f"{item!r} is not a valid AWS account ID", param, ctx)
         if 'all' in ids:
             ids = Organization.ALL,
-        return sorted(Organization.get_accounts(*ids))
+        return tuple(sorted(Organization.get_accounts(*ids)))

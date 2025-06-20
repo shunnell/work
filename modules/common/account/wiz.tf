@@ -1,21 +1,21 @@
+# This file provizions the permissions needed for the Wiz security scanner's access to Cloud City, which is implemented
 module "wiz" {
   source                    = "../../wiz"
-  data-scanning             = true  # Copied verbatim from Wiz terraform defaults.
-  lightsail-scanning        = false # Copied verbatim from Wiz terraform defaults.
-  eks-scanning              = true  # Copied verbatim from Wiz terraform defaults.
-  terraform-bucket-scanning = true  # Copied verbatim from Wiz terraform defaults.
+  data-scanning             = true
+  lightsail-scanning        = false
+  eks-scanning              = true
+  terraform-bucket-scanning = true
+  cloud-cost-scanning       = true
   # Externally-supplied Wiz tenant ID. Not a secret.
   external_id = "45255fed-d54a-4731-8322-be7378da849c"
-  # NB: this is probably wrong; it was presented as a possible way to remediate Wiz backend issues (see wiz/README.md)
-  # temporarily. It didn't work and should potentially be changed in future.
-  assume_role_principals = []             # Eventually might be e.g. "arn:aws:iam::260212806598:role/fedramp-us1-AssumeRoleCommercialDelegator"
-  master_account_id      = "590183957203" # Cloud City management account
+  # This role ARN obtained via Wiz UI: Account Profile circle -> "Tenant Info" -> "AWS Commercial Trust Policy Role":
+  wiz_external_role_arns = ["arn:aws:iam::260212806598:role/fedramp-us1-AssumeRoleCommercialDelegator"]
+  tags                   = var.tags
+  # Some requested quotas must be raised for the Wiz IAM internals to attach all required policies:
+  depends_on = [aws_servicequotas_service_quota.quotas]
 }
 
 output "wiz_role_arn" {
-  value = module.wiz.role_arn
-}
-
-output "wiz_user_arn" {
-  value = module.wiz.user_arn
+  description = "ARN of the role used by Wiz for security scanning (present in all Cloud City accounts)"
+  value       = module.wiz.role_arn
 }

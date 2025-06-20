@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if [[ "${DOS_CLOUD_CITY_BESPINCTL_DEBUG:-0}" != 0 ]]; then
+  echo "Running '${0}' in debug mode..." &>2
+  set -x
+fi
+
 set -euo pipefail
 
 # https://stackoverflow.com/questions/59895
@@ -31,7 +36,7 @@ _command_path() {
     if command -v "$cmd.exe" >/dev/null 2>&1; then
       path=$(command -v "$cmd.exe")
     else
-      path=${4:??windows fallback not set}
+      path=${4:?windows fallback not set}
     fi
   else
     path=${3:?linux fallback not set}
@@ -92,7 +97,7 @@ _print "Found 'uv' at '${UV_COMMAND}; checking version..."
 # (in case self update changed the way the cache works).
 _suppress_specific_error "no cache" "$UV_COMMAND" cache clean
 # If uv was installed externally, it produces an error here which can be ignored:
-_suppress_specific_error "external package manager" "$UV_COMMAND" self update
+_suppress_specific_error "package manager" "$UV_COMMAND" self update
 _suppress_specific_error "no cache" "$UV_COMMAND" cache clean
 _suppress_specific_error "no cache" "$UV_COMMAND" cache prune
 

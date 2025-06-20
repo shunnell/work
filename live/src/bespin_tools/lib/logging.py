@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import logging
 from contextlib import contextmanager
+from functools import partial
 
 import click
-from click_log import ClickHandler, simple_verbosity_option
+from click_log import ClickHandler
 
 from bespin_tools.lib.errors import BespinctlError
+
 
 
 class BespinctlLogger(logging.LoggerAdapter):
@@ -19,7 +21,6 @@ class BespinctlLogger(logging.LoggerAdapter):
     }
     _ROOT_LOGGER = logging.getLogger('bespinctl')
     _ROOT_LOGGER.handlers = [ClickHandler()]
-    verbosity_option = simple_verbosity_option(_ROOT_LOGGER)
 
     def __init__(self, prefixes: list[str]):
         super().__init__(self._ROOT_LOGGER, {'prefixes': tuple(prefixes)}, merge_extra=False)
@@ -48,8 +49,7 @@ class BespinctlLogger(logging.LoggerAdapter):
             self.setLevel(oldlevel)
 
     def new_logger_with_prefix(self, prefix: str, append=True) -> BespinctlLogger:
-        assert isinstance(prefix, str)
-        assert len(prefix)
+        BespinctlError.invariant(isinstance(prefix, str) and len(prefix) > 0, f"Invalid prefix: {type(prefix)} {prefix}")
         rv = type(self)(self.extra["prefixes"] if append else ())
         return rv.change_prefix(prefix)
 
@@ -75,10 +75,32 @@ debug = logger.debug
 attention = logger.attention
 success = logger.success
 
+verbosity_option = partial(
+    click.option,
+    help="Set the log level for all bespinctl functionality. Setting to e.g. 'error' will silence informational logs.",
+    default="info",
+    show_default=True,
+    expose_value=False,
+    type=click.Choice(sorted(logging._nameToLevel.keys()), case_sensitive=False),
+    callback=lambda *args: logger.getEffectiveLevel() != logging.DEBUG and logger.setLevel(args[-1]),
+)
+debug_option = partial(
+    click.option,
+    help="Enable debug logging (equivalent to setting log level to 'debug')",
+    is_flag=True,
+    show_envvar=True,
+    is_eager=True,
+    expose_value=False,
+    envvar="DOS_CLOUD_CITY_BESPINCTL_DEBUG",
+    callback=lambda *args: logger.setLevel(logging.DEBUG) if args[-1] else (),
+)
+
 
 class LoggingMixin:
-    def __init__(self, logger_or_prefix: str | BespinctlLogger, *args, **kwargs):
-        if isinstance(logger_or_prefix, str):
+    def __init__(self, logger_or_prefix: str | None | BespinctlLogger, *args, **kwargs):
+        if logger_or_prefix is None:
+            self._logger = logger
+        elif isinstance(logger_or_prefix, str):
             self._logger = logger.new_logger_with_prefix(logger_or_prefix)
         else:
             self._logger = logger_or_prefix

@@ -79,6 +79,24 @@ variable "log_shipping_destination_arn" {
   type        = string
 }
 
+variable "enable_dns_profile" {
+  description = "Enable DNS profile"
+  type        = bool
+  default     = true
+}
+
+variable "custom_cidr_range" {
+  description = "Custom CIDR range for the VPC endpoints security group rule used for shared services vpc"
+  type        = string
+  default     = null
+}
+
+variable "profile_id" {
+  description = "Route53 Profiles ID"
+  type        = string
+  default     = ""
+}
+
 variable "tags" {
   description = "A map of tags to add to all resources"
   type        = map(string)

@@ -25,6 +25,7 @@ data "aws_iam_policy_document" "terragrunter" {
       "athena:List*",
       "athena:UpdateWorkGroup",
       "athena:TagResource",
+      "backup:*",
       "codeartifact:*",
       "compute-optimizer:*",
       "config:*",
@@ -44,26 +45,28 @@ data "aws_iam_policy_document" "terragrunter" {
       "firehose:*",
       "grafana:*",
       "iam:*",
+      "identitystore:Get*",
+      "identitystore:List*",
+      "identitystore:Describe*",
       "kms:*",
       "lambda:*",
       "logs:*",
       "macie2:*",
       "network-firewall:*",
       "oam:*",
+      "ram:*",
       "rds:*",
       "route53:*",
+      "route53profiles:*",
       "s3:*",
       "secretsmanager:*",
       "servicequotas:*",
       "ses:*",
       "sns:*",
       "sqs:*",
+      "sso:*",
       "ssm:*",
       "tag:*",
-      "identitystore:Get*",
-      "identitystore:List*",
-      "identitystore:Describe*",
-      "sso:*",
       # The less-scary parts of Organizations: permissions, leaving out the ability to e.g. create/destroy accounts
       # or change organization membership:
       "organizations:AttachPolicy",
@@ -81,16 +84,54 @@ data "aws_iam_policy_document" "terragrunter" {
     resources = ["*"]
   }
   statement {
-    sid    = "DenySpecifics"
+    sid    = "DenyIamUserAndGroupManipulation"
+    effect = "Deny"
+    # Static IAM users and their credentials cannot be created or manipulated--not even by terragrunter--in Cloud City.
+    # Forbidding this from Terragrunter provides a reminder for any third-party or erroneous code that would manage
+    # static users that Cloud City is an MFA-only environment, and that static IAM principals are not allowed. More
+    # details on this policy are here: https://confluence.fan.gov/display/CCPL/MFA+exemption
+    resources = ["*"]
+    actions = [
+      "iam:ChangePassword",
+      "iam:CreateAccessKey",
+      "iam:UpdateAccessKey",
+      "iam:CreateUser",
+      "iam:UpdateUser",
+      "iam:*LoginProfile*",
+      "iam:*UserPolicy*",
+      "iam:TagUser",
+      "iam:UntagUser",
+      "iam:*UserPermissionsBoundary*",
+    ]
+  }
+  statement {
+    sid    = "DenyFeaturesForbiddenInCloudCity"
     effect = "Deny"
     actions = [
       # Even though terragrunter is god-mode, there are certain things it shouldn't do by choice: management of static
       # IAM principals or reserved instances are not things BESPIN supports at this time, so terragrunter isn't allowed
       # to do them as a "hey, looks like you're making a mistake, please don't" guardrail for Platform staff.
+
+      # No reserved instances in Cloud City at this time:
       "ec2:*ReservedInstances*",
-      # "iam:*Group*",
-      # "iam:*Login*",
-      # "iam:*User*",
+
+      # No mutate/add on groups, but read and removing groups, group policies, and removing users from groups is OK:
+      "iam:AttachGroupPolicy",
+      "iam:DetachGroupPolicy",
+      "iam:AddUserToGroup",
+      "iam:CreateGroup",
+      "iam:PutGroupPolicy",
+      "iam:UpdateGroup",
+      # No creating new SAML providers (exceptions might be added to this to support future Okta integration changes):
+      "iam:CreateSAMLProvider",
+
+      # No mutation of existing SAML providers (that could break the Okta link and lose everyone's access):
+      "iam:UpdateSAMLProvider",
+
+      # No manipulation of MFA devices:
+      "iam:*MFADevice*",
+      # No removal of account-wide password policies.
+      "iam:DeleteAccountPasswordPolicy",
     ]
     resources = ["*"]
   }

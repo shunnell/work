@@ -11,8 +11,9 @@ from git import InvalidGitRepositoryError
 from packaging.specifiers import Specifier
 
 from bespin_tools.lib.errors import BespinctlError
-from bespin_tools.lib.git_repo import git_repo_root, iterdir, cloud_city_repos
+from bespin_tools.lib.git_repo import git_repo_root, cloud_city_repos
 from bespin_tools.lib.logging import logger
+from bespin_tools.lib.util import iterdir
 
 _IAC_REPO_PATHS = (
     'cloud-city/platform/iac/live',

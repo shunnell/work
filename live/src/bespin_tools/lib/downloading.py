@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import asyncio
+from asyncio import current_task
 from functools import cache
 from io import BytesIO
 from tarfile import TarFile
@@ -12,6 +12,7 @@ import requests
 from tqdm import tqdm
 
 from bespin_tools.lib.errors import BespinctlError
+from bespin_tools.lib.util import stream_results
 
 
 def _extract(buf):
@@ -28,22 +29,23 @@ def decompressors():
         ('.tar', _extract),
     )
 
-async def _probe_url(url: str, session: aiohttp.ClientSession) -> str | None:
-    async with session.head(url) as response:
-        if response.status in (404, 403):
+async def _probe_url(url: str) -> str | None:
+    try:
+        async with aiohttp.ClientSession() as session, session.head(url) as response:
+            if response.status in (404, 403):
+                return None
+            response.raise_for_status()
+            return url
+    except:
+        if current_task().cancelled() or current_task().cancelling():
             return None
-        response.raise_for_status()
-        return url
+        raise
 
-async def _first_live_url(urls: set[str]) -> str:
-    async with aiohttp.ClientSession() as session:
-        async for res in asyncio.as_completed(_probe_url(url, session) for url in urls):
-            if res := await res:
+async def first_live_url(urls: Iterable[str]) -> str:
+        async for res in stream_results(_probe_url(url) for url in set(urls)):
+            if res is not None:
                 return res
         raise BespinctlError(f"No valid URLs found in {sorted(urls)}")
-
-def first_live_url(urls: Iterable[str]):
-    return asyncio.run(_first_live_url(set(urls)))
 
 def download_file(url, chunk_size=8192) -> BytesIO:
     buffer = BytesIO()

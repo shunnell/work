@@ -52,8 +52,8 @@ terraform plan
 
 1. Create a new branch
 1. Make changes
-1. Update documentation in module: `terraform-docs markdown table . --lockfile=false --output-file README.md`
 1. Run `terraform fmt`
+1. Update documentation in module: `terraform-docs markdown table . --lockfile=false --output-file README.md`
 1. Create merge request
 
 ## Module Documentation

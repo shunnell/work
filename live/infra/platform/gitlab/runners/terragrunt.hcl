@@ -12,8 +12,8 @@ include "runner_fleet" {
 
 inputs = {
   # maximum timeout = 24h
-  builder_volume = "100Gi"
-  builder_memory = "3Gi"
+  scratch_space_size_gb = 50
+  builder_memory        = "3Gi"
   # Make sure the IAM role used inside the cluster matches the name of the role that the infra/gitops IAM code allows
   # terragrunter to assume. We're not having the terragrunter IAM IaC code depend on this module because the IAM for
   # terragrunter is "bootstrap phase" code that we want to be able to run before anything else (including EKS/GitLab) is

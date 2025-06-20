@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Sequence
-
 import click
 from botocore.exceptions import ClientError
 
@@ -9,6 +7,7 @@ from bespin_tools.lib.aws.account import Account
 from bespin_tools.lib.aws.organization import Organization
 from bespin_tools.lib.aws.util import paginate
 from bespin_tools.lib.command.external import ExternalCommand
+from bespin_tools.lib.errors import BespinctlError
 from bespin_tools.lib.logging import info
 from bespin_tools.lib.tables import BespinctlTable
 
@@ -64,7 +63,7 @@ def _eks_clusters(accounts: list[Account]):
             for cluster in sorted(paginate(eks.list_clusters)):
                 yield account, region, cluster
 
-@organization.command()
+@organization.command(name='run-command')
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
 @click.pass_obj
 def run_command(accounts: list[Account], args):
@@ -78,7 +77,10 @@ def run_command(accounts: list[Account], args):
 @click.option('--assume-role-arn', default=None)
 @click.pass_obj
 def shell_credentials(accounts: list[Account], assume_role_arn):
-    assert len(accounts) == 1, f"Only one account is allowed; got multiple ('run-commands', plural, can be used to iterate accounts). Retrieved accounts: {accounts}"
+    BespinctlError.invariant(
+        len(accounts) == 1,
+        f"Only one account is allowed; got multiple ('run-commands', plural, can be used to iterate accounts). Retrieved accounts: {accounts}"
+    )
     environment = accounts[0].environment_variables(assume_role=assume_role_arn)
     for line in environment.as_shell_commands():
         info(line)

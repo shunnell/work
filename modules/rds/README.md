@@ -11,9 +11,7 @@ No providers.
 
 | Name | Source | Version |
 |------|--------|---------|
-| <a name="module_aurora_serverless_v2"></a> [aurora\_serverless\_v2](#module\_aurora\_serverless\_v2) | git::https://gitlab.cloud-city/terraform-aws-modules/terraform-aws-rds-aurora.git | n/a |
-| <a name="module_rds_security_rules"></a> [rds\_security\_rules](#module\_rds\_security\_rules) | ../network/security_group_traffic | n/a |
-| <a name="module_target_security_rules"></a> [target\_security\_rules](#module\_target\_security\_rules) | ../network/security_group_traffic | n/a |
+| <a name="module_aurora_serverless_v2"></a> [aurora\_serverless\_v2](#module\_aurora\_serverless\_v2) | terraform-aws-modules/rds-aurora/aws | n/a |
 
 ## Resources
 
@@ -37,6 +35,7 @@ No resources.
 | <a name="input_min_capacity"></a> [min\_capacity](#input\_min\_capacity) | Minimum number of read replicas permitted when autoscaling is enabled | `number` | `0` | no |
 | <a name="input_port"></a> [port](#input\_port) | The port on which the DB accepts connections | `string` | `"5432"` | no |
 | <a name="input_seconds_until_auto_pause"></a> [seconds\_until\_auto\_pause](#input\_seconds\_until\_auto\_pause) | n/a | `number` | `3600` | no |
+| <a name="input_security_group_rules"></a> [security\_group\_rules](#input\_security\_group\_rules) | Security group rules to apply to the RDS instance | `any` | `{}` | no |
 | <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | List of subnet IDs for the DB subnet group | `list(string)` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags for the RDS instance | `map(string)` | `{}` | no |
 | <a name="input_update_timeout"></a> [update\_timeout](#input\_update\_timeout) | Update timeout configuration for the cluster | `string` | `"15m"` | no |
@@ -46,6 +45,7 @@ No resources.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_aurora_serverless_master_user_secret_name"></a> [aurora\_serverless\_master\_user\_secret\_name](#output\_aurora\_serverless\_master\_user\_secret\_name) | The base name of the Secrets manager secret for the Aurora master user |
 | <a name="output_aurora_serverless_v2_cluster_arn"></a> [aurora\_serverless\_v2\_cluster\_arn](#output\_aurora\_serverless\_v2\_cluster\_arn) | Amazon Resource Name (ARN) of cluster |
 | <a name="output_aurora_serverless_v2_cluster_database_name"></a> [aurora\_serverless\_v2\_cluster\_database\_name](#output\_aurora\_serverless\_v2\_cluster\_database\_name) | Name for an automatically created database on cluster creation |
 | <a name="output_aurora_serverless_v2_cluster_endpoint"></a> [aurora\_serverless\_v2\_cluster\_endpoint](#output\_aurora\_serverless\_v2\_cluster\_endpoint) | Writer endpoint for the cluster |

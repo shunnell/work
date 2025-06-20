@@ -1,13 +1,11 @@
-#!/bin/bash
-
-# https://olivergondza.github.io/2019/10/01/bash-strict-mode.html
-set -euo pipefail
+#!/bin/sh
+set -eu
 
 IMAGE=${1:?Image is required as first argument}
 
 # For each base directory that contains modules:
 #  enter that directory and test each of those modules
-for path in $(find . -wholename './*.tf' -printf '%h\n' | cut -d / -f 2 | sort -u)
+for path in $(find . -wholename './*.tf' -exec dirname {} \; | cut -d / -f 2 | sort -u)
 do
   echo $path
   cat >> module_tests.yml <<-YAML

@@ -25,10 +25,13 @@ def _grn(item):
 
 @vpc.command(short_help="Displays a table of VPCs and their attached CIDR ranges.")
 def vpcs():
-    with BespinctlTable(['Account', 'CIDR', 'State', 'VPC']) as table:
+    with BespinctlTable(['Account', 'CIDR', 'Platform Managed', 'VPC']) as table:
         for vpc in VPC.query():
-            for cidr, state in vpc.cidrs():
-                table.add_row(vpc.account, cidr, state, vpc)
+            managed_by = vpc.tags.get('ManagedBy', '').lower()
+            project = vpc.tags.get('Project', '').lower()
+            platform_managed = managed_by == 'terragrunt' and project == 'cloudcity'
+            cidrs = tuple(vpc.cidrs())
+            table.add_row(vpc.account, "\n".join(cidrs), platform_managed, vpc)
 
 @vpc.command(short_help="Displays a table of subnets, their VPCs, whether or not they are public, and how many IPs are free in them.")
 def subnets():
@@ -121,6 +124,7 @@ def account_block_public_access():
                 else:
                     state = _ylw(f"{state} (mode)")
                 table.add_row(account, 'Exclusion', resource, state)
+
 @vpc.command(short_help="Displays all NACL rules allowing egress of port 22 or port 3389.")
 def check_nacl_ports():
     with BespinctlTable(['Account', 'VPC-ID', 'CIDR', 'NACL-ID', 'Rule Number']) as table:

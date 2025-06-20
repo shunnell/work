@@ -1,0 +1,37 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "CloudWatchAccess",
+      "Action": [
+        "cloudwatch:GetDashboard"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:cloudwatch:*::dashboard:pass/*"
+    },
+    {
+      "Sid": "DenyPublicIPInstanceCreation",
+      "Action": [
+        "ec2:RunInstances"
+      ],
+      "Effect": "Deny",
+      "Resource": "*",
+      "Condition": {
+        "Bool": {
+          "ec2:AssociatePublicIpAddress": "true"
+        }
+      }
+    },
+    {
+      "Sid": "GeoServiceAccess",
+      "Action": [
+        "geo:DescribeGeofenceCollection",
+        "geo:ListGeofenceCollections",
+        "geo:PutGeofence",
+        "geo:GetGeofence"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 module "runner_cache_s3_bucket" {
-  source                    = "../../s3"
-  name_prefix               = "${var.runner_fleet_name}-cache"
+  source = "../../s3"
+  # Not using runner-fleet-name to try to stay within the aggressive 37chr prefix length limit:
+  name_prefix               = "${var.tenant_name}-${var.runner_fleet_name_suffix}-runners-cache"
   tags                      = local.tags
   empty_bucket_when_deleted = true # Cache data doesn't need deletion confirmation.
   # Versioning and object lock are disabled for two reasons:

@@ -1,7 +1,7 @@
 locals {
   gitlab_mothership_domain = "gitlab.cloud-city"
   gitlab_certificate_path  = "/etc/gitlab-runner/certs/"
-  team_name                = read_terragrunt_config(find_in_parent_folders("team.hcl")).locals.team
+  team_name                = read_terragrunt_config(find_in_parent_folders("team.hcl")).locals.team_tags.team
   account_id               = read_terragrunt_config(find_in_parent_folders("account.hcl")).locals.account_id
 }
 
@@ -11,7 +11,7 @@ terraform {
 
 dependency "cluster" {
   # Using absolute paths in this file to reduce confusion re: "include" and relative paths:
-  config_path = "${get_repo_root()}/infra/platform/gitlab/eks_cluster"
+  config_path = "${get_repo_root()}/infra/platform/gitlab/legacy_runners_eks_cluster"
   mock_outputs = {
     cluster_name = "name"
   }
@@ -35,7 +35,7 @@ dependency "ecr_repositories" {
 
 inputs = {
   cluster_name             = dependency.cluster.outputs.cluster_name
-  runner_fleet_name        = "${local.team_name}-team"
+  tenant_name              = local.team_name
   gitlab_secret_id         = dependency.secret.outputs.secret_id
   gitlab_mothership_domain = local.gitlab_mothership_domain
   gitlab_certificate_path  = local.gitlab_certificate_path

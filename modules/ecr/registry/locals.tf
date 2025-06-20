@@ -3,37 +3,15 @@ data "aws_caller_identity" "ecr_account" {}
 data "aws_region" "ecr_region" {}
 
 locals {
-  pull_through_secrets = toset(["github", "docker", "registry.gitlab.com"])
-  pull_through_upstreams = {
-    docker_hub = {
-      ecr_repository_prefix = "docker-hub",
-      upstream_registry_url = "registry-1.docker.io",
-      credential_arn        = module.pull_through_secrets["docker"].secret_arn
-    },
-    ecr_public = {
-      ecr_repository_prefix = "ecr-public",
-      upstream_registry_url = "public.ecr.aws",
-      credential_arn        = null
-    },
-    github = {
-      ecr_repository_prefix = "github",
-      upstream_registry_url = "ghcr.io",
-      credential_arn        = module.pull_through_secrets["github"].secret_arn
-    },
-    gitlab = {
-      ecr_repository_prefix = "gitlab",
-      upstream_registry_url = "registry.gitlab.com",
-      credential_arn        = module.pull_through_secrets["registry.gitlab.com"].secret_arn
-    },
-    k8s = {
-      ecr_repository_prefix = "k8s",
-      upstream_registry_url = "registry.k8s.io",
-      credential_arn        = null
-    },
-    quay = {
-      ecr_repository_prefix = "quay",
-      upstream_registry_url = "quay.io",
-      credential_arn        = null
-    },
+  # Map of pull-through upstream to secret name. Secret names are stored here so we don't have to replace or fuss
+  # with/import some very old pre-existing secrets.
+  pull_through_prefix_to_secret_name = {
+    "docker"     = "docker",
+    "ecr-public" = null,
+    "github"     = "github",
+    "gitlab"     = "registry.gitlab.com",
+    "k8s"        = null,
+    "quay"       = null,
   }
+  repo_stem = "arn:aws:ecr:${data.aws_region.ecr_region.region}:${data.aws_caller_identity.ecr_account.account_id}:repository"
 }

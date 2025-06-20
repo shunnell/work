@@ -20,12 +20,18 @@
         "ecr:*",
         "eks:AccessKubernetesApi",
         "eks:List*",
-        "eks:Describe*",        
+        "eks:Describe*",
+        "eks:CreateAddon",
+        "eks:UpdateAddon",
+        "eks:DescribeAddon",
+        "eks:ListAddons",
+        "eks:DescribeAddonVersions",         
         "elasticache:*",
         "elasticloadbalancing:*",
         "emr-containers:*",
         "emr-serverless:*",
         "events:*",
+        "pipes:*",
         "firehose:*",
         "glue:*",
         "grafana:*",
@@ -51,7 +57,18 @@
         "inspector2:BatchGet*",
         "athena:*",
         "datazone:*",
-        "states:*"
+        "states:*",
+        "geo:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AllowGeoMapsAccess",
+      "Effect": "Allow",
+      "Action": [
+        "geo-places:*",
+        "geo-maps:*",
+        "geo:*"
       ],
       "Resource": "*"
     },
@@ -59,25 +76,26 @@
       "Sid": "AllowSandboxDevAthenaAccess",
       "Effect": "Allow",
       "Action": [
-        "athena:*"  
+        "athena:*"
       ],
       "Resource": "*"
     },
     {
       "Sid": "AllowEC2Tagging",
+      "Effect": "Allow",
       "Action": [
         "ec2:CreateTags",
         "ec2:DeleteTags"
       ],
-      "Effect": "Allow",
       "Resource": "*"
     },
     {
       "Sid": "DenyKMSDecryptUnlessOnBehalfOfAWS",
-      "Action": [
-        "kms:Decrypt", "kms:ReEncrypt*"
-      ],
       "Effect": "Deny",
+      "Action": [
+        "kms:Decrypt",
+        "kms:ReEncrypt*"
+      ],
       "Resource": "*",
       "Condition": {
         "Null": {
@@ -87,10 +105,10 @@
     },
     {
       "Sid": "DenyPublicIPInstanceCreation",
+      "Effect": "Deny",
       "Action": [
         "ec2:RunInstances"
       ],
-      "Effect": "Deny",
       "Resource": "*",
       "Condition": {
         "Bool": {
@@ -100,11 +118,11 @@
     },
     {
       "Sid": "DenyPublicIPModification",
+      "Effect": "Deny",
       "Action": [
         "ec2:ModifyInstanceAttribute",
         "ec2:AssociateAddress"
       ],
-      "Effect": "Deny",
       "Resource": "arn:aws:ec2:*:*:instance/*",
       "Condition": {
         "BoolIfExists": {
@@ -114,10 +132,10 @@
     },
     {
       "Sid": "DenyEIPAllocation",
+      "Effect": "Deny",
       "Action": [
         "ec2:AllocateAddress"
       ],
-      "Effect": "Deny",
       "Resource": "arn:aws:ec2:*:*:instance/*",
       "Condition": {
         "StringEquals": {
@@ -127,10 +145,10 @@
     },
     {
       "Sid": "DenyPublicIPNetworkInterface",
+      "Effect": "Deny",
       "Action": [
         "ec2:AttachNetworkInterface"
       ],
-      "Effect": "Deny",
       "Resource": "arn:aws:ec2:*:*:network-interface/*",
       "Condition": {
         "BoolIfExists": {

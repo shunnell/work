@@ -20,12 +20,18 @@ output "private_subnets_by_az" {
 
 output "gateway_endpoint_ids" {
   description = "Map of gateway endpoint IDs"
-  value       = { for k, v in aws_vpc_endpoint.gateway_endpoints : k => v.id }
+  value = { for k, v in aws_vpc_endpoint.gateway_endpoints : k => {
+    id  = v.id
+    arn = v.arn
+  } }
 }
 
 output "interface_endpoint_ids" {
   description = "Map of interface endpoint IDs"
-  value       = { for k, v in aws_vpc_endpoint.interface_endpoints : k => v.id }
+  value = { for k, v in aws_vpc_endpoint.interface_endpoints : k => {
+    id  = v.id
+    arn = v.arn
+  } }
 }
 
 output "endpoint_security_group_id" {

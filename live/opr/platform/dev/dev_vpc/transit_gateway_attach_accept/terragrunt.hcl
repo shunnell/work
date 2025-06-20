@@ -8,11 +8,7 @@ terraform {
 
 locals {
   # Load common variables
-  dev_vpc_vars = read_terragrunt_config(find_in_parent_folders("dev_vpc.hcl"))
-
-  # Extract commonly used variables
-  common_identifier             = local.dev_vpc_vars.locals.common_identifier
-  network_terragrunter_role_arn = local.dev_vpc_vars.locals.network_terragrunter_role_arn
+  vpc_vars = read_terragrunt_config(find_in_parent_folders("dev_vpc.hcl")).locals
 }
 
 dependency "transit_gateway_attach" {
@@ -24,14 +20,15 @@ dependency "transit_gateway_attach" {
 
 dependencies {
   paths = [
-    "../transit_gateway_attach", "../vpc"
+    "../vpc",
+    "../transit_gateway_attach"
   ]
 }
 
 inputs = {
   transit_gateway_attachment_id = dependency.transit_gateway_attach.outputs.transit_gateway_attachment_id
   tags = {
-    Name = "${local.common_identifier}-tgw-attach"
+    Name = "${local.vpc_vars.common_identifier}-tgw-attach"
   }
 }
 
@@ -40,9 +37,9 @@ generate "provider_override" {
   if_exists = "overwrite_terragrunt"
   contents  = <<-EOF
     provider "aws" {
-      region = "us-east-1"
+      region = "${local.vpc_vars.region}"
       assume_role {
-        role_arn = "${local.network_terragrunter_role_arn}"
+        role_arn = "${local.vpc_vars.network_terragrunter_role_arn}"
       }
     }
   EOF

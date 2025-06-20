@@ -13,6 +13,11 @@ output "configuration_endpoint_address" {
   value       = aws_elasticache_replication_group.this.configuration_endpoint_address
 }
 
+output "primary_endpoint_address" {
+  description = "Address of the replication group primary cache endpoint"
+  value       = aws_elasticache_replication_group.this.primary_endpoint_address
+}
+
 output "member_clusters" {
   description = "Identifiers of all the nodes that are part of this replication group."
   value       = aws_elasticache_replication_group.this.member_clusters
@@ -31,6 +36,10 @@ output "secret_arn" {
 output "secret_id" {
   description = "ID of the secret containing the auth token"
   value       = module.cache_auth_token.secret_id
+}
+
+output "secret_name" {
+  value = module.cache_auth_token.secret_name
 }
 
 output "security_group_id" {

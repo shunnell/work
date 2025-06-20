@@ -6,12 +6,10 @@ import re
 from collections import defaultdict
 from functools import cache
 from pathlib import Path
-from typing import Tuple, Iterable
+from typing import Tuple, Iterable, TYPE_CHECKING
 
 from tqdm import tqdm
 import click
-from types_boto3_identitystore.client import IdentityStoreClient
-from types_boto3_sso_admin.client import SSOAdminClient
 
 from bespin_tools.lib.aws import CLOUD_CITY_ORGANIZATION_ROOT_ACCOUNT
 from bespin_tools.lib.aws.account import Account
@@ -19,11 +17,16 @@ from bespin_tools.lib.aws.arguments import AwsAccounts
 from bespin_tools.lib.aws.iam import get_principal_id, assign_permission_set, get_instance_arn, get_permission_set_arn, remove_permission_set
 from bespin_tools.lib.aws.organization import Organization
 from bespin_tools.lib.aws.util import paginate
+from bespin_tools.lib.errors import BespinctlError
 from bespin_tools.lib.logging import info
 
 import time
 
 from bespin_tools.lib.tables import BespinctlTable
+
+if TYPE_CHECKING:
+    from types_boto3_identitystore.client import IdentityStoreClient
+    from types_boto3_sso_admin.client import SSOAdminClient
 
 
 @click.group()
@@ -46,11 +49,11 @@ def permission_set_arn_to_name(client: SSOAdminClient, instance_arn: str, permis
 def get_sso_ids(client: SSOAdminClient) -> Tuple[str, str]:
     response = client.list_instances()
     instances = response.get('Instances', [])
-    assert len(instances) == 1, f"Expected 1 SSO Instances. Received {len(instances)}."
+    BespinctlError.invariant(len(instances) == 1, f"Expected 1 SSO Instances. Received {len(instances)}")
     instance_arn = instances[0]['InstanceArn']
-    assert instance_arn != None
+    BespinctlError.invariant(instance_arn != None, "Instance ARN is None")
     identity_store_id = instances[0]['IdentityStoreId']
-    assert identity_store_id != None
+    BespinctlError.invariant(identity_store_id != None, "Identity store ID is None")
     return (instance_arn, identity_store_id)
 
 
@@ -172,7 +175,7 @@ def list_sso_users(account: Account, output_file: str):
     identity_center_client = account.sso_admin_client()
     instance_arn, identity_store_id = get_sso_ids(identity_center_client)
     users = paginate(identity_store_client.list_users, IdentityStoreId=identity_store_id)
-    assert Path(output_file).exists == False
+    BespinctlError.invariant(Path(output_file).exists == False, f"Output file already exists: {output_file}")
     with open(output_file, mode='w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(['UserId', 'UserName', 'FullName', "Groups"])

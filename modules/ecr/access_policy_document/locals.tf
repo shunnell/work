@@ -9,6 +9,8 @@ locals {
     "ecr:DescribeRepositories",
     "ecr:DescribeRegistry",
     "ecr:GetRegistryScanningConfiguration",
+    "ecr:GetImageCopyStatus",
+    "ecr:ValidatePullThroughCacheRule",
   ]
   view = [
     "ecr:DescribeImages",
@@ -20,6 +22,13 @@ locals {
     "ecr:BatchCheckLayerAvailability",
     "ecr:BatchGetImage",
     "ecr:GetDownloadUrlForLayer",
+    # Pull implies pull-through:
+    "ecr:BatchImportUpstreamImage"
+  ]
+  delete = [
+    "ecr:BatchDeleteImage",
+    "ecr:DeleteRepository",
+    "ecr:TagResource",
   ]
   push = [
     "ecr:CompleteLayerUpload",
@@ -27,19 +36,10 @@ locals {
     "ecr:PutImage",
     "ecr:CreateRepository",
     "ecr:UploadLayerPart",
-    # TODO push permissions temporarily also imply delete permissions so that tenants can delete mistakenly-created
-    #   artifacts. That may at some point be relitigated/removed (e.g. for preservation of old image versions for
-    #   audit/forensic purposes). At that point, the below permission grants should be moved or removed:
-    "ecr:BatchDeleteImage",
-    "ecr:DeleteRepository",
+    "ecr:TagResource",
   ]
-  pull_through = [
-    "ecr:BatchImportUpstreamImage",
-    "ecr:CreateRepository",
-    "ecr:GetImageCopyStatus",
-  ]
-  repositories = [
+  repositories = toset([
     for r in var.repositories :
-    "arn:aws:ecr:${data.aws_region.ecr_region.name}:${data.aws_caller_identity.ecr_account.account_id}:repository/${r}"
-  ]
+    "arn:aws:ecr:${data.aws_region.ecr_region.region}:${data.aws_caller_identity.ecr_account.account_id}:repository/${r}"
+  ])
 }

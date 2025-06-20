@@ -31,3 +31,9 @@ variable "k8s_repo_target_revision" {
   type        = string
   default     = "HEAD"
 }
+
+variable "config_path" {
+  description = "Root path for the cluster deployment"
+  type        = string
+  default     = "_base/_infrastructure"
+}

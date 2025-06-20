@@ -10,7 +10,7 @@ from bespin_tools.lib.aws.organization import Organization
 from bespin_tools.lib.errors import BespinctlError
 from bespin_tools.lib.iac import setup_global_logger_for_terragrunt
 from bespin_tools.lib.git_repo import cloud_city_repos, git_repo_root
-from bespin_tools.lib.iac.commands import terragrunt as terragrunt_command
+from bespin_tools.lib.iac.commands import terragrunt as terragrunt_command, terraform as terraform_command
 from bespin_tools.lib.iac.linting import lint_tf_files, lint_terraform_module_docs, lint_hcl_files
 from bespin_tools.lib.logging import attention
 from bespin_tools.lib.util import resolve_file
@@ -74,6 +74,17 @@ def terragrunt(args):
     # TODO enumerate terragrunt subcommands and write a test to ensure we don't drift, then we can have specific handling
     #   for e.g. init vs apply etc.
     cmd.run(*args)
+
+@iac.command(context_settings=dict(
+    help_option_names=(),
+    ignore_unknown_options=True,
+))
+@click.argument('args', nargs=-1, type=click.UNPROCESSED)
+def terraform(args):
+    """Runs 'terraform' and passes all arguments through to that command.
+    This should rarely be used; prefer using `bespinctl iac terragrunt` instead.
+    """
+    terraform_command().run(*args)
 
 @iac.command
 @click.option('--fix', is_flag=True, default=False, help="Whether to automatically fix linting errors. If not set, this command will fail when it sees the first linter error.")

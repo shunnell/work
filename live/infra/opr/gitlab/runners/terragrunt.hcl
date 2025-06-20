@@ -11,7 +11,6 @@ include "runner_fleet" {
 }
 
 inputs = {
-  builder_volume = "2Gi"
   # TODO this is temporary, hardcoded, and will need to be removed and replaced with an entirely different system for
   #   managing deployer roles in the very near future. This is managed temporarily to remove some high-severity security
   #   findings related to IAM user principals.

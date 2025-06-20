@@ -25,21 +25,29 @@ def sanitize(search_dict):
                 if isinstance(item, dict):
                     sanitize(item)
 
+def load_json(myjson):
+    try:
+        return json.loads(myjson)
+    except ValueError as e:
+        print(f"DEBUG: not json:")
+        pprint(myjson)
+    return json.loads("{}")
+
 def main(directory: str, output: str):
     directory = Path(directory).resolve()
     if not directory.is_dir():
         exit(f"Supplied directory {directory} is not a directory")
     json_files = sorted(get_file_paths(directory))
     print(f"Found {len(json_files)} files:\n\t{'\n\t'.join([str(f) for f in json_files])}")
-    changes = dict(
-        create = 0,
-        update = 0,
-        delete = 0,
-    )
+    create = 0
+    update = 0
+    delete = 0
+    read = 0
+    no_op = 0
+    changes = dict()
     for file in json_files:
-        json_data = json.loads((directory / file).read_text())
-        # print(f"DEBUG: Read {file}, got:")
-        # pprint(json_data)
+        print(f"Loading '{str(file)}'...")
+        json_data = load_json((directory / file).read_text())
         r_changes = json_data.get("resource_changes") or []
         o_changes = json_data.get("output_changes") or {}
         changes[str(file.parent)] = dict(
@@ -48,14 +56,23 @@ def main(directory: str, output: str):
         )
         for change in r_changes:
             action = change["change"]["actions"]
-            changes["create"] = changes["create"] + action.count("create")
-            changes["update"] = changes["update"] + action.count("update")
-            changes["delete"] = changes["delete"] + action.count("delete")
+            create = create + action.count("create")
+            update = update + action.count("update")
+            delete = delete + action.count("delete")
+            read = read + action.count("read")
+            no_op = no_op + action.count("no-op")
         for key, change in o_changes.items():
             action = change["actions"]
-            changes["create"] = changes["create"] + action.count("create")
-            changes["update"] = changes["update"] + action.count("update")
-            changes["delete"] = changes["delete"] + action.count("delete")
+            create = create + action.count("create")
+            update = update + action.count("update")
+            delete = delete + action.count("delete")
+            read = read + action.count("read")
+            no_op = no_op + action.count("no-op")
+    changes["create"] = create
+    changes["update"] = update
+    changes["delete"] = delete
+    changes["read"] = read
+    changes["no-op"] = no_op
     sanitize(changes)
     Path(output).write_text(json.dumps(changes))
     print(f"CHANGES:")

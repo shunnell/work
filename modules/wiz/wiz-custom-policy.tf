@@ -12,182 +12,200 @@ data "aws_caller_identity" "current" {}
 
 # Create IAM inline policy - WizFullPolicy
 resource "aws_iam_policy" "wiz_full_policy_0" {
-  name = "WizFullPolicy0"
+  # Some of the Wiz builtin self-health checking wants this policy to have a specific name. Things seem to work if it
+  # has a different name, but this generates alert noise, so we break the WizFullPolicy1/2/3 naming convention here
+  # to satisfy those checkers.
+  name = "WizFullPolicy"
 
   policy = jsonencode({
     "Statement" : [
       {
         "Action" : [
-          "ec2:CopySnapshot",
-          "ec2:CreateSnapshot",
-          "ec2:DescribeSnapshots",
-          "ec2:GetEbsEncryptionByDefault",
-          "kms:CreateKey",
-          "kms:DescribeKey"
-        ],
-        "Effect" : "Allow",
-        "Resource" : "*"
-      },
-      {
-        "Action" : [
-          "ec2:CreateTags"
-        ],
-        "Condition" : {
-          "StringEquals" : {
-            "ec2:CreateAction" : [
-              "CopySnapshot",
-              "CreateSnapshot"
-            ]
-          }
-        },
-        "Effect" : "Allow",
-        "Resource" : "arn:${data.aws_partition.current.partition}:ec2:*::snapshot/*",
-        "Sid" : "AllowWizToCreateTagsOnCreatedAndCopiedSnapshots"
-      },
-      {
-        "Action" : [
-          "ec2:CreateVolume"
-        ],
-        "Condition" : {
-          "StringEquals" : {
-            "aws:RequestTag/wiz" : "auto-gen-volume"
-          }
-        },
-        "Effect" : "Allow",
-        "Resource" : "*",
-        "Sid" : "AllowWizToCreateTaggedVolumes"
-      },
-      {
-        "Action" : [
-          "ec2:CreateVolume"
-        ],
-        "Effect" : "Allow",
-        "Resource" : "arn:${data.aws_partition.current.partition}:ec2:*::snapshot/*",
-        "Sid" : "AllowWizToCreateTaggedVolumesFromSnapshots"
-      },
-      {
-        "Action" : [
-          "ec2:DeleteSnapshot"
-        ],
-        "Condition" : {
-          "StringEquals" : {
-            "ec2:ResourceTag/wiz" : "auto-gen-snapshot"
-          }
-        },
-        "Effect" : "Allow",
-        "Resource" : "*"
-      },
-      {
-        "Action" : [
-          "ec2:DeleteVolume"
-        ],
-        "Condition" : {
-          "StringEquals" : {
-            "ec2:ResourceTag/wiz" : "auto-gen-volume"
-          }
-        },
-        "Effect" : "Allow",
-        "Resource" : "*",
-        "Sid" : "AllowWizToDeleteTaggedVolumes"
-      },
-      {
-        "Action" : [
-          "ec2:DescribeAvailabilityZones",
-          "ec2:DescribeVolumes"
-        ],
-        "Effect" : "Allow",
-        "Resource" : "*",
-        "Sid" : "WizComplementaryPermissionsForTemporaryVolumes"
-      },
-      {
-        "Action" : [
-          "ec2:ModifySnapshotAttribute"
-        ],
-        "Condition" : {
-          "StringEquals" : {
-            "ec2:ResourceTag/wiz" : [
-              "auto-gen-snapshot",
-              "shareable-resource"
-            ]
-          }
-        },
-        "Effect" : "Allow",
-        "Resource" : "*"
-      },
-      {
-        "Action" : [
-          "ecr-public:DescribeImages",
-          "ecr-public:GetAuthorizationToken",
-          "ecr-public:ListTagsForResource",
+          "account:GetContactInformation",
+          "acm-pca:GetCertificateAuthorityCertificate",
+          "acm:GetCertificate",
+          "amplify:GetApp",
+          "amplify:GetBackendEnvironment",
+          "amplify:ListApps",
+          "amplify:ListBackendEnvironments",
+          "amplify:ListBranches",
+          "amplify:ListDomainAssociations",
+          "amplify:ListTagsForResource",
+          "amplifybackend:GetBackend",
+          "aoss:BatchGetCollection",
+          "aoss:GetAccessPolicy",
+          "aoss:GetSecurityPolicy",
+          "aoss:ListAccessPolicies",
+          "aoss:ListCollections",
+          "aoss:ListSecurityPolicies",
+          "aoss:ListTagsForResource",
+          "apigateway:GET",
+          "appconfig:GetConfigurationProfile",
+          "appconfig:ListApplications",
+          "appconfig:ListConfigurationProfiles",
+          "appconfig:ListTagsForResource",
+          "appfabric:GetAppBundle",
+          "appfabric:ListAppBundles",
+          "appfabric:ListTagsForResource",
+          "appflow:DescribeFlow",
+          "applicationinsights:ListApplications",
+          "applicationinsights:ListTagsForResource",
+          "appstream:DescribeFleets",
+          "appstream:DescribeStacks",
+          "appstream:DescribeUserStackAssociations",
+          "appstream:ListAssociatedFleets",
+          "appstream:ListTagsForResource",
+          "appsync:GetApiAssociation",
+          "aps:DescribeAlertManagerDefinition",
+          "aps:DescribeLoggingConfiguration",
+          "aps:ListWorkspaces",
+          "auditmanager:GetAssessment",
+          "backup-gateway:GetGateway",
+          "backup-gateway:ListGateways",
+          "backup-gateway:ListTagsForResource",
+          "backup:GetBackupPlan",
+          "backup:GetBackupSelection",
+          "bedrock:GetAgent",
+          "bedrock:GetAgentActionGroup",
+          "bedrock:GetDataSource",
+          "bedrock:GetFoundationModelAvailability",
+          "bedrock:GetGuardrail",
+          "bedrock:GetImportedModel",
+          "bedrock:GetKnowledgeBase",
+          "bedrock:GetModelImportJob",
+          "bedrock:GetProvisionedModelThroughput",
+          "bedrock:ListAgentActionGroups",
+          "bedrock:ListAgentKnowledgeBases",
+          "bedrock:ListAgents",
+          "bedrock:ListDataSources",
+          "bedrock:ListFoundationModels",
+          "bedrock:ListGuardrails",
+          "bedrock:ListImportedModels",
+          "bedrock:ListKnowledgeBases",
+          "bedrock:ListModelImportJobs",
+          "bedrock:ListProvisionedModelThroughputs",
+          "chatbot:DescribeChimeWebhookConfigurations",
+          "chatbot:DescribeSlackChannelConfigurations",
+          "chime:GetAccount",
+          "clouddirectory:ListTagsForResource",
+          "cloudhsm:DescribeClusters",
+          "cloudsearch:DescribeAvailabilityOptions",
+          "codeconnections:ListConnections",
+          "codeconnections:ListHosts",
+          "codeconnections:ListTagsForResource",
+          "codeguru-reviewer:DescribeRepositoryAssociation",
+          "codeguru-reviewer:ListRepositoryAssociations",
+          "codepipeline:ListTagsForResource",
+          "codestar-notifications:DescribeNotificationRule",
+          "codestar-notifications:ListNotificationRules",
+          "databrew:DescribeRecipe",
+          "databrew:ListRecipes",
+          "datazone:GetDomain",
+          "datazone:ListDomains",
+          "datazone:ListTagsForResource",
+          "detective:ListOrganizationAdminAccount",
+          "detective:ListTagsForResource",
+          "dlm:GetLifecyclePolicies",
+          "dlm:GetLifecyclePolicy",
+          "docdb-elastic:GetCluster",
+          "docdb-elastic:GetClusterSnapshot",
+          "docdb-elastic:ListClusterSnapshots",
+          "docdb-elastic:ListTagsForResource",
+          "ds:DescribeSettings",
+          "ds:DescribeSharedDirectories",
+          "ds:DescribeTrusts",
+          "ds:ListTagsForResource",
+          "dynamodb:GetResourcePolicy",
+          "ec2:GetAllowedImagesSettings",
+          "ec2:GetInstanceMetadataDefaults",
+          "ec2:GetSnapshotBlockPublicAccessState",
           "ecr:BatchGetImage",
-          "ecr:DescribeImages",
+          "ecr:DescribePullThroughCacheRules",
           "ecr:GetAuthorizationToken",
           "ecr:GetDownloadUrlForLayer",
-          "ecr:GetRegistryPolicy",
-          "ecr:ListTagsForResource"
+          "eks:DescribeAccessEntry",
+          "eks:DescribePodIdentityAssociation",
+          "eks:ListAssociatedAccessPolicies",
+          "eks:ListPodIdentityAssociations",
+          "entityresolution:GetMatchingWorkflow",
+          "entityresolution:GetSchemaMapping",
+          "entityresolution:ListIdNamespaces",
+          "entityresolution:ListMatchingWorkflows",
+          "entityresolution:ListSchemaMappings",
+          "entityresolution:ListTagsForResource",
+          "fis:GetExperiment",
+          "fis:GetExperimentTemplate",
+          "fis:ListExperimentTemplates",
+          "fis:ListExperiments",
+          "frauddetector:ListTagsForResource",
+          "gamelift:DescribeAlias",
+          "gamelift:DescribeBuild",
+          "gamelift:DescribeFleetAttributes",
+          "gamelift:DescribeGameServerGroup",
+          "gamelift:DescribeGameSessionQueues",
+          "gamelift:DescribeMatchmakingConfigurations",
+          "gamelift:DescribeMatchmakingRuleSets",
+          "gamelift:DescribeScript",
+          "geo:DescribeGeofenceCollection",
+          "geo:DescribeKey",
+          "geo:DescribeMap",
+          "geo:DescribePlaceIndex",
+          "geo:DescribeRouteCalculator",
+          "geo:DescribeTracker",
+          "geo:ListGeofenceCollections",
+          "geo:ListKeys",
+          "geo:ListPlaceIndexes",
+          "geo:ListRouteCalculators",
+          "geo:ListTagsForResource",
+          "geo:ListTrackers",
+          "glue:GetConnection",
+          "identitystore:Describe*",
+          "identitystore:List*",
+          "internetmonitor:GetMonitor",
+          "internetmonitor:ListMonitors",
+          "iotanalytics:DescribeChannel",
+          "iotanalytics:DescribeDataset",
+          "iotanalytics:DescribeDatastore",
+          "iotanalytics:DescribePipeline",
+          "iotanalytics:ListDatasets",
+          "iotanalytics:ListDatastores",
+          "iotanalytics:ListPipelines",
+          "iotanalytics:ListTagsForResource",
+          "iotfleetwise:GetCampaign",
+          "iotfleetwise:ListCampaigns",
+          "iotfleetwise:ListTagsForResource",
+          "iotsitewise:DescribeAssetModel",
+          "iotsitewise:DescribePortal",
+          "iotsitewise:ListPortals",
+          "iotsitewise:ListTagsForResource",
+          "kendra:DescribeDataSource",
+          "kinesisanalytics:DescribeApplication",
+          "kinesisvideo:GetDataEndpoint",
+          "lambda:GetFunction",
+          "lambda:GetLayerVersion",
+          "lightsail:GetRelationalDatabases",
+          "lookoutequipment:DescribeDataset",
+          "lookoutequipment:DescribeInferenceScheduler",
+          "lookoutequipment:DescribeModel",
+          "lookoutequipment:ListInferenceSchedulers",
+          "lookoutequipment:ListModels",
+          "lookoutequipment:ListTagsForResource",
+          "lookoutvision:DescribeProject",
+          "macie2:GetAutomatedDiscoveryConfiguration",
+          "macie2:GetFindings",
+          "macie2:GetMacieSession",
+          "mediaconvert:GetJobTemplate",
+          "mediaconvert:GetPreset",
+          "mediaconvert:GetQueue",
+          "mediaconvert:ListJobTemplates",
+          "mediaconvert:ListPresets",
+          "mediaconvert:ListQueues",
+          "mediaconvert:ListTagsForResource"
         ],
-        "Effect" : "Allow",
-        "Resource" : "*"
-      },
-      {
-        "Action" : [
-          "kms:CreateGrant",
-          "kms:ReEncryptFrom"
-        ],
-        "Condition" : {
-          "StringLike" : {
-            "kms:ViaService" : "ec2.*.${data.aws_partition.current.dns_suffix}"
-          }
-        },
-        "Effect" : "Allow",
-        "Resource" : "*"
-      },
-      {
-        "Action" : [
-          "kms:GetKeyPolicy",
-          "kms:PutKeyPolicy"
-        ],
-        "Condition" : {
-          "StringEquals" : {
-            "aws:ResourceTag/wiz" : "auto-gen-cmk"
-          }
-        },
-        "Effect" : "Allow",
-        "Resource" : "*"
-      },
-      {
-        "Action" : "cassandra:Select",
-        "Effect" : "Allow",
-        "Resource" : [
-          "arn:${data.aws_partition.current.partition}:cassandra:*:*:/keyspace/system_multiregion_info/table/tables",
-          "arn:${data.aws_partition.current.partition}:cassandra:*:*:/keyspace/system_schema/table/columns",
-          "arn:${data.aws_partition.current.partition}:cassandra:*:*:/keyspace/system_schema/table/keyspaces",
-          "arn:${data.aws_partition.current.partition}:cassandra:*:*:/keyspace/system_schema/table/tables",
-          "arn:${data.aws_partition.current.partition}:cassandra:*:*:/keyspace/system_schema_mcs/table/columns",
-          "arn:${data.aws_partition.current.partition}:cassandra:*:*:/keyspace/system_schema_mcs/table/keyspaces",
-          "arn:${data.aws_partition.current.partition}:cassandra:*:*:/keyspace/system_schema_mcs/table/tables",
-          "arn:${data.aws_partition.current.partition}:cassandra:*:*:/keyspace/system_schema_mcs/table/tags"
-        ]
-      },
-      {
-        "Action" : "ec2:CreateTags",
-        "Condition" : {
-          "StringEquals" : {
-            "ec2:CreateAction" : "CreateVolume"
-          }
-        },
         "Effect" : "Allow",
         "Resource" : "*",
-        "Sid" : "AllowWizToCreateTagsOnCreatedVolumes"
+        "Sid" : "WizFullPolicy"
       },
-      {
-        "Action" : "kms:CreateAlias",
-        "Effect" : "Allow",
-        "Resource" : [
-          "arn:${data.aws_partition.current.partition}:kms:*:*:alias/wizKey",
-          "arn:${data.aws_partition.current.partition}:kms:*:*:key/*"
-        ]
-      }
     ],
     "Version" : "2012-10-17"
   })

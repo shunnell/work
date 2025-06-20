@@ -12,16 +12,18 @@ module "awslbc" {
   # https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html
   source       = "../../helm"
   release_name = "aws-load-balancer-controller"
-
-  repository    = "${local.image_path_root}/helm/aws/eks-charts"
+  # NB: This domain is permitted through the non-prod egress firewall by FAB request, managed by IaC in "live". The
+  # rule group which permits it in the "network" account is here:
+  # https://us-east-1.console.aws.amazon.com/vpcconsole/home?region=us-east-1#NetworkFirewallRuleGroupDetails:name=network-platform-non-prod-inspection-infra-rule-group-domain-filtering;type=stateful;arn=arn_aws_network-firewall_us-east-1_975050075035_stateful-rulegroup~network-platform-non-prod-inspection-infra-rule-group-domain-filtering
+  repository    = "https://aws.github.io/eks-charts"
   chart         = "aws-load-balancer-controller"
   namespace     = "kube-system"
-  chart_version = "1.11.0"
+  chart_version = "1.13.2"
 
   set = {
     "image.repository"     = "${local.image_path_root}/ecr-public/eks/aws-load-balancer-controller"
     "clusterName"          = var.cluster_name
-    "region"               = data.aws_region.current.name
+    "region"               = data.aws_region.current.region
     "vpcId"                = var.vpc_id
     "backendSecurityGroup" = var.nodegroup_security_group_id
     "defaultTargetType"    = "ip"

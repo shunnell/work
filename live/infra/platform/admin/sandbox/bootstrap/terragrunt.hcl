@@ -17,8 +17,7 @@ terraform {
 dependency "cluster" {
   config_path = "../"
   mock_outputs = {
-    cluster_name      = "name"
-    oidc_provider_arn = "aws:mock:oidc/arn"
+    cluster_name = "name"
     node_groups = {
       "dummy-nodegroup" = { security_group_id = "sg-123" }
     }
@@ -28,15 +27,13 @@ dependency "cluster" {
 dependency "vpc" {
   config_path = "../../admin_vpc/vpc"
   mock_outputs = {
-    vpc_id = "vpc-1"
+    vpc_id = ""
   }
 }
 
 inputs = {
   cluster_name                = dependency.cluster.outputs.cluster_name
-  oidc_provider_arn           = dependency.cluster.outputs.oidc_provider_arn
   vpc_id                      = dependency.vpc.outputs.vpc_id
   nodegroup_security_group_id = values(dependency.cluster.outputs.node_groups)[0].security_group_id
-
-  account_name = local.account_locals.account
+  account_name                = local.account_locals.account
 }

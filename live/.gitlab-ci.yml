@@ -1,7 +1,326 @@
 include:
-  - local: accounts.gitlab-ci.yml
-    rules:
-      - if: ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) && $CI_PIPELINE_SOURCE != 'merge_request_event'
-  - local: changes.gitlab-ci.yml
-    rules:
-      - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  # - local: accounts.gitlab-ci.yml
+  #   rules:
+  #     - if: ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) && $CI_PIPELINE_SOURCE != 'merge_request_event'
+  # - local: changes.gitlab-ci.yml
+  #   rules:
+  #     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+
+  - project: "cloud-city/platform/gitlab-templates"
+    ref: HEAD
+    file:
+      - "templates/cache-test.gitlab-ci.yml"
+      - "templates/iac.gitlab-ci.yml"
+
+#default:
+#   tags:
+#     - runner-testing # NB: uncomment to build on the test runner.
+
+variables:
+  TG_IAM_ASSUME_ROLE: arn:aws:iam::381492150796:role/terragrunter
+
+stages:
+  - validate
+  - test
+  - plan
+  - destroy
+  - apply
+
+#### templates
+
+.common_terraform_modules:
+  before_script:
+    - git -c http.sslVerify=false clone https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.cloud-city/cloud-city/platform/iac/modules ../modules --depth 1
+    - export TERRA_UNIT_DIR=$(echo "$TERRA_GROUP_NAME" | sed 's|\.|/|g') # turning '.' into '/'
+    - echo $TERRA_UNIT_DIR
+
+# https://docs.gitlab.com/ee/ci/yaml/artifacts_reports.html#artifactsreportsterraform
+.publish_plan_terragrunt_units:
+  stage: plan
+  variables:
+    PLAN_REPORT: tfplan.json
+  image:
+    name: $CLOUD_CITY_CONTAINER_REGISTRY/github/astral-sh/uv:python3.12-alpine
+  script:
+    - find $CI_PROJECT_DIR -wholename 'tfplan.json'
+    - python _scripts/check_plan.py --directory "$CI_PROJECT_DIR" --output "$CI_PROJECT_DIR/$PLAN_REPORT"
+  artifacts:
+    name: tfplan_json
+    paths:
+      - $PLAN_REPORT
+    expire_in: "8 hrs"
+    reports:
+      terraform: $PLAN_REPORT
+  allow_failure: true
+
+.apply_terragrunt_units:
+  stage: apply
+  when: manual
+  variables:
+    ACTION: apply -auto-approve
+
+###########
+# CHANGES #
+###########
+
+#### templates
+
+.common_terragrunt_changes_template:
+  extends:
+    - .common_terraform_modules
+    - .common_terragrunt_mr_template
+  variables:
+    CHANGED_DIRS: changed_dirs.txt
+  script:
+    - chmod a+rx $CI_PROJECT_DIR/_scripts/*.sh
+    - $CI_PROJECT_DIR/_scripts/action_changed_dirs.sh
+  needs:
+    - detect_changes
+
+# .destroy_terragrunt_changes_template:
+#   extends:
+#     - .common_terragrunt_changes_template
+#   variables:
+#     DESTROY_DIRS: destroy_dirs.txt
+#     ACTION: plan -destroy -out=tfplan.tfplan
+#   before_script:
+#     - touch $DESTROY_DIRS
+#     - set +x
+#     - |
+#       while read dir
+#       do
+#         if [ ! -d $dir ]
+#         then
+#           echo "$dir" >> $DESTROY_DIRS
+#         fi
+#       done < $CHANGED_DIRS
+#     - export CHANGED_DIRS=$DESTROY_DIRS
+#     - git -c http.sslVerify=false fetch --unshallow || true
+#     - git -c http.sslVerify=false fetch origin $CI_DEFAULT_BRANCH
+#     - git checkout $CI_DEFAULT_BRANCH
+#   allow_failure: true
+
+#### common jobs
+
+detect_changes:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  needs: []
+  stage: .pre
+  extends:
+    - .common_terragrunt_mr_template
+  variables:
+    CHANGED_DIRS: changed_dirs.txt
+  script:
+    - git -c http.sslVerify=false fetch --unshallow || true
+    - git -c http.sslVerify=false fetch origin $CI_DEFAULT_BRANCH
+    - chmod a+rx $CI_PROJECT_DIR/_scripts/*.sh
+    - $CI_PROJECT_DIR/_scripts/detect_changed_dirs.sh > $CHANGED_DIRS
+    - cat $CHANGED_DIRS
+  artifacts:
+    name: changed_dirs
+    paths:
+      - $CHANGED_DIRS
+    expire_in: "8 hrs"
+
+#### lint
+
+validate-terraform-inputs-changes:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  extends:
+    - .common_terragrunt_changes_template
+    - .validate_terraform_inputs
+
+#### validate
+
+validate-terragrunt-units-changes:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  extends:
+    - .common_terragrunt_changes_template
+    - .validate_terragrunt_units
+
+#### test
+
+test-terragrunt-units-changes:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  extends:
+    - .common_terragrunt_changes_template
+    - .test_terragrunt_units
+#### plan
+
+plan-terragrunt-changes:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  extends:
+    - .common_terragrunt_changes_template
+    - .plan_terragrunt_units
+
+# plan-destroy-terragrunt-changes:
+#   stage: plan
+#   variables:
+#     ACTION: plan -destroy -out=tfplan.tfplan
+#   extends:
+#     - .destroy_terragrunt_changes_template
+#   artifacts:
+#     name: tfplan
+#     paths:
+#       - ./**/tfplan.tfplan
+#       - ./**/tfplan.json
+#     expire_in: "8 hrs"
+
+##### publish plan
+
+publish-plan-terragrunt-changes:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  needs:
+    - plan-terragrunt-changes
+    # - plan-destroy-terragrunt-changes
+  extends:
+    - .publish_plan_terragrunt_units
+
+#### destroy
+
+# destroy-terragrunt-changes:
+#   stage: destroy
+#   rules:
+#     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+#       exists:
+#         - "**/*.hcl"
+#       when: manual
+#   when: manual
+#   extends:
+#     - .destroy_terragrunt_changes_template
+#   variables:
+#     ACTION: destroy -auto-approve
+#   needs:
+#     - detect_changes
+#     - plan-destroy-terragrunt-changes
+#     - publish-plan-terragrunt-changes
+
+#### apply
+
+apply-terragrunt-changes:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      exists:
+        - "**/*.hcl"
+      when: manual
+  extends:
+    - .common_terragrunt_changes_template
+    - .apply_terragrunt_units
+  needs:
+    - detect_changes
+    - plan-terragrunt-changes
+    - publish-plan-terragrunt-changes
+
+############
+# ACCOUNTS #
+############
+
+#### templates
+
+.accounts_groups:
+  parallel:
+    matrix:
+      - TERRA_GROUP_NAME: # get list: `find . -iname "terragrunt.hcl" | awk -F'/' '{printf "          - %s.%s\n", $2, $3}' | sort -u`
+          - audit.platform
+          - camp.platform
+          - data.platform
+          - infra.camp
+          - infra.data-platform
+          - infra.iva
+          - infra.ocam
+          - infra.opr
+          - infra.platform
+          - infra.pqs
+          - infra.visas
+          - iva.platform
+          - logs.platform
+          - management.camp
+          - management.data-platform
+          - management.iva
+          - management.ocam
+          - management.opr
+          - management.platform
+          - management.pqs
+          - management.visas
+          - network.platform
+          - ocam.platform
+          - opr.platform
+          - pass.platform
+          - platform_sandbox.platform
+          - pqs.platform
+          - prod.platform
+          - subordinateca.platform
+          - visas.platform
+
+.terra_all_template:
+  needs: []
+  extends:
+    - .common_terragrunt_all_template
+    - .common_terraform_modules
+    - .accounts_groups
+
+#### lint
+
+validate-terraform-inputs-accounts:
+  rules:
+    - if: ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) && $CI_PIPELINE_SOURCE != 'merge_request_event'
+  extends:
+    - .terra_all_template
+    - .validate_terraform_inputs
+
+#### validate
+
+validate-terragrunt-units-accounts:
+  rules:
+    - if: ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) && $CI_PIPELINE_SOURCE != 'merge_request_event'
+  extends:
+    - .terra_all_template
+    - .validate_terragrunt_units
+
+#### test
+
+test-terragrunt-units-accounts:
+  rules:
+    - if: ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) && $CI_PIPELINE_SOURCE != 'merge_request_event'
+  extends:
+    - .terra_all_template
+    - .test_terragrunt_units
+
+#### plan
+
+plan-terragrunt-accounts:
+  rules:
+    - if: ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) && $CI_PIPELINE_SOURCE != 'merge_request_event'
+  extends:
+    - .terra_all_template
+    - .plan_terragrunt_units
+
+##### publish plan
+
+publish-plan-terragrunt-accounts:
+  rules:
+    - if: ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) && $CI_PIPELINE_SOURCE != 'merge_request_event'
+  needs:
+    - plan-terragrunt-accounts
+  extends:
+    - .common_terragrunt_all_template
+    - .publish_plan_terragrunt_units
+#### apply
+# apply-terragrunt-accounts:
+#   rules:
+#     - if: ($CI_COMMIT_TAG || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) && $CI_PIPELINE_SOURCE != 'merge_request_event'
+#       exists:
+#         - "**/*.hcl"
+#       when: manual
+#   extends:
+#     - .terra_all_template
+#     - .apply_terragrunt_units
+#   needs:
+#     - plan-terragrunt-accounts
+#     - publish-plan-terragrunt-accounts

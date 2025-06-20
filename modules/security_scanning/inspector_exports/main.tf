@@ -24,9 +24,11 @@ module "exports_bucket" {
     "allow-inspector" = {
       conditions = local.policy_conditions
       principals = local.service_principal
-      actions = ["s3:PutObject",
+      actions = [
+        "s3:PutObject",
         "s3:PutObjectAcl",
-      "s3:AbortMultipartUpload"]
+        "s3:AbortMultipartUpload",
+      ],
     }
   }
   tags = local.tags

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+import shutil
 from contextlib import contextmanager, nullcontext
 from functools import cache
 from os.path import expanduser, expandvars
@@ -12,6 +14,7 @@ from xdg import BaseDirectory
 
 from bespin_tools.lib.errors import BespinctlError
 from bespin_tools.lib.logging import info
+from bespin_tools.lib.python_files import python_cache_paths
 from bespin_tools.lib.util import WINDOWS, resolve_directory, resolve_file
 
 
@@ -19,6 +22,9 @@ from bespin_tools.lib.util import WINDOWS, resolve_directory, resolve_file
 def cache_root() -> Path:
     rv = Path(BaseDirectory.save_cache_path('bespinctl')).resolve()
     rv.mkdir(exist_ok=True)
+    if user := os.environ.get("SUDO_USER"):
+        # Make sure the cache dir isn't owned by root
+        shutil.chown(rv, user=user)
     return rv
 
 
@@ -39,10 +45,10 @@ class CachePath:
 
     @staticmethod
     def _part(path: str) -> Path:
-        assert not path.startswith('.'), f'Cache path cannot start with a dot: {path}'
-        assert not '..' in path, f'Cache path cannot contain "..": {path}'
+        BespinctlError.invariant(not path.startswith('.'), f'Cache path cannot start with a dot: {path}')
+        BespinctlError.invariant('..' not in path, f'Cache path cannot contain "..": {path}')
         path = Path(path)
-        assert len(path.parts) == 1, f"Cache path has directory parts: {path}"
+        BespinctlError.invariant(len(path.parts) == 1, f"Cache path has directory parts: {path}")
         return path
 
     @staticmethod
@@ -140,6 +146,10 @@ def dummy_aws_config_file() -> Path:
         fh.write('[bespinctl]\n')
         return Path(fh.name)
 
+def _unique_resolved_paths(*args: Path | str):
+    resolved = {Path(p).expanduser().resolve() for p in args}
+    yield from sorted(resolved)
+
 def external_cache_paths() -> Iterable[Path]:
     if WINDOWS:
         home = Path(expandvars('%UserProfile%'))
@@ -148,10 +158,18 @@ def external_cache_paths() -> Iterable[Path]:
         home = Path(expanduser('~'))
         cache_roots = (home.joinpath('Library', 'Caches'),)
 
-    for cache_root in {home.joinpath('.cache'), BaseDirectory.xdg_cache_home, *cache_roots}:
+    for cache_root in _unique_resolved_paths(
+        home.joinpath('.cache'),
+        BaseDirectory.xdg_cache_home,
+        *cache_roots,
+    ):
         for subpath in ('terragrunt', 'terraform', 'terraform.d', 'aws', 'awscli'):
-            yield Path(cache_root, subpath).expanduser()
-            yield Path(cache_root, f".{subpath}")
+            yield cache_root.joinpath(subpath)
+            yield cache_root.joinpath(f".{subpath}")
+    # UV installs tools, like this one, into the data path at ~/.local/share.
+    # https://docs.astral.sh/uv/concepts/tools/#tool-executables
+    for data_root in _unique_resolved_paths(home.joinpath('.local', 'share'), BaseDirectory.xdg_data_home):
+        yield from python_cache_paths(data_root.joinpath('uv'))
     # https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-role.html#cli-configure-role-cache
     yield Path(home, '.aws/cli/cache')
     yield Path(home, '.aws/credentials/cache')

@@ -6,15 +6,6 @@ terraform {
   source = "${get_repo_root()}/../modules//network/vpc"
 }
 
-locals {
-  # Load common variables
-  dev_vpc_vars = read_terragrunt_config(find_in_parent_folders("dev_vpc.hcl"))
-
-  # Extract commonly used variables
-  vpc_name       = local.dev_vpc_vars.locals.vpc_name
-  vpc_cidr_block = local.dev_vpc_vars.locals.vpc_cidr_block
-}
-
 dependency "cloudwatch_sharing_target" {
   config_path = "${get_path_to_repo_root()}/logs/platform/monitoring/cloudwatch_to_splunk_shipment_destinations/vpc_flow_logs"
   mock_outputs = {
@@ -22,9 +13,22 @@ dependency "cloudwatch_sharing_target" {
   }
 }
 
+dependency "route53_profile" {
+  config_path = "${get_path_to_repo_root()}/network/platform/route53"
+  mock_outputs = {
+    profile_id = ""
+  }
+}
+
+locals {
+  # Load common variables
+  vpc_vars = read_terragrunt_config(find_in_parent_folders("dev_vpc.hcl")).locals
+}
+
 inputs = {
-  vpc_name                     = local.vpc_name
-  vpc_cidr                     = local.vpc_cidr_block
+  vpc_name                     = "${local.vpc_vars.common_identifier}-vpc"
+  vpc_cidr                     = local.vpc_vars.vpc_cidr_block
   availability_zones           = ["us-east-1a", "us-east-1b", "us-east-1c"]
   log_shipping_destination_arn = dependency.cloudwatch_sharing_target.outputs.cloudwatch_destination_arn
+  profile_id                   = dependency.route53_profile.outputs.profile_id
 }

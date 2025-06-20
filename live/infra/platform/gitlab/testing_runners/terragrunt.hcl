@@ -24,6 +24,8 @@ include "runner_fleet" {
 }
 
 inputs = {
-  runner_fleet_name = "platform-team-runner-testing"
-  concurrency_pods  = 1 # Keep it scaled way down to not take up too much space.
+  runner_fleet_name_suffix = "testing"
+  scratch_space_size_gb    = 20
+  concurrency_pods         = 1 # Keep it scaled way down to not take up too much space.
+  read_only_root           = true
 }

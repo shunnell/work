@@ -1,7 +1,7 @@
 resource "aws_vpc_endpoint" "interface_endpoints" {
-  for_each            = var.interface_endpoints
+  for_each            = var.enable_dns_profile ? [] : var.interface_endpoints
   vpc_id              = aws_vpc.this.id
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.${each.key}"
+  service_name        = "com.amazonaws.${data.aws_region.current.region}.${each.key}"
   vpc_endpoint_type   = "Interface"
   subnet_ids          = values(module.private_subnets.subnets)[*].subnet_id
   security_group_ids  = [module.endpoint_sg.id]
@@ -17,7 +17,7 @@ resource "aws_vpc_endpoint" "gateway_endpoints" {
   for_each          = var.gateway_endpoints
   vpc_endpoint_type = "Gateway"
   vpc_id            = aws_vpc.this.id
-  service_name      = "com.amazonaws.${data.aws_region.current.name}.${each.key}"
+  service_name      = "com.amazonaws.${data.aws_region.current.region}.${each.key}"
   route_table_ids   = values(module.private_subnets.subnets)[*].route_table_id
   tags = merge(local.tags, {
     Name = "${var.vpc_name}-${each.key}-gw"
@@ -36,7 +36,7 @@ module "endpoint_sg" {
       ports    = [443]
       type     = "ingress"
       protocol = "tcp"
-      target   = var.vpc_cidr
+      target   = coalesce(var.custom_cidr_range, var.vpc_cidr)
     }
   }
 }

@@ -47,16 +47,10 @@ variable "node_type" {
   default     = "cache.m7g.xlarge"
 }
 
-variable "num_node_groups" {
-  description = "Number of node groups (shards) for this Redis replication group. Changing this number will trigger a resizing operation before other settings modifications."
+variable "num_cache_clusters" {
+  description = "Number of cache clusters"
   type        = number
-  default     = 1
-}
-
-variable "replicas_per_node_group" {
-  description = "Number of replica nodes in each node group. Changing this number will trigger a resizing operation before other settings modifications. Valid values are 0 to 5."
-  type        = number
-  default     = 1
+  default     = 2
 }
 
 variable "tags" {

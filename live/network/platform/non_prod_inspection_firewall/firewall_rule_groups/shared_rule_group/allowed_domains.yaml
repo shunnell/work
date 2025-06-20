@@ -1,0 +1,4 @@
+allowed_domains:
+  - dev-81467679.okta.com
+  - statedev.okta.com
+  - state.okta.com

@@ -38,6 +38,7 @@ No requirements.
 
 | Name | Source | Version |
 |------|--------|---------|
+| <a name="module_alarms"></a> [alarms](#module\_alarms) | ./eks-automated-monitoring | n/a |
 | <a name="module_argocd"></a> [argocd](#module\_argocd) | ../../helm | n/a |
 | <a name="module_awslbc"></a> [awslbc](#module\_awslbc) | ../../helm | n/a |
 | <a name="module_awslbc_irsa_role"></a> [awslbc\_irsa\_role](#module\_awslbc\_irsa\_role) | ../service_account | n/a |

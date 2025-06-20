@@ -45,7 +45,7 @@ data "aws_iam_policy_document" "bucket_policy" {
       sid       = statement.key
       effect    = "Allow"
       actions   = statement.value.actions
-      resources = length(statement.value.object_paths) == 0 ? local.bucket_resources : [for p in statement.value.object_paths : "${aws_s3_bucket.this.arn}/${trimprefix(p)}"]
+      resources = length(statement.value.object_paths) == 0 ? local.bucket_resources : [for p in statement.value.object_paths : "${aws_s3_bucket.this.arn}/${trimprefix(p, "/")}"]
       dynamic "principals" {
         for_each = statement.value.principals
         content {

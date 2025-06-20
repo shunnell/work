@@ -55,6 +55,14 @@ output "aurora_serverless_v2_cluster_database_name" {
   value       = module.aurora_serverless_v2.cluster_database_name
 }
 
+output "aurora_serverless_master_user_secret_name" {
+  description = "The base name of the Secrets manager secret for the Aurora master user"
+  value = try(
+    regex("secret:(.+)-[a-zA-Z0-9]+$", module.aurora_serverless_v2.cluster_master_user_secret[0].secret_arn),
+    null
+  )
+}
+
 output "aurora_serverless_v2_cluster_master_username" {
   description = "The database master username"
   value       = module.aurora_serverless_v2.cluster_master_username

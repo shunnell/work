@@ -3,7 +3,7 @@ include "root" {
 }
 
 locals {
-  name = "cloud-city/platform/sonatype-license-2024-09-20"
+  name = "cloud-city/platform/sonatype_license_2024-09-20"
 }
 
 terraform {
@@ -13,7 +13,7 @@ terraform {
 inputs = {
   value = jsonencode(
     {
-      "sonatype-license-2024-09-20T172110Z.lic.base64" = ""
+      "sonatype_license_2024-09-20T172110Z_base64" = ""
     }
   )
   name                           = local.name

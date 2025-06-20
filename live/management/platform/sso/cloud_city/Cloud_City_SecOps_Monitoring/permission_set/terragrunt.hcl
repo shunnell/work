@@ -21,5 +21,6 @@ inputs = {
     "arn:aws:iam::aws:policy/AmazonInspector2ReadOnlyAccess",
     # Legacy/deprecated old Inspector product, but granting read-only to security folks doesn't hurt:
     "arn:aws:iam::aws:policy/AmazonInspectorReadOnlyAccess",
+    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
   ]
 }

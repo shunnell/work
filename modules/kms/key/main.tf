@@ -6,6 +6,8 @@ module "local_roles" {
   source = "../../iam/local_role_data"
 }
 
+data "aws_caller_identity" "current" {}
+
 data "aws_iam_policy_document" "key_policy" {
   # Put default policies first so IAM document diff is minimized due to variation in size of user-supplied stanza keys.
   statement {
@@ -21,6 +23,18 @@ data "aws_iam_policy_document" "key_policy" {
       # any longer be allowed to administer the key. Explicit > implicit, in other words.
       type        = "AWS"
       identifiers = sort(module.local_roles.most_privileged_users)
+    }
+  }
+  statement {
+    # Wiz's scanner role doesn't by default have permissions to see this key; permissions must be added on a per-key
+    # basis for KMS, since KMS is special WRT IAM permissions. See modules/wiz/README.md for more details.
+    actions   = ["kms:DescribeKey"]
+    effect    = "Allow"
+    resources = ["*"]
+    sid       = "AllowWizToDescribeKey"
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/WizAccess-Role"]
     }
   }
 

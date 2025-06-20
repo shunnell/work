@@ -8,6 +8,11 @@ output "secret_arn" {
   value       = aws_secretsmanager_secret.this.arn
 }
 
+output "secret_name" {
+  description = "Secret Name"
+  value       = aws_secretsmanager_secret.this.name
+}
+
 output "secret_id_version" {
   description = "A pipe delimited combination of secret ID and version ID."
   value       = var.ignore_changes_to_secret_value ? data.aws_secretsmanager_secret_version.current_externally_managed[0].id : data.aws_secretsmanager_secret_version.current_fully_managed[0].id

@@ -3,7 +3,6 @@ include "root" {
 }
 
 locals {
-  vpc_vars     = read_terragrunt_config("../dev_vpc/dev_vpc.hcl").locals
   cluster_name = "opr-dev"
 }
 
@@ -25,8 +24,10 @@ dependency "cloudwatch_sharing_target" {
 dependency "cloud_city_roles" {
   config_path = "../../common/cloud_city_roles"
   mock_outputs = {
-    most_privileged_users               = []
-    sso_role_arns_by_permissionset_name = { "Sandbox_Dev" = "" }
+    most_privileged_users = []
+    sso_role_arns_by_permissionset_name = {
+      "Sandbox_Dev" = ""
+    }
   }
 }
 
@@ -47,7 +48,9 @@ inputs = {
   subnet_ids   = [for _, v in dependency.vpc.outputs.private_subnets_by_az : v.subnet_id]
   administrator_role_arns = concat(
     dependency.cloud_city_roles.outputs.most_privileged_users,
-    [dependency.cloud_city_roles.outputs.sso_role_arns_by_permissionset_name["Sandbox_Dev"]]
+    [
+      dependency.cloud_city_roles.outputs.sso_role_arns_by_permissionset_name["Sandbox_Dev"],
+    ]
   )
 
   node_groups = {

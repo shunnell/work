@@ -5,6 +5,7 @@ import click
 from bespin_tools.lib.aws import CLOUD_CITY_ORGANIZATION_ROOT_ACCOUNT
 from bespin_tools.lib.aws.organization import Organization
 from bespin_tools.lib.aws.util import paginate
+from bespin_tools.lib.errors import BespinctlError
 
 
 @click.group()
@@ -27,10 +28,10 @@ def get_status(k: str, v: dict):
 
 class GuardDutyStatus(dict):
     def __setitem__(self, key, value):
-        assert isinstance(value, str), f"Invalid value: {type(value)} {value}"
-        assert isinstance(key, str), f"Invalid key: {type(key)} {key}"
+        BespinctlError.invariant(isinstance(value, str), f"Invalid value: {type(value)} {value}")
+        BespinctlError.invariant(isinstance(key, str), f"Invalid key: {type(key)} {key}")
         value = value.title()
-        assert value in ('Enabled', 'Disabled'), f"Invalid value: {type(value)} {value}"
+        BespinctlError.invariant(value in ('Enabled', 'Disabled'), f"Invalid enabled status: {type(value)} {value}")
         key = ''.join(c.upper() for c in key if c != '_')
         # I *think* the EksRuntimeMonitoring config is deprecated and always reports "Disabled", and instead EKS status
         # is indicated by a combination of "RuntimeMonitoring" being enabled at the top level + the
@@ -44,7 +45,8 @@ class GuardDutyStatus(dict):
 def status_by_account(resources):
     gdc, detector, accounts = resources
     root_config = gdc.get_member_detectors(DetectorId=detector, AccountIds=list(accounts.keys()))
-    assert len(root_config.get('UnprocessedAccounts', [])) == 0
+    unprocessed_accounts = root_config.get('UnprocessedAccounts', [])
+    BespinctlError.invariant(len(unprocessed_accounts) == 0, f"Some accounts are still processing: {unprocessed_accounts}")
     for data in root_config['MemberDataSourceConfigurations']:
         results = GuardDutyStatus()
         for k, v in data['DataSources'].items():

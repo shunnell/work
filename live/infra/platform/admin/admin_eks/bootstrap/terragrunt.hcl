@@ -27,7 +27,7 @@ dependency "cluster" {
 dependency "vpc" {
   config_path = "../../admin_vpc/vpc"
   mock_outputs = {
-    vpc_id = "vpc-1"
+    vpc_id = ""
   }
 }
 

@@ -44,3 +44,11 @@ resource "aws_default_security_group" "default" {
     var.tags
   )
 }
+
+# Profile Association for VPC
+resource "aws_route53profiles_association" "this" {
+  count       = var.enable_dns_profile ? 1 : 0
+  name        = "${var.vpc_name}-profile-association"
+  profile_id  = var.profile_id
+  resource_id = aws_vpc.this.id
+}

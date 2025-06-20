@@ -23,8 +23,6 @@ inputs = {
   # Below ARN supplied by Mike Liu on OPR3 engineering as the log group that contains application logs for OPR3 in
   # pre-production environment:
   log_group_arns = [
-    "arn:aws:logs:${include.account.locals.region}:${include.account.locals.account_id}:log-group:/aws/containerinsights/dos-ca-dev-cluster/application",
-    "arn:aws:logs:${include.account.locals.region}:${include.account.locals.account_id}:log-group:/aws/containerinsights/dos-mvp-staging-cluster/application",
     "arn:aws:logs:${include.account.locals.region}:${include.account.locals.account_id}:log-group:/aws/staging/dos-mvp-staging-opr-v3/redis:*",
     "arn:aws:logs:${include.account.locals.region}:${include.account.locals.account_id}:log-group:/aws/rds/cluster/dos-mvp-staging-opr-v3/postgresql:*",
   ]

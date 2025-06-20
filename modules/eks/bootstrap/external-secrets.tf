@@ -1,10 +1,10 @@
 module "external_secrets" {
   source        = "../../helm"
+  repository    = "${local.external_secrets_repo_root}/charts"
   chart         = "external-secrets"
   namespace     = kubernetes_namespace.namespaces["external-secrets"].metadata[0].name
   release_name  = "external-secrets"
-  repository    = "${local.external_secrets_repo_root}/charts"
-  chart_version = "0.16.1"
+  chart_version = "0.18.0-rc1"
   # We need to force it to use the VPC-regional STS endpoint, since it hardcodes the public (inaccessible) STS endpoint
   # by default. The other settable endpoints are configured to be regional as well, for good measure, but only STS was
   # observed to cause issues if not set.
@@ -21,11 +21,11 @@ module "external_secrets" {
         repository: "${local.external_secrets_repo_root}/external-secrets"
     extraEnv:
       - name: AWS_STS_ENDPOINT
-        value: "https://sts.${data.aws_region.current.name}.amazonaws.com"
+        value: "https://sts.${data.aws_region.current.region}.amazonaws.com"
       - name: AWS_SECRETSMANAGER_ENDPOINT
-        value: "https://secretsmanager.${data.aws_region.current.name}.amazonaws.com"
+        value: "https://secretsmanager.${data.aws_region.current.region}.amazonaws.com"
       - name: AWS_SSM_ENDPOINT
-        value: "https://ssm.${data.aws_region.current.name}.amazonaws.com"
+        value: "https://ssm.${data.aws_region.current.region}.amazonaws.com"
     YAML
   ]
 

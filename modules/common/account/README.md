@@ -45,6 +45,9 @@ No requirements.
 | [aws_vpc_block_public_access_options.block_public_access](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_block_public_access_options) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_iam_policy_document.sandbox_boundary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_role.terragrunter](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_role) | data source |
+| [aws_iam_roles.sso_roles](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_roles) | data source |
+| [aws_iam_session_context.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_session_context) | data source |
 | [aws_servicequotas_service_quota.quotas_by_name](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/servicequotas_service_quota) | data source |
 
 ## Inputs
@@ -60,7 +63,10 @@ No requirements.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_account_id"></a> [account\_id](#output\_account\_id) | Current AWS account ID (offered as a convenient, to save code; many things that use this module will also want the account ID) |
+| <a name="output_account_principal"></a> [account\_principal](#output\_account\_principal) | The IAM principal representing 'anyone in this account' (i.e. 'root'). Use with caution; granting permission to/fron this principal authorizes any principals in this account, regardless of name. |
+| <a name="output_most_privileged_users"></a> [most\_privileged\_users](#output\_most\_privileged\_users) | List of IAM principal ARNs of the highest-permissioned users in Cloud City. Should not be referenced in most ordinary code. For use in IaC code that needs to express e.g. 'god users need to be able to access some resource, regardless of other IAM filtering we perform'. This helps prevent e.g. creating 'immortal' AWS resources that cannot be managed/deleted at all due to required resource-based policies. |
 | <a name="output_quotas"></a> [quotas](#output\_quotas) | n/a |
-| <a name="output_wiz_role_arn"></a> [wiz\_role\_arn](#output\_wiz\_role\_arn) | n/a |
-| <a name="output_wiz_user_arn"></a> [wiz\_user\_arn](#output\_wiz\_user\_arn) | n/a |
+| <a name="output_sso_role_arns_by_permissionset_name"></a> [sso\_role\_arns\_by\_permissionset\_name](#output\_sso\_role\_arns\_by\_permissionset\_name) | Mapping of IAMIC SSO-generated role (e.g. 'Cloud\_City\_Admin' or 'Sandbox\_Dev') to account-local role ARNs. |
+| <a name="output_wiz_role_arn"></a> [wiz\_role\_arn](#output\_wiz\_role\_arn) | ARN of the role used by Wiz for security scanning (present in all Cloud City accounts) |
 <!-- END_TF_DOCS -->
