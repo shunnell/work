@@ -1,7 +1,3 @@
-data "aws_lb" "this" {
-  name = "${var.name_prefix}-alb"
-}
-
 resource "aws_wafregional_web_acl" "this" {
   name        = "${var.name_prefix}-waf"
   metric_name = "${var.name_prefix}-waf-metric"
@@ -23,6 +19,6 @@ resource "aws_wafregional_web_acl" "this" {
 }
 
 resource "aws_wafregional_web_acl_association" "this" {
-  resource_arn = data.aws_lb.this.arn
+  resource_arn = var.resource_arn
   web_acl_id   = aws_wafregional_web_acl.this.id
 }

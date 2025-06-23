@@ -39,7 +39,8 @@ No requirements.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_availability_zones"></a> [availability\_zones](#input\_availability\_zones) | Availability zones in which this VPC will create subnets | `set(string)` | n/a | yes |
-| <a name="input_block_public_access"></a> [block\_public\_access](#input\_block\_public\_access) | Whether to block public network access to/from this VPC. Should be 'true' in almost all cases | `bool` | `true` | no |
+| <a name="input_block_public_access"></a> [block\_public\_access](#input\_block\_public\_access) | Should be 'true' in most cases, except for ALB Ingress | `bool` | `true` | no |
+| <a name="input_create_public_subnets"></a> [create\_public\_subnets](#input\_create\_public\_subnets) | Only set to true for ALB ingress VPCs | `bool` | `false` | no |
 | <a name="input_custom_cidr_range"></a> [custom\_cidr\_range](#input\_custom\_cidr\_range) | Custom CIDR range for the VPC endpoints security group rule used for shared services vpc | `string` | `null` | no |
 | <a name="input_enable_dns"></a> [enable\_dns](#input\_enable\_dns) | Enable DNS in VPC | `bool` | `true` | no |
 | <a name="input_enable_dns_profile"></a> [enable\_dns\_profile](#input\_enable\_dns\_profile) | Enable DNS profile | `bool` | `true` | no |

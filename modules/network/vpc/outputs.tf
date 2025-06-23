@@ -41,5 +41,5 @@ output "endpoint_security_group_id" {
 
 output "public_subnets" {
   description = "List of IDs for the public subnets (from modules/network/vpc/public_subnets)"
-  value       = module.public_subnets.subnets.subnet_id
+  value       = module.public_subnets[*].subnet_ids
 }

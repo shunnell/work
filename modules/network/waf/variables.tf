@@ -13,3 +13,8 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "resource_arn" {
+  description = "Resource ARN to associate with this Web ACL."
+  type        = string
+}

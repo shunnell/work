@@ -22,6 +22,7 @@ resource "aws_vpc_block_public_access_exclusion" "allow_public_access" {
 }
 
 module "public_subnets" {
+  count              = var.create_public_subnets ? 1 : 0
   source             = "./public_subnets"
   vpc_id             = aws_vpc.this.id
   availability_zones = var.availability_zones
