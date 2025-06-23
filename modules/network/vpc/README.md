@@ -17,6 +17,7 @@ No requirements.
 | <a name="module_flow_logs_group"></a> [flow\_logs\_group](#module\_flow\_logs\_group) | ../../monitoring/cloudwatch_log_group | n/a |
 | <a name="module_flow_logs_role"></a> [flow\_logs\_role](#module\_flow\_logs\_role) | ../../iam/role | n/a |
 | <a name="module_private_subnets"></a> [private\_subnets](#module\_private\_subnets) | ./subnets | n/a |
+| <a name="module_public_subnets"></a> [public\_subnets](#module\_public\_subnets) | ./public_subnets | n/a |
 | <a name="module_ship_logs_to_splunk"></a> [ship\_logs\_to\_splunk](#module\_ship\_logs\_to\_splunk) | ../../monitoring/cloudwatch_log_shipping_source | n/a |
 
 ## Resources
@@ -60,6 +61,7 @@ No requirements.
 | <a name="output_gateway_endpoint_ids"></a> [gateway\_endpoint\_ids](#output\_gateway\_endpoint\_ids) | Map of gateway endpoint IDs |
 | <a name="output_interface_endpoint_ids"></a> [interface\_endpoint\_ids](#output\_interface\_endpoint\_ids) | Map of interface endpoint IDs |
 | <a name="output_private_subnets_by_az"></a> [private\_subnets\_by\_az](#output\_private\_subnets\_by\_az) | Subnets created. Map of AZ name => {subnet\_id => id, route\_table\_id => id, cidr\_block => cidr} |
+| <a name="output_public_subnets"></a> [public\_subnets](#output\_public\_subnets) | List of IDs for the public subnets (from modules/network/vpc/public\_subnets) |
 | <a name="output_vpc_cidr_block"></a> [vpc\_cidr\_block](#output\_vpc\_cidr\_block) | The CIDR block of the VPC |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | The ID of the VPC |
 | <a name="output_vpc_name"></a> [vpc\_name](#output\_vpc\_name) | The name of the VPC |

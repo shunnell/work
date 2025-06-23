@@ -13,11 +13,6 @@ variable "subnets" {
   type        = list(string)
 }
 
-variable "security_group_ids" {
-  description = "List of security group IDs to attach to the ALB."
-  type        = list(string)
-}
-
 variable "certificate_arn" {
   description = "ARN of the ACM certificate to use on the HTTPS listener."
   type        = string
@@ -30,7 +25,7 @@ variable "tags" {
 }
 
 variable "tenants" {
-  description = <<EOF
+  description = <<-EOF
 Map of tenant configurations. Each key is an arbitrary tenant‐identifier string,
 and each value is an object with:
 - host_header       = the hostname to match (e.g. 'tenant1.example.com')
@@ -48,8 +43,9 @@ EOF
   }))
 }
 
-variable "region" {
-  description = "AWS region for the ALB."
+variable "waf_web_acl_id" {
+  description = "ID of the AWS WAF Classic (Regional) Web ACL to associate; omit or null to skip"
   type        = string
-  default     = "us-east-1"
+  default     = null
 }
+

@@ -22,6 +22,13 @@ variable "record_history" {
   default     = true
 }
 
+variable "object_lock" {
+  description = "Whether to enable Object Lock on the bucket"
+  type        = bool
+  default     = true
+}
+
+
 variable "empty_bucket_when_deleted" {
   description = "Whether or not to empty the bucket and delete all contained objects when it is deleted via Terraform/Terragrunt"
   type        = bool

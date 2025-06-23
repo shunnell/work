@@ -1,7 +1,3 @@
-provider "aws" {
-  region = var.region
-}
-
 locals {
   processed_tenants = {
     for tenant_key, cfg in var.tenants :
@@ -15,12 +11,41 @@ locals {
   }
 }
 
+resource "aws_security_group" "alb" {
+  name        = "${var.name_prefix}-alb-sg"
+  description = "Allow HTTP(S) from Internet"
+  vpc_id      = var.vpc_id
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] #TODO: Restrict this to known IP ranges before applying
+  }
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] #TODO: Restrict this to known IP ranges before applying
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"] #TODO: Restrict this to known IP ranges before applying
+  }
+  tags = var.tags
+}
+
+locals {
+  sg_ids = [aws_security_group.alb.id]
+}
+
 resource "aws_lb" "this" {
   name                       = "${var.name_prefix}-alb"
   load_balancer_type         = "application"
   internal                   = false
   subnets                    = var.subnets
-  security_groups            = var.security_group_ids
+  security_groups            = local.sg_ids
   enable_deletion_protection = false
 
   tags = merge(var.tags, { Name = "${var.name_prefix}-alb" })
@@ -95,4 +120,10 @@ resource "aws_lb_listener_rule" "tenant" {
       values = [each.value.host_header]
     }
   }
+}
+
+resource "aws_wafregional_web_acl_association" "this" {
+  count        = var.waf_web_acl_id != null ? 1 : 0
+  resource_arn = aws_lb.this.arn
+  web_acl_id   = var.waf_web_acl_id
 }

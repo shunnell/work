@@ -27,7 +27,7 @@ resource "aws_s3_bucket_versioning" "this" {
 
 # Security scanners want Object Lock configured on all S3 buckets, so we do so with some basic, flexible settings:
 resource "aws_s3_bucket_object_lock_configuration" "object_lock" {
-  count      = var.record_history ? 1 : 0
+  count      = var.object_lock ? 1 : 0
   bucket     = aws_s3_bucket.this.id
   depends_on = [aws_s3_bucket_versioning.this]
   rule {

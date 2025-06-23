@@ -21,6 +21,15 @@ resource "aws_vpc_block_public_access_exclusion" "allow_public_access" {
   internet_gateway_exclusion_mode = "allow-bidirectional"
 }
 
+module "public_subnets" {
+  source             = "./public_subnets"
+  vpc_id             = aws_vpc.this.id
+  availability_zones = var.availability_zones
+  force_cidr_ranges  = var.force_subnet_cidr_ranges
+  width              = var.private_subnet_width
+  offset             = 0
+}
+
 module "private_subnets" {
   source             = "./subnets"
   name               = "private"

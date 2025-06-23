@@ -64,6 +64,12 @@ variable "record_history" {
   default     = true
 }
 
+variable "object_lock" {
+  description = "Whether to enable Object Lock on the bucket"
+  type        = bool
+  default     = true
+}
+
 variable "tags" {
   description = "Tags to add to the resources"
   type        = map(string)

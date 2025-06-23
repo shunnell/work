@@ -5,6 +5,7 @@ module "buckets_with_prefix" {
   name_prefix = each.value
 
   record_history            = var.record_history
+  object_lock               = var.object_lock
   empty_bucket_when_deleted = var.empty_bucket_when_deleted
   bucket_acceleration       = var.bucket_acceleration
   bucket_acl                = var.bucket_acl
@@ -21,6 +22,7 @@ module "buckets_with_global_name" {
   name_prefix               = null
 
   record_history       = var.record_history
+  object_lock          = var.object_lock
   globally_unique_name = each.value
   bucket_acceleration  = var.bucket_acceleration
   bucket_acl           = var.bucket_acl

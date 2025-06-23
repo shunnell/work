@@ -6,22 +6,52 @@ terraform {
   source = "${get_path_to_repo_root()}/../modules//network/app_load_balancer"
 }
 
+dependency "vpc" {
+  config_path = "${get_path_to_repo_root()}/network/platform/non_prod_ingress_vpc/vpc"
+  mock_outputs = {
+    vpc_id         = "vpc-abcdef1234567890"
+    public_subnets = ["subnet-11111111", "subnet-22222222", "subnet-33333333"]
+  }
+}
+
+dependency "waf" {
+  config_path = "${get_path_to_repo_root()}/network/platform/non_prod_waf"
+  mock_outputs = {
+    web_acl_id = "waf-1234abcd"
+  }
+}
+
 inputs = {
-  name_prefix        = "non-prod-multitenant"
-  vpc_id             = "vpc-0d2956665b19249f7"
-  subnets            = ["subnet-0ce9cbb0e870c0aa8", "subnet-0a806fc68f88c229d"]
-  security_group_ids = ["sg-0a1d550d4973c42f9"]
-  certificate_arn    = "arn:aws:acm:us-east-1:123456789012:certificate/abcd-efgh" #TODO: Replace with actual certificate ARN
-  region             = "us-east-1"
+  name_prefix    = "non-prod-multitenant"
+  vpc_id         = dependency.vpc.outputs.vpc_id
+  waf_web_acl_id = dependency.waf.outputs.web_acl_id
+  # use public subnets for the ALB
+  subnets         = dependency.vpc.outputs.public_subnets
+  certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/abcd-efgh" # TODO: Create story, need to swap in real ARN
+  region          = "us-east-1"
+
 
   tenants = {
-    app1 = { host_header = "app1.us-east-1.cloud-city.ca.state.sbu", priority = 10, port = 80 }
-    app2 = { host_header = "app2.us-east-1.cloud-city.ca.state.sbu", priority = 20, port = 80 }
-    app3 = { host_header = "app3.us-east-1.cloud-city.ca.state.sbu", priority = 30, port = 80 }
+    app1 = {
+      host_header = "app1.us-east-1.cloud-city.ca.state.sbu"
+      priority    = 10
+      port        = 80
+    }
+    app2 = {
+      host_header = "app2.us-east-1.cloud-city.ca.state.sbu"
+      priority    = 20
+      port        = 80
+    }
+    app3 = {
+      host_header = "app3.us-east-1.cloud-city.ca.state.sbu"
+      priority    = 30
+      port        = 80
+    }
   }
 
   tags = {
     Environment = "non-prod"
     Project     = "MultiTenantApp"
   }
+
 }
