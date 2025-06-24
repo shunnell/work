@@ -34,7 +34,8 @@ resource "aws_lambda_function" "lambda_processor" {
   source_code_hash = data.archive_file.transformer_lambda_script.output_base64sha256
   environment {
     variables = {
-      SOURCE_TYPE = var.log_sourcetype
+      SOURCE_TYPE              = var.log_sourcetype
+      CLOUD_CITY_ACCT_MAPPINGS = jsonencode(var.account_list_mapping)
     }
   }
   depends_on = [

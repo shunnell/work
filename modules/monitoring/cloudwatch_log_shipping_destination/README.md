@@ -1,3 +1,22 @@
+## Additional Info
+
+### References
+- [Push-based Amazon Kinesis Firehose Data Collection Sourcetypes](https://splunk.github.io/splunk-add-on-for-amazon-web-services/DataTypes/#push-based-amazon-kinesis-firehose-data-collection-sourcetypes)
+- [Splunk Add-on for AWS Data Types](https://splunk.github.io/splunk-add-on-for-amazon-web-services/DataTypes/)
+
+## AWS Sourcetypes
+
+| Sourcetype | Description |
+|------------|-------------|
+| `aws:cloudtrail` | AWS API call history from the AWS CloudTrail service, delivered as CloudWatch events |
+| `aws:firehose:cloudwatchevents` | Data from CloudWatch. You can extract CloudTrail events embedded within CloudWatch events with this sourcetype as well |
+| `aws:guardduty` | GuardDuty events |
+| `aws:cloudwatchlogs:vpcflow` | VPC Flow Logs from CloudWatch. When ingesting CloudWatch logs, set the Lambda buffering size to 1 MB |
+| `aws:cloudwatchlogs:transitgateway` | Collect Transit Gateway Flow Logs through HEC |
+| `aws:s3` | Represents generic log data from your S3 buckets |
+| `aws:route53:resolver` | AWS Route53 resolver logs |
+| `aws:eventbridge` | EventBridge logs including ECR, Config, Macie, Inspector2, SSM, WAF, Access Analyzer, Security Hub logs, and CodeArtifact |
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 
@@ -37,6 +56,7 @@ No requirements.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_account_list_mapping"></a> [account\_list\_mapping](#input\_account\_list\_mapping) | Map of account ID to account name | `map(string)` | `{}` | no |
 | <a name="input_destination_name"></a> [destination\_name](#input\_destination\_name) | Name of this destination (e.g. 'CloudWatch' or 'GuardDuty'). Destinations are heavy-weight and should be shared where appropriate in order to maximize shipping efficiency and reduce infrastructure complexity. | `string` | n/a | yes |
 | <a name="input_failed_shipments_cloudwatch_log_group_name"></a> [failed\_shipments\_cloudwatch\_log\_group\_name](#input\_failed\_shipments\_cloudwatch\_log\_group\_name) | Name of a CloudWatch log group to which log shipment failure error information will be written by Firehose (transformation Lambda invocation failures will be written to a separate log group) | `string` | n/a | yes |
 | <a name="input_failed_shipments_s3_bucket_arn"></a> [failed\_shipments\_s3\_bucket\_arn](#input\_failed\_shipments\_s3\_bucket\_arn) | ARN of a bucket which will store failed log shipments. Within this bucket, failed shipments will be stored under akey corresponding to destination\_name. | `string` | n/a | yes |

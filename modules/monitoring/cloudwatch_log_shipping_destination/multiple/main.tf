@@ -1,5 +1,7 @@
 module "firehose_destination" {
   source                                     = "../"
+  log_sourcetype                             = "aws:eventbridge"
+  account_list_mapping                       = var.account_list_mapping
   for_each                                   = var.destination_names
   destination_name                           = each.key
   failed_shipments_s3_bucket_arn             = var.failed_shipments_s3_bucket_arn

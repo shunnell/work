@@ -17,6 +17,12 @@ variable "log_sourcetype" {
   default     = "aws:cloudwatch" # identify from logGroup in cloudwatch logs payload
 }
 
+variable "account_list_mapping" {
+  description = "Map of account ID to account name"
+  type        = map(string)
+  default     = {}
+}
+
 variable "failed_shipments_s3_bucket_arn" {
   description = "ARN of a bucket which will store failed log shipments. Within this bucket, failed shipments will be stored under akey corresponding to destination_name."
   type        = string

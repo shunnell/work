@@ -83,9 +83,12 @@ module "eks" {
     }
   }
 
-  cluster_endpoint_public_access        = false
-  cluster_endpoint_private_access       = true
-  cluster_additional_security_group_ids = [module.cluster_security_group.id]
+  cluster_endpoint_public_access  = false
+  cluster_endpoint_private_access = true
+  cluster_additional_security_group_ids = concat(
+    [module.cluster_security_group.id],
+    var.additional_security_group_ids
+  )
 
   # not setting to 'true' so that there are not conflicts with the 'terragrunter' role because:
   # "The specified access entry resource is already in use on this cluster"

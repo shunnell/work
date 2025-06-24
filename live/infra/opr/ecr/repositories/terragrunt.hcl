@@ -9,7 +9,7 @@ include "team_repositories" {
 
 inputs = {
   aws_accounts_with_pull_access = [
-    # OPR is the sole tenant with production presence at this time, so prod is added to the list of accounts that can
+    # OPR is the sole tenant with production presence at this time, so prod is added to the list of accounts that can#
     # pull their images. NB: the "deep" merge strategy above results in this value being appended to the input variable
     # rather than replacing it.
     read_terragrunt_config("${get_repo_root()}/prod/account.hcl").locals.account_id
@@ -20,8 +20,5 @@ inputs = {
     "dos-ca-opr-v3-job-runner-repo",
     "dos-ca-opr-v3-mock-apis-repo",
     "dos-ca-opr-v3-setup-ssl-certs-repo",
-    "opr/application/opr-app-python",
-    "cloud-city/dh/mcr.microsoft.com/playwright",
-    "playwright",
   ]
 }

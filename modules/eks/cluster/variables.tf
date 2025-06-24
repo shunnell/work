@@ -135,3 +135,10 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "additional_security_group_ids" {
+  description = "List of additional security group IDs to attach to the EKS cluster"
+  type        = list(string)
+  default     = []
+}
+

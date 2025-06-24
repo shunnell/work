@@ -40,13 +40,36 @@ from gzip import decompress
 from json import loads, dumps
 from typing import Tuple
 import os
+import re
+import json
+
 
 STATUS_OK: str = 'Ok'
 DROPPED: str = 'Dropped'
 FAILED: str = 'ProcessingFailed'
 
+# opentelemetry log pattern
+TIMESTAMP_SEVERITY_PATTERN = re.compile(r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z) ([A-Z]!) (.+)$")
+ACCOUNT_MAPPING: dict[str, str] = loads(os.environ['CLOUD_CITY_ACCT_MAPPINGS'])
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
+def try_decode(data):
+    # Only attempt JSON parson on strings, return unchanged otherwise.
+    if isinstance(data, str):
+        try:
+            return loads(data), True
+        except json.JSONDecodeError:
+            return data, False
+    elif isinstance(data, bytes):
+        try:
+            decoded_str = data.decode('utf-8')
+            return json.loads(decoded_str), True
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            return data, False
+    return data, False
+
 
 def process(records) -> list:
     while len(records):  # Destructively iterate to keep memory consumption (and thus lambda runtime and $$) low.
@@ -54,7 +77,7 @@ def process(records) -> list:
         logger.info(f'Payload to be transform: {payload}')
         message_type: str = payload.get('messageType', '<unknown>')
         if message_type == 'CONTROL_MESSAGE':
-            output_record = {'recordId': record_id, 'result': DROPPED}
+            output_record: dict[str, int | str] = {'recordId': record_id, 'result': DROPPED}
         elif message_type == 'DATA_MESSAGE':
             payload = '\r\n'.join(transform(payload))
             logger.info(f'Payload after transformation: {payload}')
@@ -78,13 +101,57 @@ def parse_record(record: dict) -> Tuple[int, dict]:
         data = decompress(b64decode(data))
     return record['recordId'], loads(data)
 
-
 def transform(payload: dict) -> str:
     sourcetype: str  = os.environ['SOURCE_TYPE']
+    owner_id: str = payload['owner']
+    # Map the owner ID to account name, fallback to original ID if not found
+    owner: str = ACCOUNT_MAPPING.get(owner_id, owner_id)
+    # referencing fields provided as part of Cloudwatch Logs subscription filters to aws lambda
+    # https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/SubscriptionFilters.html#FirehoseExample
+    log_group: str = payload['logGroup']
+    log_stream: str = payload['logStream']
     events: list = payload['logEvents']
     while events:
         message = events.pop()['message']
-        event = loads(message)
+        event, is_json = try_decode(message)
+
+        if is_json:
+            # Adding cloudwatch log information within event
+            event.update({
+                "tenant" : owner,
+                "logGroup": log_group,
+                "logStream": log_stream
+            })
+            # Some MultiAccount Application logs containing redundant fields log_processed, and log.
+            # Removing Improperly formatted 'log' field and preserving the log_processed field.
+            if "log_processed" in event:
+                del event["log"]
+            # when properly formatted log_processed is not available
+            elif "log" in event:
+                log_content = event["log"]
+                if isinstance(log_content, str):
+                    parsed_log, is_plain_json = try_decode(log_content)
+                    if is_plain_json:
+                        event["log"] = parsed_log
+                    elif match:= TIMESTAMP_SEVERITY_PATTERN.match(log_content):
+                        timestamp, severity, json_part = match.groups()
+                        json_content, is_valid_json = try_decode(json_part)
+                        # When MultiAccount Application logs contain timestamp and severity appended in front of JSON.
+                        if is_valid_json:
+                            event["log"] = {
+                                "timestamp": timestamp,
+                                "severity": severity,
+                                "content": json_content
+                            }
+                     # Keep original message in case match.groups() fails
+        else:
+            # When event contains plain text
+            event = {
+                "log": event,
+                "tenant": owner,
+                "logGroup": log_group,
+                "logStream": log_stream
+            }
         # providing sourcetype for splunk http event collector
         hec_event = {
             "sourcetype": sourcetype,

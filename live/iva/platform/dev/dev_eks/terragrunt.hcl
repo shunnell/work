@@ -69,6 +69,9 @@ inputs = {
   }
 
   cloudwatch_log_shipping_destination_arn = dependency.cloudwatch_sharing_target.outputs.cloudwatch_destination_arn
+  additional_security_group_ids = [
+    "sg-0b0ef73aacb226bcc"
+  ]
 
   cluster_security_group_rules = {
     "VPN access" = {

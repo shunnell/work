@@ -81,7 +81,7 @@ def shell_credentials(accounts: list[Account], assume_role_arn):
         len(accounts) == 1,
         f"Only one account is allowed; got multiple ('run-commands', plural, can be used to iterate accounts). Retrieved accounts: {accounts}"
     )
-    environment = accounts[0].environment_variables(assume_role=assume_role_arn)
+    environment = accounts[0].environment_variables(assume_role=assume_role_arn or ())
     for line in environment.as_shell_commands():
         info(line)
 

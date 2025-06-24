@@ -16,8 +16,11 @@ resource "aws_kinesis_firehose_delivery_stream" "firehose_stream" {
     hec_acknowledgment_timeout = var.splunk_acknowledgement_timeout
     buffering_interval         = var.shipment_buffering_time
     retry_duration             = var.shipment_retry_duration
-    hec_endpoint_type          = "Raw" # The "Event" type does not work.
-    s3_backup_mode             = "FailedEventsOnly"
+    # hec_endpoint_type values: "Raw" and "Event".
+    # splunk HEC had trouble identifying log types with Raw
+    # better identification with Events.
+    hec_endpoint_type = "Event"
+    s3_backup_mode    = "FailedEventsOnly"
 
     processing_configuration {
       enabled = "true"

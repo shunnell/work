@@ -27,7 +27,6 @@ class EnvironmentVariables(LoggingMixin, dict):
 
     def __delitem__(self, key):
         if key in self:
-            self._logger.debug(f"")
             self._logger.debug(f"unsetting environment variable '{key}' (was '{self._printable(key)}')")
         else:
             self._logger.debug(f"skipped unsetting command environment variable '{key}'; it was not previously set")

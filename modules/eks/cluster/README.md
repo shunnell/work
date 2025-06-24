@@ -146,6 +146,7 @@ No requirements.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_access_entries"></a> [access\_entries](#input\_access\_entries) | Map of access entries to add to the cluster | `map(any)` | `{}` | no |
+| <a name="input_additional_security_group_ids"></a> [additional\_security\_group\_ids](#input\_additional\_security\_group\_ids) | List of additional security group IDs to attach to the EKS cluster | `list(string)` | `[]` | no |
 | <a name="input_administrator_role_arns"></a> [administrator\_role\_arns](#input\_administrator\_role\_arns) | List of role ARNs that should have full administrator access to the cluster | `list(string)` | n/a | yes |
 | <a name="input_cloudwatch_log_shipping_destination_arn"></a> [cloudwatch\_log\_shipping\_destination\_arn](#input\_cloudwatch\_log\_shipping\_destination\_arn) | ARN to ship CloudWatch logs generated in this cluster to (usually in a remote account for subsequent shipment to splunk). Temporarily allowed to be null, in which case logs will not be shipped, just stored locally. | `string` | n/a | yes |
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | EKS Cluster | `string` | n/a | yes |

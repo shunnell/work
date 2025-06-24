@@ -52,7 +52,7 @@ class CachePath:
         return path
 
     @staticmethod
-    @retry(wait_fixed=1000, stop_max_attempt_number=5, retry_on_exception=(BespinctlError,))
+    @retry(wait_fixed=1000, stop_max_attempt_number=10, retry_on_exception=(BespinctlError,))
     def _platform_specific_lock(lockfh):
         # https://stackoverflow.com/questions/30440559
         try:
@@ -64,7 +64,7 @@ class CachePath:
                 fcntl.flock(lockfh, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except (OSError if WINDOWS else BlockingIOError) as ex:
             err = BespinctlError(
-                f"Could not lock file {lockfh.name} (retry for up to 5sec); another instance of bespinctl may be running. Check 'ps'/Activity Monitor/Task Manager for other bespinctl processes, clear-caches, then try again.")
+                f"Could not lock file {lockfh.name} (retry for up to 10sec); another instance of bespinctl may be running. Check 'ps'/Activity Monitor/Task Manager for other bespinctl processes, clear-caches, then try again.")
             err.show()
             raise err from ex
 

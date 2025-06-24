@@ -23,12 +23,14 @@ class Account(ClientGetter):
 
     def environment_variables(self, region_name: str=None, assume_role: (str, str) = ()) -> EnvironmentVariables:
         region = self.region if region_name is None else region_name
-        return EnvironmentVariables(str(self), {
+        env = EnvironmentVariables(str(self))
+        env.update({
             'AWS_DEFAULT_REGION': region,
             'DOS_CLOUD_CITY_ACCOUNT_ID': self.account_id,
             'DOS_CLOUD_CITY_ACCOUNT_NAME': self.account_name,
             **self._creds(*assume_role).environment_kwargs()
         })
+        return env
 
     def _creds(self, *args):
         if len(args) == 0:

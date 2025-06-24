@@ -10,6 +10,7 @@ module "runner_cache_s3_bucket" {
   # 2. GitLab runner caches are high-volatility/high-object-overwrite-rate buckets, and storing old versions may add
   #    unexpected costs. This can be reassessed if history is requested for these buckets in the future.
   record_history = false
+  object_lock    = false
   policy_stanzas = {
     "AllowGitlabRunnerCacheAccess" = {
       principals = { AWS = [module.runner_iam_role.iam_role_arn] }

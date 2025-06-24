@@ -26,6 +26,7 @@ No resources.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_account_list_mapping"></a> [account\_list\_mapping](#input\_account\_list\_mapping) | pairs of account\_ids and account names to identify tenants | `map(string)` | `{}` | no |
 | <a name="input_destination_names"></a> [destination\_names](#input\_destination\_names) | Vector of destination names, which can be any string | `set(string)` | n/a | yes |
 | <a name="input_failed_shipments_cloudwatch_log_group_name"></a> [failed\_shipments\_cloudwatch\_log\_group\_name](#input\_failed\_shipments\_cloudwatch\_log\_group\_name) | See variable of the same name in cloudwatch\_log\_shipping\_destination | `string` | n/a | yes |
 | <a name="input_failed_shipments_s3_bucket_arn"></a> [failed\_shipments\_s3\_bucket\_arn](#input\_failed\_shipments\_s3\_bucket\_arn) | See variable of the same name in cloudwatch\_log\_shipping\_destination | `string` | n/a | yes |

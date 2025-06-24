@@ -75,7 +75,7 @@ module "gitlab_runner" {
           # in order to fix the issue. An example of a container that requires this behavior is
           # 'docker/library/python:3.12.10-slim'. To observe the failure, run `apt-get update` in a build against that
           # container with and without the below line.
-          pre_build_script = "chmod 1777 '${local.tmp_dir}'"
+          pre_build_script = "chmod 1777 '${local.tmp_dir}' || echo 'Could not update tmpfs permissions'"
           [runners.kubernetes]
             # cpu and memory to maximize stability
             cpu_request = "${var.builder_cpu}"

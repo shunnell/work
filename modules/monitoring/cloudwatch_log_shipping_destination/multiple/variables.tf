@@ -23,3 +23,9 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "account_list_mapping" {
+  description = "pairs of account_ids and account names to identify tenants"
+  type        = map(string)
+  default     = {}
+}
