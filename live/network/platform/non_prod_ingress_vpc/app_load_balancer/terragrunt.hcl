@@ -7,7 +7,7 @@ terraform {
 }
 
 dependency "public_subnets" {
-  config_path = "../vpc/public_subnets"
+  config_path = "${get_path_to_repo_root()}/network/platform/non_prod_ingress_vpc/vpc/public_subnets"
   mock_outputs = {
     subnets = [
       { subnet_id = "subnet-11111111", az = "us-east-1a" },
@@ -29,12 +29,15 @@ inputs = {
   name_prefix = "non-prod-multitenant"
   vpc_id      = dependency.vpc.outputs.vpc_id
   # use public subnets for the ALB
-  subnets         = dependency.public_subnets.outputs.subnet_ids
+  subnets = [
+    for subnet_info in values(dependency.public_subnets.outputs.subnets) :
+    subnet_info.subnet_id
+  ]
   certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/abcd-efgh" # TODO: Create story, need to swap in real ARN
   # region          = "us-east-1"
   allowed_ingress_cidrs = [
     "204.51.100.33/32" # Replace with as narrow of a CIDR block as possible
-  ]  
+  ]
 
 
   tenants = {
