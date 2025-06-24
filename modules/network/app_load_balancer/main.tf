@@ -16,16 +16,19 @@ resource "aws_security_group" "alb" {
   description = "Allow HTTP(S) from Internet"
   vpc_id      = var.vpc_id
   ingress {
-    from_port   = 80
-    to_port     = 80
+    description = "Allow HTTP from approved sources"
+    from_port   = var.http_port
+    to_port     = var.http_port
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] #TODO: Restrict this to known IP ranges before applying
+    cidr_blocks = var.allowed_ingress_cidrs
   }
+
   ingress {
-    from_port   = 443
-    to_port     = 443
+    description = "Allow HTTPS from approved sources"
+    from_port   = var.https_port
+    to_port     = var.https_port
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] #TODO: Restrict this to known IP ranges before applying
+    cidr_blocks = var.allowed_ingress_cidrs
   }
   egress {
     from_port   = 0

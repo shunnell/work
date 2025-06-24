@@ -39,7 +39,7 @@ No requirements.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_availability_zones"></a> [availability\_zones](#input\_availability\_zones) | Availability zones in which this VPC will create subnets | `set(string)` | n/a | yes |
-| <a name="input_block_public_access"></a> [block\_public\_access](#input\_block\_public\_access) | Should be 'true' in most cases, except for ALB Ingress | `bool` | `true` | no |
+| <a name="input_block_public_access"></a> [block\_public\_access](#input\_block\_public\_access) | Whether to block public network access to/from this VPC. Should be 'true' in almost all cases | `bool` | `true` | no |
 | <a name="input_create_public_subnets"></a> [create\_public\_subnets](#input\_create\_public\_subnets) | Only set to true for ALB ingress VPCs | `bool` | `false` | no |
 | <a name="input_custom_cidr_range"></a> [custom\_cidr\_range](#input\_custom\_cidr\_range) | Custom CIDR range for the VPC endpoints security group rule used for shared services vpc | `string` | `null` | no |
 | <a name="input_enable_dns"></a> [enable\_dns](#input\_enable\_dns) | Enable DNS in VPC | `bool` | `true` | no |
@@ -62,7 +62,7 @@ No requirements.
 | <a name="output_gateway_endpoint_ids"></a> [gateway\_endpoint\_ids](#output\_gateway\_endpoint\_ids) | Map of gateway endpoint IDs |
 | <a name="output_interface_endpoint_ids"></a> [interface\_endpoint\_ids](#output\_interface\_endpoint\_ids) | Map of interface endpoint IDs |
 | <a name="output_private_subnets_by_az"></a> [private\_subnets\_by\_az](#output\_private\_subnets\_by\_az) | Subnets created. Map of AZ name => {subnet\_id => id, route\_table\_id => id, cidr\_block => cidr} |
-| <a name="output_public_subnets"></a> [public\_subnets](#output\_public\_subnets) | List of IDs for the public subnets (from modules/network/vpc/public\_subnets) |
+| <a name="output_public_subnets"></a> [public\_subnets](#output\_public\_subnets) | IDs of public subnets (empty if none created) |
 | <a name="output_vpc_cidr_block"></a> [vpc\_cidr\_block](#output\_vpc\_cidr\_block) | The CIDR block of the VPC |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | The ID of the VPC |
 | <a name="output_vpc_name"></a> [vpc\_name](#output\_vpc\_name) | The name of the VPC |

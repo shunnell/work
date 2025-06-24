@@ -1,3 +1,16 @@
+data "aws_wafregional_subscribed_rule_group" "managed" {
+  count = var.managed_rule_name != "" && var.managed_rule_id == "" ? 1 : 0
+  name  = var.managed_rule_name
+}
+
+locals {
+  effective_managed_rule_id = (
+    var.managed_rule_id != "" ?
+    var.managed_rule_id :
+    data.aws_wafregional_subscribed_rule_group.managed[0].id
+  )
+}
+
 resource "aws_wafregional_web_acl" "this" {
   name        = "${var.name_prefix}-waf"
   metric_name = "${var.name_prefix}-waf-metric"
@@ -7,12 +20,14 @@ resource "aws_wafregional_web_acl" "this" {
   }
 
   rule {
+    # Identify the managed rule group by its ID
+    rule_id  = local.effective_managed_rule_id
     priority = 1
+    type     = "REGULAR"
+
     action {
       type = "BLOCK"
     }
-    rule_id = var.managed_rule_id
-    type    = "GROUP"
   }
 
   tags = merge(var.tags, { Name = "${var.name_prefix}-waf" })

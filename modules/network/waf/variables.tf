@@ -4,8 +4,15 @@ variable "name_prefix" {
 }
 
 variable "managed_rule_id" {
-  description = "ID of the WAF Classic managed rule group."
+  description = "ID of the AWS-managed rule group. If provided, this will be used instead of the name."
   type        = string
+  default     = ""
+}
+
+variable "managed_rule_name" {
+  description = "Name of the AWS-managed rule group"
+  type        = string
+  default     = ""
 }
 
 variable "tags" {

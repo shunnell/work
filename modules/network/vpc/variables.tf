@@ -103,12 +103,6 @@ variable "tags" {
   default     = {}
 }
 
-variable "block_public_access" {
-  description = "Should be 'true' in most cases, except for ALB Ingress"
-  type        = bool
-  default     = true
-}
-
 variable "create_public_subnets" {
   description = "Only set to true for ALB ingress VPCs"
   type        = bool

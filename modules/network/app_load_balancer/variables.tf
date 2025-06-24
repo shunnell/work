@@ -49,3 +49,20 @@ variable "waf_web_acl_id" {
   default     = null
 }
 
+variable "allowed_ingress_cidrs" {
+  description = "List of CIDR blocks permitted to access the ALB."
+  type        = list(string)
+  default     = []
+}
+
+variable "http_port" {
+  description = "Port number for HTTP listener"
+  type        = number
+  default     = 80
+}
+
+variable "https_port" {
+  description = "Port number for HTTPS listener"
+  type        = number
+  default     = 443
+}

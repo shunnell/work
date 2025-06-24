@@ -14,9 +14,9 @@ terraform {
 }
 
 inputs = {
-  name_prefix     = "non-prod-multitenant"
-  resource_arn    = dependency.alb.outputs.alb_arn
-  managed_rule_id = "AWSManagedRulesCommonRuleSet"
+  name_prefix       = "non-prod-multitenant"
+  resource_arn      = dependency.alb.outputs.alb_arn
+  managed_rule_name = "AWSManagedRulesCommonRuleSet"
 
   tags = {
     Environment = "non-prod"

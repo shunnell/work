@@ -29,7 +29,10 @@ No modules.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_allowed_ingress_cidrs"></a> [allowed\_ingress\_cidrs](#input\_allowed\_ingress\_cidrs) | List of CIDR blocks permitted to access the ALB. | `list(string)` | `[]` | no |
 | <a name="input_certificate_arn"></a> [certificate\_arn](#input\_certificate\_arn) | ARN of the ACM certificate to use on the HTTPS listener. | `string` | n/a | yes |
+| <a name="input_http_port"></a> [http\_port](#input\_http\_port) | Port number for HTTP listener | `number` | `80` | no |
+| <a name="input_https_port"></a> [https\_port](#input\_https\_port) | Port number for HTTPS listener | `number` | `443` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | Prefix used to name all resources (e.g. 'env-app'). | `string` | n/a | yes |
 | <a name="input_subnets"></a> [subnets](#input\_subnets) | List of subnet IDs (at least two) where the ALB will attach. | `list(string)` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to all resources. | `map(string)` | `{}` | no |

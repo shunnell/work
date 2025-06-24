@@ -14,21 +14,16 @@ dependency "vpc" {
   }
 }
 
-dependency "waf" {
-  config_path = "${get_path_to_repo_root()}/network/platform/non_prod_waf"
-  mock_outputs = {
-    web_acl_id = "waf-1234abcd"
-  }
-}
-
 inputs = {
-  name_prefix    = "non-prod-multitenant"
-  vpc_id         = dependency.vpc.outputs.vpc_id
-  waf_web_acl_id = dependency.waf.outputs.web_acl_id
+  name_prefix = "non-prod-multitenant"
+  vpc_id      = dependency.vpc.outputs.vpc_id
   # use public subnets for the ALB
   subnets         = dependency.vpc.outputs.public_subnets
   certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/abcd-efgh" # TODO: Create story, need to swap in real ARN
-  region          = "us-east-1"
+  # region          = "us-east-1"
+  allowed_ingress_cidrs = [
+    "204.51.100.33/32" # Replace with as narrow of a CIDR block as possible
+  ]  
 
 
   tenants = {
