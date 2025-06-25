@@ -1,6 +1,6 @@
-output "bucket_website_endpoint" {
-  description = "S3 website endpoint for the static site"
-  value       = aws_s3_bucket.this.website_endpoint
+output "bucket_regional_domain_name" {
+  description = "Regional S3 domain name to which CloudFront points"
+  value       = aws_s3_bucket.this.bucket_regional_domain_name
 }
 
 output "distribution_id" {
