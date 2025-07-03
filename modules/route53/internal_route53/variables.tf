@@ -3,28 +3,19 @@ variable "zone_name" {
   type        = string
 }
 
-variable "private_zone" {
-  description = "Create a private hosted zone if true, otherwise public."
-  type        = bool
-  default     = false
-}
-
 variable "vpc_ids" {
-  description = "List of VPC IDs to associate the private zone with. If empty or private_zone=false, no associations are made."
+  description = "List of VPC IDs to associate the private zone with."
   type        = list(string)
-  default     = []
 }
 
 variable "vpc_region" {
-  description = "The AWS region of the VPCs to associate (only used if private_zone=true)."
+  description = "The AWS region of the VPCs to associate."
   type        = string
-  default     = ""
 }
 
 variable "comment" {
   description = "Comment for the hosted zone."
   type        = string
-  default     = null
 }
 
 variable "tags" {
