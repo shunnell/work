@@ -10,6 +10,13 @@ dependency "shipper_substrate" {
   }
 }
 
+dependency "account_list" {
+  config_path = "${get_repo_root()}/management/platform/sso/utilities/account_list"
+  mock_outputs = {
+    accounts = {}
+  }
+}
+
 terraform {
   source = "${get_path_to_repo_root()}/../modules//monitoring/cloudwatch_log_shipping_destination/multiple"
 }
@@ -32,6 +39,7 @@ locals {
 
 inputs = {
   destination_names                          = local.eventbridge_services_to_forward
+  account_list_mapping                       = dependency.account_list.outputs.accounts
   failed_shipments_s3_bucket_arn             = dependency.shipper_substrate.outputs.failed_shipments_s3_bucket_arn
   failed_shipments_cloudwatch_log_group_name = dependency.shipper_substrate.outputs.failed_shipments_cloudwatch_log_group_name
   log_sender_aws_organization_path           = read_terragrunt_config("${get_repo_root()}/management/account.hcl").locals.bespin_organization_root_id

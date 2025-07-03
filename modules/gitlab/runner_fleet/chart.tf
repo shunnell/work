@@ -7,7 +7,7 @@ module "gitlab_runner" {
   repository    = "https://charts.gitlab.io"
   chart         = "gitlab-runner"
   namespace     = kubernetes_namespace.fleet_namespace.metadata[0].name
-  chart_version = "0.77.3"
+  chart_version = var.chart_version
   # The below invocation should be complete and declarative, so things can be fully replaced:
   force_update = true
   atomic       = true
@@ -53,6 +53,12 @@ module "gitlab_runner" {
         # Removed because we're not enabling the runner shell/debug service yet; if we do, uncomment.
         # - resources: ["services"]
         #   verbs: ["create","get","list"]
+    podAnnotations:
+      gitlab.com/prometheus_scrape: "true"
+      gitlab.com/prometheus_port: 9252
+    podSecurityContext:
+      seccompProfile:
+        type: "RuntimeDefault"
     runners:
       config: |
         [[runners]]
@@ -104,7 +110,7 @@ module "gitlab_runner" {
             [[runners.kubernetes.volumes.secret]]
               # GitLab cert mounted so it can be installed on runner as part of a job
                 # before_script:
-                #   - cp /etc/gitlab-runner/certs/gitlab.cloud-city.crt /usr/local/share/ca-certificates/
+                #   - cp /etc/gitlab-runner/certs/*.crt /usr/local/share/ca-certificates/
                 #   - update-ca-certificates
               name = "${kubernetes_secret.gitlab_certificate.metadata[0].name}"
               mount_path = "${var.gitlab_certificate_path}"

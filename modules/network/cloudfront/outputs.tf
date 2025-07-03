@@ -1,6 +1,11 @@
-output "bucket_regional_domain_name" {
-  description = "Regional S3 domain name to which CloudFront points"
-  value       = aws_s3_bucket.this.bucket_regional_domain_name
+output "bucket_id" {
+  description = "The name of the website S3 bucket"
+  value       = module.website_bucket.bucket_id
+}
+
+output "bucket_website_domain" {
+  description = "The website endpoint domain"
+  value       = "${module.website_bucket.bucket_id}.s3-website-${data.aws_region.current.name}.amazonaws.com"
 }
 
 output "distribution_id" {

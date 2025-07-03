@@ -35,6 +35,8 @@ No modules.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_association_id"></a> [association\_id](#output\_association\_id) | ID of the Web ACL association with your resource. |
+| <a name="output_managed_rule_id"></a> [managed\_rule\_id](#output\_managed\_rule\_id) | The ID of the managed rule group in use. |
 | <a name="output_web_acl_arn"></a> [web\_acl\_arn](#output\_web\_acl\_arn) | WAF Classic (regional) Web ACL ARN. |
 | <a name="output_web_acl_id"></a> [web\_acl\_id](#output\_web\_acl\_id) | WAF Classic (regional) Web ACL ID. |
 <!-- END_TF_DOCS -->

@@ -45,7 +45,8 @@ inputs = {
 
   node_groups = {
     "${local.cluster_name}" = {
-      size = 3
+      size          = 6
+      instance_type = "m7a.4xlarge"
       security_group_rules = {
         "VPN access" = {
           type   = "ingress"

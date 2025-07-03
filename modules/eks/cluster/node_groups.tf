@@ -48,7 +48,7 @@ locals {
   node_group_configs = {
     for k, v in var.node_groups : k => {
       min_size               = coalesce(v.min_size, v.size)
-      max_size               = coalesce(v.max_size, v.size)
+      max_size               = coalesce(v.max_size, v.size * 2)
       desired_size           = v.size
       instance_types         = [v.instance_type]
       vpc_security_group_ids = [module.node_security_groups[k].id]

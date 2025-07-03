@@ -1,5 +1,21 @@
 #!/usr/bin/env bash
 
+current_shell=$(ps -p $$ -o comm= | sed 's/^-//')
+# Check if we're running in bash first
+if [ -z "$BASH_VERSION" ]; then
+  shell_name=$(basename "$current_shell")
+  echo "Error: This script requires bash." >&2
+  echo "Error: Current shell: $shell_name" >&2
+  exit 1
+fi
+
+# Then check bash version is newer than 4.4
+if [[ ! "$BASH_VERSION" =~ ^([5-9]\.|4\.[4-9]) ]]; then
+  echo "Error: This script requires bash 4.4 or newer." >&2
+  echo "Error: Currently using bash version $BASH_VERSION" >&2
+  exit 1
+fi
+
 if [[ "${DOS_CLOUD_CITY_BESPINCTL_DEBUG:-0}" != 0 ]]; then
   echo "Running '${0}' in debug mode..." &>2
   set -x
@@ -8,7 +24,7 @@ fi
 set -euo pipefail
 
 # https://stackoverflow.com/questions/59895
-SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 if [[ ! -f "$SCRIPT_DIR/pyproject.toml" ]]; then
   _print "Error: Could not find bespinctl root config at $SCRIPT_DIR/pyproject.toml; aborting."
   exit 1

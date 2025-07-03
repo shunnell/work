@@ -13,9 +13,6 @@ do
       image: ${IMAGE}
       rules:
         - when: on_success
-      before_script:
-        - cp /etc/gitlab-runner/certs/gitlab.cloud-city.crt /usr/local/share/ca-certificates/
-        - update-ca-certificates
       script:
         - echo "Testing module $path"
         - chmod a+rx *.sh

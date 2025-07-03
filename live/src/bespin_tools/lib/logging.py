@@ -69,7 +69,7 @@ class BespinctlLogger(logging.LoggerAdapter):
 logger = BespinctlLogger([])
 
 info = logger.info
-warn = logger.warn
+warn = logger.warning
 error = logger.error
 debug = logger.debug
 attention = logger.attention

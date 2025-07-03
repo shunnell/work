@@ -1,19 +1,22 @@
 from __future__ import annotations
 
+import hashlib
+import inspect
 import json
 import os
 import shutil
 from contextlib import contextmanager, nullcontext
-from functools import cache
+from datetime import timedelta, datetime
+from functools import cache, wraps, partial
 from os.path import expanduser, expandvars
 from pathlib import Path
-from typing import ContextManager, TextIO, Iterable, IO
-
+from tempfile import TemporaryDirectory
+from typing import ContextManager, TextIO, Iterable, IO, Generator
 from retrying import retry
 from xdg import BaseDirectory
-
+import attr
 from bespin_tools.lib.errors import BespinctlError
-from bespin_tools.lib.logging import info
+from bespin_tools.lib.logging import info, debug
 from bespin_tools.lib.python_files import python_cache_paths
 from bespin_tools.lib.util import WINDOWS, resolve_directory, resolve_file
 
@@ -41,7 +44,9 @@ class CachePath:
             path.parent.mkdir(parents=True, exist_ok=True)
         self.directory = directory
         self.path = path
+        self.relative_path = path.relative_to(cache_root())
         self.exists = self.path.exists
+        debug(f"Initializing cache management (directory? {directory}; exists? {self.exists()}): {self.path}")
 
     @staticmethod
     def _part(path: str) -> Path:
@@ -68,17 +73,16 @@ class CachePath:
             err.show()
             raise err from ex
 
-
     @contextmanager
     def lock(self):
-        path = self.path.relative_to(cache_root())
+        path = self.relative_path
         lock_path = CachePath('locks', '_'.join(path.parts))
         with lock_path.open('w', lock=False) as lockfh:
             self._platform_specific_lock(lockfh)
             yield lockfh
 
     @contextmanager
-    def open(self, mode: str = 'a+', lock=True):
+    def open(self, mode: str = 'a+', lock=True) -> Generator[IO | Path]:
         # Because file locking on windows fights with various pieces of code's interactions with the path, we use an
         # external lockfile rather than locking the cache resource directly. Since all cache accesses go through this
         # function, that shouldn't induce race conditions.
@@ -91,6 +95,64 @@ class CachePath:
                     cachefh.seek(0)
                     yield cachefh
 
+
+def _ttl_expired(path: Path | IO, ttl: timedelta | None) -> bool:
+    if ttl is None:
+        return False
+    stat = path.stat() if isinstance(path, Path) else os.stat(path.fileno())
+    mtime = datetime.fromtimestamp(stat.st_mtime)
+    return (datetime.now() - mtime) >= ttl
+
+
+def _todict(item):
+    try:
+        return attr.asdict(item, recurse=True, filter=lambda a, _: a.hash)
+    except attr.exceptions.NotAnAttrsClassError:
+        return item
+
+def _cache_args_key(*args, **kwargs):
+    dumper = partial(json.dumps, sort_keys=True, indent=0)
+    yield dumper([_todict(i) for i in args])
+    for k, v in sorted(kwargs.items()):
+        yield dumper(_todict(k))
+        yield dumper(_todict(v))
+
+
+def _cache_result(func: callable, *, hasher: callable, ttl: timedelta=None, name=None, __used=set()):
+    BespinctlError.invariant(inspect.isgeneratorfunction(hasher), f"Must be a generator function: {hasher}")
+    if name is None:
+        name = func.__qualname__
+    BespinctlError.invariant(name not in __used, f"Function is already cached: {name}")
+    __used.add(name)
+    cache_base = CachePath('functions', name, directory=True)
+
+    @wraps(func)
+    def inner(*args, **kwargs):
+        digester = hashlib.sha256()
+        for item in hasher(*args, **kwargs):
+            if isinstance(item, str):
+                item = item.encode()
+            digester.update(item)
+        with CachePath(*cache_base.relative_path.parts, digester.hexdigest()).open() as cachefh:
+            # If it's empty, or if its mtime (expiration) has passed, update it
+            data = cachefh.read(1)
+            cachefh.seek(0)
+            if len(data) == 0 or _ttl_expired(cachefh, ttl):
+                cachefh.truncate(0)
+                debug(f"Priming cache for '{name}': cache is {'empty' if data == '' else 'expired'}")
+                result = func(*args, **kwargs)
+                debug(f"Writing JSON cache result for '{name}': {result}")
+                json.dump(result, cachefh)
+                debug(f"Wrote cache for '{name}'")
+                return result
+            rv = cachefh.read()
+            debug(f"Returning data from cache: {rv}")
+            return json.loads(rv)
+
+    return inner
+
+def cache_result(ttl: timedelta=None, name=None, hasher=_cache_args_key):
+    return partial(_cache_result, ttl=ttl, name=name, hasher=hasher)
 
 @contextmanager
 def cached_binary(binary_name: str):
@@ -145,6 +207,16 @@ def dummy_aws_config_file() -> Path:
         fh.truncate(0)
         fh.write('[bespinctl]\n')
         return Path(fh.name)
+
+@contextmanager
+def isolated_kubernetes_files() -> Generator[tuple[Path, Path]]:
+    base = CachePath('kube', directory=True)
+    with TemporaryDirectory(dir=base.path) as directory:
+        directory = Path(directory)
+        directory.joinpath('cache').mkdir()
+        file = directory.joinpath('kubeconfig.yaml')
+        file.write_text('')
+        yield file, directory.joinpath('cache')
 
 def _unique_resolved_paths(*args: Path | str):
     resolved = {Path(p).expanduser().resolve() for p in args}

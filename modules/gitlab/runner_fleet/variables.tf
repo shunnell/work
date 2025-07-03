@@ -3,6 +3,11 @@ variable "cluster_name" {
   description = "Name of the EKS cluster that will contain the runners"
 }
 
+variable "chart_version" {
+  description = "Version of the GitLab Runners Helm chart to install"
+  type        = string
+}
+
 variable "gitlab_mothership_domain" {
   type        = string
   description = "Domain of the GitLab mothership server. Must be reachable from the EKS cluster's nodegroup security group."
@@ -19,7 +24,7 @@ variable "concurrency_pods" {
   description = "How many runner pods to provision"
   validation {
     condition     = var.concurrency_pods > 0
-    error_message = "Must be a positive number"
+    error_message = "Must be a number greater than zero"
   }
 }
 
@@ -29,7 +34,7 @@ variable "concurrency_jobs_per_pod" {
   description = "How many jobs can be run within each runner pod"
   validation {
     condition     = var.concurrency_jobs_per_pod > 0
-    error_message = "Must be a positive number"
+    error_message = "Must be a number greater than zero"
   }
 }
 
@@ -47,6 +52,7 @@ variable "gitlab_certificate" {
 variable "gitlab_certificate_path" {
   description = "Location to mount the GitLab certificate"
   type        = string
+  default     = "/etc/gitlab-runner/certs/"
 }
 
 variable "gitlab_secret_id" {
@@ -119,7 +125,7 @@ variable "scratch_space_size_gb" {
   type        = number
   validation {
     condition     = var.scratch_space_size_gb >= 6
-    error_message = "Must be at least 6GB"
+    error_message = "Must be at least 6. Size in GB"
   }
 }
 

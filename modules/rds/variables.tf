@@ -13,6 +13,25 @@ variable "master_username" {
   type        = string
 }
 
+variable "manage_master_user_password_rotation" {
+  description = <<-DESC
+    Whether to manage the master user password rotation.
+    By default, false on creation, rotation is managed by RDS.
+    There is not currently a way to disable this on initial creation even when set to false.
+    Setting this value to false after previously having been set to true will disable automatic rotation.
+    Create with 'true', then re-apply with 'false' if password rotation should not be enabled.
+    See: https://github.com/terraform-aws-modules/terraform-aws-rds-aurora/blob/master/main.tf#L465C1-L470C72
+    DESC
+  type        = bool
+  default     = true
+}
+
+variable "master_user_password_rotation_automatically_after_days" {
+  description = "Automatically rotate password after number of days"
+  type        = number
+  default     = 365
+}
+
 variable "vpc_id" {
   description = "ID of the VPC this will belong to"
   type        = string
@@ -23,7 +42,7 @@ variable "subnet_ids" {
   type        = list(string)
   validation {
     condition     = length(var.subnet_ids) >= 2
-    error_message = "you must provide at least 2 subnet IDs in different AZs for  RDS/Aurora multi-AZ setup."
+    error_message = "You must provide at least 2 subnet IDs in different AZs for RDS/Aurora multi-AZ setup"
   }
 }
 
@@ -56,26 +75,32 @@ variable "inbound_security_group_ids" {
 }
 
 variable "min_capacity" {
-  description = "Minimum number of read replicas permitted when autoscaling is enabled"
+  description = "Minimum number of ACUs - must be multiple of 0.5"
   type        = number
-  default     = 0
+  default     = 0.5
 }
 
 variable "max_capacity" {
-  description = "Maximum number of read replicas permitted when autoscaling is enabled"
+  description = "Maximum number of ACUs - must be multiple of 0.5"
   type        = number
-  default     = 10
+  default     = 10.0
 }
 
 variable "seconds_until_auto_pause" {
-  type    = number
-  default = 3600
+  description = "Time, in seconds, before an Aurora DB cluster in provisioned DB engine mode is paused. Valid values are 300 through 86400"
+  type        = number
+  nullable    = true
+  default     = null
 }
 
 variable "instance_names" {
   description = "List of instance names. Represents number of instances"
   type        = list(string)
   default     = ["one"]
+  validation {
+    condition     = length(var.instance_names) >= 1
+    error_message = "You must provide at least 1 instance name"
+  }
 }
 
 variable "create_timeout" {
@@ -97,7 +122,7 @@ variable "update_timeout" {
 }
 
 variable "enabled_cloudwatch_logs_exports" {
-  description = "Set of log types to export to cloudwatch. If omitted, no logs will be exported. The following log types are supported: `audit`, `error`, `general`, `slowquery`, `postgresql`"
+  description = "Set of log types to export to cloudwatch. If omitted, no logs will be exported"
   type        = list(string)
   default     = ["postgresql", "instance", "iam-db-auth-error"]
 }
@@ -106,6 +131,12 @@ variable "security_group_rules" {
   description = "Security group rules to apply to the RDS instance"
   type        = any
   default     = {}
+}
+
+variable "apply_immediately" {
+  description = "Specifies whether any database modifications are applied immediately, or during the next maintenance window"
+  type        = bool
+  default     = false
 }
 
 variable "tags" {

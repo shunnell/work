@@ -30,7 +30,7 @@ stages:
 
 .common_terraform_modules:
   before_script:
-    - git -c http.sslVerify=false clone https://gitlab-ci-token:$CI_JOB_TOKEN@gitlab.cloud-city/cloud-city/platform/iac/modules ../modules --depth 1
+    - git -c http.sslVerify=false clone https://gitlab-ci-token:$CI_JOB_TOKEN@$CI_SERVER_HOST/cloud-city/platform/iac/modules ../modules --depth 1
     - export TERRA_UNIT_DIR=$(echo "$TERRA_GROUP_NAME" | sed 's|\.|/|g') # turning '.' into '/'
     - echo $TERRA_UNIT_DIR
 

@@ -4,7 +4,6 @@ import email.utils
 from pathlib import Path
 
 import click
-import pytest
 
 from bespin_tools.lib.aws.organization import Organization
 from bespin_tools.lib.errors import BespinctlError
@@ -117,5 +116,7 @@ def bootstrap_new_aws_account(account: str, action: str):
 
 @iac.command
 def test():
+    import pytest
+
     # Run pytest on selected folders for IAC testing.
     pytest.main(['management'])

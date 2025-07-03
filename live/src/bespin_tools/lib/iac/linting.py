@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections import defaultdict
 from functools import cache
 from pathlib import Path
 from typing import Collection
@@ -9,7 +8,6 @@ from tqdm import tqdm
 
 from . import iac_files
 from .commands import terragrunt, terraform, terraform_docs
-from ..errors import BespinctlError
 from ..logging import logger
 
 

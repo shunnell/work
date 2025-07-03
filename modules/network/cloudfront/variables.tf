@@ -3,9 +3,16 @@ variable "name_prefix" {
   type        = string
 }
 
-variable "bucket_name" {
-  description = "Name of the S3 bucket to host the static website"
+variable "default_root_object" {
+  description = "Default object (e.g. index.html) returned when no path is specified"
   type        = string
+  default     = "index.html"
+}
+
+variable "error_document" {
+  description = "Error document key for the S3 static website"
+  type        = string
+  default     = "error.html"
 }
 
 variable "aliases" {
@@ -14,14 +21,26 @@ variable "aliases" {
   default     = []
 }
 
-variable "waf_web_acl_id" {
-  description = "ID of the AWS WAF Classic (Regional) Web ACL to associate with CloudFront"
-  type        = string
-  default     = null
-}
-
 variable "tags" {
   description = "Tags to apply to all resources"
   type        = map(string)
   default     = {}
+}
+
+variable "logging_bucket" {
+  description = "Bucket (bucket-name.s3.amazonaws.com) for CloudFront logs (empty to disable)"
+  type        = string
+  default     = ""
+}
+
+variable "logging_prefix" {
+  description = "Prefix under the logging bucket"
+  type        = string
+  default     = ""
+}
+
+variable "logging_include_cookies" {
+  description = "Whether to include cookies in logs"
+  type        = bool
+  default     = false
 }

@@ -11,9 +11,16 @@ from bespin_tools.lib.aws.util import convert_tags_for_display
 
 
 class AWSDictResource(ABC, Mapping):
-    def __init__(self, account: Account, raw: Mapping):
-        self._raw = {**deepcopy(raw), 'Tags': convert_tags_for_display(raw.get('Tags', ()))}
-        self.tags: Mapping = self._raw['Tags']
+    def __init__(self, account: Account, raw: dict):
+        self._raw = deepcopy(raw)
+        assert ('tags' in raw) != ('Tags' in raw)
+        if 'tags' in raw:
+            assert 'Tags' not in raw
+            tags = raw['tags']
+        else:
+            tags = raw.get('Tags', {})
+
+        self.tags = self._raw['Tags'] = convert_tags_for_display(tags)
         self.account = account
         self.name = self.tags['Name']
 

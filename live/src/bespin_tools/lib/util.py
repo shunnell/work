@@ -39,6 +39,13 @@ def _check_path(path: Path | str, isdir: bool):
         raise BespinctlError(f"Expected path '{path}' exists but is not a file")
     return path
 
+def resolve_nonexistent(path: Path | str) -> Path:
+    path = Path(path).resolve()
+    if path.exists():
+        raise BespinctlError(f"Path '{path}' already exists")
+    resolve_directory(path.parent)
+    return path
+
 def resolve_file(path: Path | str) -> Path:
     path = _check_path(path, False)
     try:

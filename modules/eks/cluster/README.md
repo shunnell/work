@@ -112,6 +112,47 @@ Changing a node group size requires a few manual steps, or replacing the node gr
 1. Set `<node_group>.size` to new size and remove `<node_group>.min_size`.
 1. Apply changes again.
 
+# AWS EKS Add-Ons
+
+EKS addons are basically helm charts, installed and pre-configured by AWS with known-working, best-practices-encoding
+values and behavior. In general, if software is available as an addon, helm chart, and raw Kubernetes manifest, always
+prefer the addon version if it works.
+
+We manage addons in `addons.tf`. Addons can be installed in two places: on the cluster module itself, or individually 
+vis in a terraform `aws_eks_addon` resource. In general, prefer the cluster-module version, and use the raw TF version 
+if the cluster version has issues (e.g. with dependency order or addons not working).
+
+References:
+- What configs/IAM requirements are needed by each addon: https://docs.aws.amazon.com/eks/latest/userguide/community-addons.html
+- How to install them directly with Terraform: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_addon
+- Detailed configuration and manifest documentation for each AWS-written addon: https://github.com/awslabs/cdk-eks-blueprints/tree/main/docs/addons
+
+Example:
+
+```terraform
+resource "aws_eks_addon" "example" {
+  cluster_name                = module.eks.cluster_name
+  addon_name                  = "coredns"
+  addon_version               = "v1.10.1-eksbuild.1"
+  resolve_conflicts_on_create = "OVERWRITE"
+  # Addons might need to communicate between nodes, so the nodegroup and all communication rules must first be set up:
+  depends_on = [module.eks, module.node_security_groups, module.cluster_security_group]
+
+  # NOTE: Configuration values are here as an example. Most addons should NOT have configuration values, so remove
+  # this if it's not strictly necessary (e.g. to configure correct addon operation).
+  configuration_values = jsonencode({
+
+    resources = {
+      requests = {
+        cpu    = "100m"
+        memory = "150Mi"
+      }
+    }
+  })
+}
+```
+
+
 # Terraform Docs
 
 <!-- BEGIN_TF_DOCS -->

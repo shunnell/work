@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import shlex
+from pathlib import Path
 from typing import Iterable
 
 from bespin_tools.lib.logging import LoggingMixin
@@ -32,19 +33,22 @@ class EnvironmentVariables(LoggingMixin, dict):
             self._logger.debug(f"skipped unsetting command environment variable '{key}'; it was not previously set")
         super().__delitem__(key)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str | Path, value: str | Path):
         if shlex.quote(key) != key:
             if WINDOWS:
-                if not key.startswith('COMMONPROGRAMFILES'):
+                if not (key.upper().startswith(('COMMONPROGRAMFILES', 'PROGRAMFILES')) or key.upper().endswith('(X86)')):
                     self._logger.warning(f"Environment variable name is not shell safe: {key}")
             else:
                 raise self._exc(f"Variable name is not shell safe: {key}")
         if value is None:
             del self[key]
             return
-        assert isinstance(value, str), f"Cannot set {key} to {type(value)} {value}; value must be a string"
+        if isinstance(value, Path):
+            value = str(value)
+        assert isinstance(value, str), f"Cannot set {key} to {type(value)} {value}; value must be a string or Path"
         if key != key.upper():
-            self._logger.warn(f"environment variable name '{key}' is not all caps")
+            if key != '__CFBundleIdentifier':  # MacOS often sets this, harmlessly
+                self._logger.warn(f"environment variable name '{key}' is not ALL_CAPS")
         if key in self:
             if self.get(key) == value:
                 return

@@ -4,12 +4,15 @@ import csv
 import datetime
 import re
 from collections import defaultdict
+from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
-from typing import Tuple, Iterable, TYPE_CHECKING
+from typing import Tuple, Iterable, TYPE_CHECKING, Collection
 
 from tqdm import tqdm
 import click
+from arn import Arn
+from arn.iam import RoleArn
 
 from bespin_tools.lib.aws import CLOUD_CITY_ORGANIZATION_ROOT_ACCOUNT
 from bespin_tools.lib.aws.account import Account
@@ -29,6 +32,15 @@ if TYPE_CHECKING:
     from types_boto3_sso_admin.client import SSOAdminClient
 
 
+@dataclass
+class PolicyArn(Arn):
+    """ARN for an `IAM Role <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html>`_."""
+
+    REST_PATTERN = re.compile(r"policy/(?P<name>.*)")
+
+    name: str = ""
+
+
 @click.group()
 @click.pass_context
 def iam(ctx):
@@ -45,7 +57,6 @@ def permission_set_arn_to_name(client: SSOAdminClient, instance_arn: str, permis
     ps_details = client.describe_permission_set(InstanceArn=instance_arn, PermissionSetArn=permission_set_arn)
     return ps_details['PermissionSet']['Name']
 
-
 def get_sso_ids(client: SSOAdminClient) -> Tuple[str, str]:
     response = client.list_instances()
     instances = response.get('Instances', [])
@@ -54,7 +65,7 @@ def get_sso_ids(client: SSOAdminClient) -> Tuple[str, str]:
     BespinctlError.invariant(instance_arn != None, "Instance ARN is None")
     identity_store_id = instances[0]['IdentityStoreId']
     BespinctlError.invariant(identity_store_id != None, "Identity store ID is None")
-    return (instance_arn, identity_store_id)
+    return instance_arn, identity_store_id
 
 
 @iam.command()
@@ -211,3 +222,45 @@ def temp_assign_permissions_set(account_name: str, permission_set_name: str):
     except KeyboardInterrupt:
         remove_permission_set(sso_client, permission_set_arn, account_id, instance_arn, principal_id, principal_type)
         info(f"Removed permission set {permission_set_name} to user {principal_id} for account {account_name}({account_id})")
+
+def _is_sandbox_role(arn: RoleArn):
+    if arn.name.startswith('sandbox') or '/sandbox' in arn.name:
+        # False positives:
+        if arn.account == '381492150796' and arn.name.startswith(('sandbox-cluster', 'sandbox-general-eks-node-group')):
+            return False
+        return True
+    return False
+
+def _roles_and_boundaries(accounts: Collection[Account]):
+    for account in accounts:
+        client = account.iam_client()
+        desired_boundary = PolicyArn(f"arn:aws:iam::{account.account_id}:policy/platform/SandboxPermissionsBoundary")
+        client.get_policy(PolicyArn=str(desired_boundary))  # Validate that it exists
+        for role in paginate(client.list_roles):
+            # Work around boto bug: https://github.com/boto/boto3/issues/1623
+            role = client.get_role(RoleName=role['RoleName'])['Role']
+            yield account, role, desired_boundary
+
+
+@iam.command()
+@click.option('--accounts', default="730335639457", type=AwsAccounts())
+@click.option( '--execute', is_flag=True, default=False)
+def apply_sandbox_permission_boundary(accounts: Collection[Account], execute: bool):
+    to_change = []
+    for account, role, desired_boundary in tqdm(_roles_and_boundaries(accounts)):
+        client = account.iam_client()
+        arn = RoleArn(role['Arn'])
+        current_boundary = role.get('PermissionsBoundary', dict()).get('PermissionsBoundaryArn')
+        if current_boundary is not None:
+            current_boundary = PolicyArn(current_boundary)
+
+        if _is_sandbox_role(arn) and current_boundary != desired_boundary:
+            to_change[(account, arn)] = (current_boundary, desired_boundary)
+
+    for (account, arn), (current_boundary, desired_boundary) in to_change:
+        msg = f"{account}: Role {arn} has permissions boundary {current_boundary}; changing boundary to {desired_boundary}"
+        if execute:
+            info(msg)
+            client.put_role_permissions_boundary(RoleName=role['RoleName'], PermissionsBoundary=str(desired_boundary))
+        else:
+            info(f"(pass --execute to make changes) {msg}")

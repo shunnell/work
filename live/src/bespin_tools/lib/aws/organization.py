@@ -169,6 +169,7 @@ class _Organization(ClientGetter):
             warn(f"multiple roles found for '{account_name}' ({account_id}), using the first one ({roles[0]}), but that may be wrong.")
             warn(f"This tool doesn't support multiple roles yet. Found roles: {roles}")
             # TODO multirole
+        # return [roles[-1]]
         return roles
 
     def _load_aws_data(self) -> dict:

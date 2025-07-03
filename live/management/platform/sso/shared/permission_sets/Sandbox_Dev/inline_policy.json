@@ -5,8 +5,6 @@
       "Sid": "AllowSelfManagedServices",
       "Effect": "Allow",
       "Action": [
-        "acm:*",
-        "acm-pca:*",
         "apigateway:*",
         "cloudfront:*",
         "cloudfront-keyvaluestore:*",
@@ -221,84 +219,6 @@
       "Resource": "arn:aws:ec2:*:*:subnet*"
     },
     {
-      "Sid": "AllowIAMWithAttachedPermissionsBoundary",
-      "Effect": "Allow",
-      "Action": [
-        "iam:CreateRole"
-      ],
-      "Resource": [
-        "arn:aws:iam::*:role/sandbox/*",
-        "arn:aws:iam::*:role/sandbox-*"
-      ],
-      "Condition": {
-        "ArnEquals": {
-          "iam:PermissionsBoundary": "arn:aws:iam::*:policy/platform/SandboxPermissionsBoundary"
-        }
-      }
-    },
-    {
-      "Sid": "AllowOIDCProviderForEKSSetup",
-      "Effect": "Allow",
-      "Action": [
-        "iam:AddClientIDToOpenIDConnectProvider",
-        "iam:CreateOpenIDConnectProvider",
-        "iam:DeleteOpenIDConnectProvider",
-        "iam:GetOpenIDConnectProvider",
-        "iam:ListOpenIDConnectProviderTags",
-        "iam:RemoveClientIDFromOpenIDConnectProvider",
-        "iam:TagOpenIDConnectProvider",
-        "iam:UntagOpenIDConnectProvider",
-        "iam:UpdateOpenIDConnectProviderThumbprint"
-      ],
-      "Resource": "arn:aws:iam::*:oidc-provider/oidc.eks.*.amazonaws.com/id/*"
-    },
-    {
-      "Sid": "AllowIAMModifications",
-      "Effect": "Allow",
-      "Action": [
-        "iam:CreatePolicy",
-        "iam:CreatePolicyVersion",
-        "iam:DeletePolicy",
-        "iam:DeletePolicyVersion",
-        "iam:SetDefaultPolicyVersion",
-        "iam:TagPolicy",
-        "iam:UntagPolicy",
-        "iam:AttachRolePolicy",
-        "iam:CreateRole",
-        "iam:DeleteRole",
-        "iam:DeleteRolePolicy",
-        "iam:DetachRolePolicy",
-        "iam:PutRolePolicy",
-        "iam:TagRole",
-        "iam:UntagRole",
-        "iam:UpdateAssumeRolePolicy",
-        "iam:UpdateRole",
-        "iam:UpdateRoleDescription"
-      ],
-      "Resource": [
-        "arn:aws:iam::*:role/sandbox/*",
-        "arn:aws:iam::*:policy/sandbox/*",
-        "arn:aws:iam::*:role/sandbox-*",
-        "arn:aws:iam::*:policy/sandbox-*"
-      ]
-    },
-    {
-      "Sid": "AllowPassRole",
-      "Effect": "Allow",
-      "Action": "iam:PassRole",
-      "Resource": [
-        "arn:aws:iam::*:role/sandbox/*",
-        "arn:aws:iam::*:role/sandbox-*",
-        "arn:aws:iam::*:role/aws-service-role/*/sandbox*"
-      ]
-    },
-    {
-      "Sid": "AllowInstanceProfileModifications",
-      "Effect": "Allow",
-      "Action": "iam:*",
-      "Resource": "arn:aws:iam::*:instance-profile/*"
-    },
-    {
       "Sid": "AllowAuditManagerAccess",
       "Effect": "Allow",
       "Action": [
@@ -318,38 +238,183 @@
       "Resource": "*"
     },
     {
-      "Sid": "DenyPermissionsBoundaryDeletion",
+      "Sid": "DenyForbiddenIAMModifications",
       "Effect": "Deny",
-      "Action": "iam:DeleteRolePermissionsBoundary",
-      "Resource": "*",
+      "Action": [
+        "iam:AddClientIDToOpenIDConnectProvider",
+        "iam:AddUserToGroup",
+        "iam:AttachGroupPolicy",
+        "iam:AttachUserPolicy",
+        "iam:ChangePassword",
+        "iam:CreateAccessKey",
+        "iam:CreateAccessKey",
+        "iam:CreateAccountAlias",
+        "iam:CreateGroup",
+        "iam:CreateOpenIDConnectProvider",
+        "iam:CreateSAMLProvider",
+        "iam:CreateUser",
+        "iam:CreateVirtualMFADevice",
+        "iam:DeactivateMFADevice",
+        "iam:DeleteAccessKey",
+        "iam:DeleteAccountAlias",
+        "iam:DeleteAccountPasswordPolicy",
+        "iam:DeleteGroup",
+        "iam:DeleteGroupPolicy",
+        "iam:DeleteOpenIDConnectProvider",
+        "iam:DeleteRolePermissionsBoundary",
+        "iam:DeleteSAMLProvider",
+        "iam:DeleteUser",
+        "iam:DeleteUserPolicy",
+        "iam:DeleteVirtualMFADevice",
+        "iam:DetachUserPolicy",
+        "iam:DisableOrganizationsRootCredentialsManagement",
+        "iam:DisableOrganizationsRootSessions",
+        "iam:EnableMFADevice",
+        "iam:EnableOrganizationsRootCredentialsManagement",
+        "iam:EnableOrganizationsRootSessions",
+        "iam:PutGroupPolicy",
+        "iam:PutRolePermissionsBoundary",
+        "iam:PutUserPolicy",
+        "iam:RemoveClientIDFromOpenIDConnectProvider",
+        "iam:RemoveUserFromGroup",
+        "iam:ResyncMFADevice",
+        "iam:SetSecurityTokenServicePreferences",
+        "iam:SetSTSRegionalEndpointStatus",
+        "iam:TagMFADevice",
+        "iam:TagOpenIDConnectProvider",
+        "iam:TagSAMLProvider",
+        "iam:TagUser",
+        "iam:UntagMFADevice",
+        "iam:UntagOpenIDConnectProvider",
+        "iam:UntagSAMLProvider",
+        "iam:UntagUser",
+        "iam:UpdateAccountEmailAddress",
+        "iam:UpdateAccountName",
+        "iam:UpdateAccountPasswordPolicy",
+        "iam:UpdateGroup",
+        "iam:UpdateOpenIDConnectProviderThumbprint",
+        "iam:UpdateSAMLProvider",
+        "iam:UpdateUser",
+        "iam:UploadSigningCertificate"
+      ],
+       "Resource": [
+          "*"
+        ]
+    },
+    {
+      "Sid": "PermitIAMRoleModificationsWithPermissionsBoundary",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateRole",
+        "iam:AttachRolePolicy",
+        "iam:DeleteRolePolicy",
+        "iam:DetachRolePolicy",
+        "iam:PutRolePolicy",
+        "iam:TagRole",
+        "iam:UntagRole",
+        "iam:UpdateAssumeRolePolicy",
+        "iam:UpdateRole",
+        "iam:DeleteRole"
+      ],
+      "Resource": [
+        "arn:aws:iam::*:role/sandbox/*",
+        "arn:aws:iam::*:role/sandbox-*",
+        "arn:aws:iam::*:role/aws-service-role/*/sandbox*"
+      ],
       "Condition": {
-        "ArnEquals": {
+        "ArnLike": {
           "iam:PermissionsBoundary": "arn:aws:iam::*:policy/platform/SandboxPermissionsBoundary"
         }
       }
     },
     {
-      "Sid": "DenyPermissionBoundaryChange",
-      "Effect": "Deny",
-      "Action": [
-        "iam:CreatePolicyVersion",
-        "iam:DeletePolicyVersion",
-        "iam:DeletePolicy",
-        "iam:AttachRolePolicy",
-        "iam:DetachRolePolicy",
-        "iam:SetDefaultPolicyVersion"
-      ],
-      "Resource": "arn:aws:iam::*:policy/platform/SandboxPermissionsBoundary"
-    },
-    {
-      "Sid": "AllowServiceLinkedRoleManagement",
+      "Sid": "PermitIAMPolicyModificationsInSandboxPrefixes",
       "Effect": "Allow",
       "Action": [
-        "iam:CreateServiceLinkedRole",
-        "iam:DeleteServiceLinkedRole"
+        "iam:CreatePolicyVersion",
+        "iam:CreatePolicy",
+        "iam:DeletePolicyVersion",
+        "iam:TagPolicy",
+        "iam:UntagPolicy",
+        "iam:DeletePolicy"
       ],
       "Resource": [
-        "arn:aws:iam::*:role/aws-service-role/*.amazonaws.com/*"
+        "arn:aws:iam::*:policy/sandbox/*",
+        "arn:aws:iam::*:policy/sandbox-*"
+      ]
+    },
+    {
+      "Sid": "PermitInstanceProfileModifications",
+      "Effect": "Allow",
+      "Action": "iam:*",
+      "Resource": "arn:aws:iam::*:instance-profile/*"
+    },
+    {
+      "Sid": "PermitIAMReadBroadly",
+      "Effect": "Allow",
+      "Action": [
+        "iam:List*",
+        "iam:Get*",
+        "iam:Describe*",
+        "iam:Generate*"
+      ],
+      "Resource": [
+        "*"
+      ]
+    },
+    {
+      "Sid": "DenyViewAccessToSensitiveEntities",
+      "Effect": "Deny",
+      "Action": [
+        "iam:Get*",
+        "iam:Describe*"
+      ],
+      "Resource": [
+        "arn:aws:iam::*:policy/platform/SandboxPermissionsBoundary",
+        "arn:aws:iam::*:role/platform/terragrunter",
+        "arn:aws:iam::*:role/terragrunter",
+        "arn:aws:iam::*:role/aws-controltower-*",
+        "arn:aws:iam::*:role/aws-reserved/sso.amazonaws.com/*"
+      ]
+    },
+    {
+      "Sid": "PermitRoleTransfer",
+      "Effect": "Allow",
+      "Action": ["iam:PassRole"],
+      "Resource": [
+        "arn:aws:iam::*:role/sandbox/*",
+        "arn:aws:iam::*:role/sandbox-*",
+        "arn:aws:iam::*:role/aws-service-role/*/sandbox*"
+      ]
+    },
+    {
+      "Sid": "DenyAllIAMModificationsToNonSandbox",
+      "Effect": "Deny",
+      "Action": [
+        "sts:AssumeRole",
+        "iam:Activate*",
+        "iam:Add*",
+        "iam:Attach*",
+        "iam:Create*",
+        "iam:Deactivate*",
+        "iam:Delete*",
+        "iam:Detach*",
+        "iam:Disable*",
+        "iam:Put*",
+        "iam:Remove*",
+        "iam:Reset*",
+        "iam:Set*",
+        "iam:Tag*",
+        "iam:Untag*",
+        "iam:Update*",
+        "iam:Upload*"
+      ],
+      "NotResource": [
+        "arn:aws:iam::*:role/sandbox/*",
+        "arn:aws:iam::*:policy/sandbox/*",
+        "arn:aws:iam::*:role/sandbox-*",
+        "arn:aws:iam::*:policy/sandbox-*",
+        "arn:aws:iam::*:role/aws-service-role/*/sandbox*"
       ]
     }
   ]

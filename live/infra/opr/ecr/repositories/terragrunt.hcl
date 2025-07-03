@@ -14,11 +14,4 @@ inputs = {
     # rather than replacing it.
     read_terragrunt_config("${get_repo_root()}/prod/account.hcl").locals.account_id
   ]
-  legacy_ecr_repository_names_to_be_migrated = [
-    "dos-ca-opr-v3-application-repo",
-    "dos-ca-opr-v3-helm-chart",
-    "dos-ca-opr-v3-job-runner-repo",
-    "dos-ca-opr-v3-mock-apis-repo",
-    "dos-ca-opr-v3-setup-ssl-certs-repo",
-  ]
 }

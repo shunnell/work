@@ -12,6 +12,7 @@ import requests
 from tqdm import tqdm
 
 from bespin_tools.lib.errors import BespinctlError
+from bespin_tools.lib.network import probe_url
 from bespin_tools.lib.util import stream_results
 
 
@@ -29,21 +30,10 @@ def decompressors():
         ('.tar', _extract),
     )
 
-async def _probe_url(url: str) -> str | None:
-    try:
-        async with aiohttp.ClientSession() as session, session.head(url) as response:
-            if response.status in (404, 403):
-                return None
-            response.raise_for_status()
-            return url
-    except:
-        if current_task().cancelled() or current_task().cancelling():
-            return None
-        raise
 
 async def first_live_url(urls: Iterable[str]) -> str:
-        async for res in stream_results(_probe_url(url) for url in set(urls)):
-            if res is not None:
+        async for res in stream_results(probe_url(url) for url in set(urls)):
+            if res is not None and not isinstance(res, Exception):
                 return res
         raise BespinctlError(f"No valid URLs found in {sorted(urls)}")
 

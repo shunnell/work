@@ -21,20 +21,23 @@ No resources.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_apply_immediately"></a> [apply\_immediately](#input\_apply\_immediately) | Specifies whether any database modifications are applied immediately, or during the next maintenance window | `bool` | `false` | no |
 | <a name="input_cluster_db_name"></a> [cluster\_db\_name](#input\_cluster\_db\_name) | Name for an automatically created database on cluster creation | `string` | n/a | yes |
 | <a name="input_create_timeout"></a> [create\_timeout](#input\_create\_timeout) | Create timeout configuration for the cluster | `string` | `"15m"` | no |
 | <a name="input_db_cluster_identifier"></a> [db\_cluster\_identifier](#input\_db\_cluster\_identifier) | Unique identifier for the DB instance | `string` | n/a | yes |
 | <a name="input_delete_timeout"></a> [delete\_timeout](#input\_delete\_timeout) | Delete timeout configuration for the cluster | `string` | `"15m"` | no |
-| <a name="input_enabled_cloudwatch_logs_exports"></a> [enabled\_cloudwatch\_logs\_exports](#input\_enabled\_cloudwatch\_logs\_exports) | Set of log types to export to cloudwatch. If omitted, no logs will be exported. The following log types are supported: `audit`, `error`, `general`, `slowquery`, `postgresql` | `list(string)` | <pre>[<br/>  "postgresql",<br/>  "instance",<br/>  "iam-db-auth-error"<br/>]</pre> | no |
+| <a name="input_enabled_cloudwatch_logs_exports"></a> [enabled\_cloudwatch\_logs\_exports](#input\_enabled\_cloudwatch\_logs\_exports) | Set of log types to export to cloudwatch. If omitted, no logs will be exported | `list(string)` | <pre>[<br/>  "postgresql",<br/>  "instance",<br/>  "iam-db-auth-error"<br/>]</pre> | no |
 | <a name="input_engine"></a> [engine](#input\_engine) | Database engine | `string` | `"aurora-postgresql"` | no |
 | <a name="input_engine_version"></a> [engine\_version](#input\_engine\_version) | Database engine version | `string` | `"16.6"` | no |
 | <a name="input_inbound_security_group_ids"></a> [inbound\_security\_group\_ids](#input\_inbound\_security\_group\_ids) | Security Group IDs to allow inbound traffic from | `map(string)` | `{}` | no |
 | <a name="input_instance_names"></a> [instance\_names](#input\_instance\_names) | List of instance names. Represents number of instances | `list(string)` | <pre>[<br/>  "one"<br/>]</pre> | no |
+| <a name="input_manage_master_user_password_rotation"></a> [manage\_master\_user\_password\_rotation](#input\_manage\_master\_user\_password\_rotation) | Whether to manage the master user password rotation.<br/>By default, false on creation, rotation is managed by RDS.<br/>There is not currently a way to disable this on initial creation even when set to false.<br/>Setting this value to false after previously having been set to true will disable automatic rotation.<br/>Create with 'true', then re-apply with 'false' if password rotation should not be enabled.<br/>See: https://github.com/terraform-aws-modules/terraform-aws-rds-aurora/blob/master/main.tf#L465C1-L470C72 | `bool` | `true` | no |
+| <a name="input_master_user_password_rotation_automatically_after_days"></a> [master\_user\_password\_rotation\_automatically\_after\_days](#input\_master\_user\_password\_rotation\_automatically\_after\_days) | Automatically rotate password after number of days | `number` | `365` | no |
 | <a name="input_master_username"></a> [master\_username](#input\_master\_username) | Username for the master DB user. Required unless `snapshot_identifier` or `replication_source_identifier` is provided or unless a `global_cluster_identifier` is provided when the cluster is the secondary cluster of a global database | `string` | n/a | yes |
-| <a name="input_max_capacity"></a> [max\_capacity](#input\_max\_capacity) | Maximum number of read replicas permitted when autoscaling is enabled | `number` | `10` | no |
-| <a name="input_min_capacity"></a> [min\_capacity](#input\_min\_capacity) | Minimum number of read replicas permitted when autoscaling is enabled | `number` | `0` | no |
+| <a name="input_max_capacity"></a> [max\_capacity](#input\_max\_capacity) | Maximum number of ACUs - must be multiple of 0.5 | `number` | `10` | no |
+| <a name="input_min_capacity"></a> [min\_capacity](#input\_min\_capacity) | Minimum number of ACUs - must be multiple of 0.5 | `number` | `0.5` | no |
 | <a name="input_port"></a> [port](#input\_port) | The port on which the DB accepts connections | `string` | `"5432"` | no |
-| <a name="input_seconds_until_auto_pause"></a> [seconds\_until\_auto\_pause](#input\_seconds\_until\_auto\_pause) | n/a | `number` | `3600` | no |
+| <a name="input_seconds_until_auto_pause"></a> [seconds\_until\_auto\_pause](#input\_seconds\_until\_auto\_pause) | Time, in seconds, before an Aurora DB cluster in provisioned DB engine mode is paused. Valid values are 300 through 86400 | `number` | `null` | no |
 | <a name="input_security_group_rules"></a> [security\_group\_rules](#input\_security\_group\_rules) | Security group rules to apply to the RDS instance | `any` | `{}` | no |
 | <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | List of subnet IDs for the DB subnet group | `list(string)` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags for the RDS instance | `map(string)` | `{}` | no |

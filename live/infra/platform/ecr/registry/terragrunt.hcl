@@ -5,7 +5,7 @@ include "root" {
 dependency "account_list" {
   config_path = "${get_repo_root()}/management/platform/sso/utilities/account_list"
   mock_outputs = {
-    accounts = { "1234" = "tenantname" }
+    accounts = {}
   }
 }
 terraform {

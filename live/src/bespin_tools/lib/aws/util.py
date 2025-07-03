@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import threading
 from functools import cache
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING, Iterable, Mapping
 
 from botocore.exceptions import ClientError
 
@@ -19,6 +19,8 @@ if TYPE_CHECKING:
     from types_boto3_sts import STSClient
     from types_boto3_ssm import SSMClient
     from types_boto3_iam import IAMClient
+    from types_boto3_acm import ACMClient
+    from types_boto3_acm_pca import ACMPCAClient
     from types_boto3_accessanalyzer import AccessAnalyzerClient
     from types_boto3_config import ConfigServiceClient
     from types_boto3_eks import EKSClient
@@ -36,10 +38,11 @@ if TYPE_CHECKING:
 
 DEFAULT_REGION = 'us-east-1'
 SSO_START_URL = 'https://d-9067e2261c.awsapps.com/start'
-
 UNNAMED = '<no name>'
 
-def convert_tags_for_display(item: Iterable[dict]) -> dict:
+def convert_tags_for_display(item: Mapping | Iterable[Mapping]) -> Mapping:
+    if isinstance(item, Mapping):
+        return item
     rv = dict()
     for pair in item:
         BespinctlError.invariant(set(pair.keys()) == {'Key', 'Value'}, f"Input doesn't look like an AWS API tag array: {item}")
@@ -97,6 +100,7 @@ def _mutate_environment_to_isolate_bespinctl() -> bool:
     return rv
 
 
+
 class ClientGetter:
     """
     Mixin class used for getting typed boto3 clients. If a new client type is needed in surrounding code, add it to
@@ -118,16 +122,17 @@ class ClientGetter:
         from botocore.config import Config
 
         session = boto3.Session(**session_kwargs)
-        return session.client(
-            kind,
-            config=Config(
+        client_kwargs = {
+            'config': Config(
                 region_name=DEFAULT_REGION,
                 retries={
                     'max_attempts': 0,
                     'mode': 'standard',
                 }
             ),
-        )
+        }
+        return session.client(kind, **client_kwargs)
+
 
     def _get_client(self, kind: str, **session_kwargs):
         session_kwargs.setdefault('region_name', DEFAULT_REGION)
@@ -175,6 +180,12 @@ class ClientGetter:
 
     def sso_client(self, **kwargs) -> SSOClient:
         return self._get_client('sso', **kwargs)
+
+    def acm_client(self, **kwargs) -> ACMClient:
+        return self._get_client('acm', **kwargs)
+
+    def acm_pca_client(self, **kwargs) -> ACMPCAClient:
+        return self._get_client('acm-pca', **kwargs)
 
     def sso_oidc_client(self, **kwargs) -> SSOOIDCClient:
         return self._get_client('sso-oidc', **kwargs)

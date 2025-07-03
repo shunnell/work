@@ -52,11 +52,13 @@ class _BaseRoleCredentials(LoggingMixin, ABC):
         assert threading.current_thread() == threading.main_thread(), f"Called from thread {threading.current_thread()}"
         cached = self._cache.get(self._cache_key(), self._cache_miss)
         result = cached.result()
+        computed = False
         # TODO this is wrong; raise vs return is ugly, needs significant cleanup
         if isinstance(result, _Expired):
             self._logger.warning("Cached credentials expired")
             cached = self._cache[self._cache_key()] = background_initialized(self._wrap_get_credentials, proxy=False)()
             result = cached.result()
+            computed = True
         if isinstance(result, Exception):
             self._logger.error(f"Failed to get credentials: {result}", exc_info=result)
             del self._cache[self._cache_key()]
@@ -68,7 +70,10 @@ class _BaseRoleCredentials(LoggingMixin, ABC):
             aws_session_token=result.pop('SessionToken'),
         )
         exp = result.pop('Expiration')
-        self._logger.info(f"Assumed role {self.role}, expires at {exp}")
+        if computed:
+            self._logger.info(f"Assumed role {self.role}, expires at {exp}")
+        else:
+            self._logger.debug(f"Retrieved cached credentials for role {self.role}, expires at {exp}")
         for k in sorted(result.keys()):
             self._logger.debug(f"Additional role assume metadata: {k}={result[k]}")
         return rv

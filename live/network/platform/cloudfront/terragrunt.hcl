@@ -2,11 +2,11 @@ include "root" {
   path = find_in_parent_folders("root.hcl")
 }
 
-dependency "waf" {
-  config_path = "${get_path_to_repo_root()}/network/platform/non_prod_waf"
-  mock_outputs = {
-    web_acl_id = "waf-1234abcd"
-  }
+dependencies {
+  paths = [
+    "${get_path_to_repo_root()}/network/platform/non_prod_ingress_vpc/app_load_balancer",
+    "${get_path_to_repo_root()}/network/platform/non_prod_waf",
+  ]
 }
 
 terraform {
@@ -14,10 +14,10 @@ terraform {
 }
 
 inputs = {
-  name_prefix    = "static-site"
-  bucket_name    = "cloud-city-bucket" # Enter existing bucket name
-  aliases        = []
-  waf_web_acl_id = dependency.waf.outputs.web_acl_id
+  name_prefix         = "static-site"
+  default_root_object = "index.html"
+  error_document      = "error.html"
+  aliases             = []
 
   tags = {
     Environment = "non-prod"

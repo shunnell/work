@@ -6,6 +6,8 @@
 # Example control: https://docs.aws.amazon.com/securityhub/latest/userguide/iam-controls.html#iam-7
 resource "aws_iam_account_password_policy" "security_hub_compliance" {
   minimum_password_length        = 16
+  max_password_age               = 1
+  hard_expiry                    = true
   require_lowercase_characters   = true
   require_numbers                = true
   require_uppercase_characters   = true

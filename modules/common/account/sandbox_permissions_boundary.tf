@@ -10,17 +10,22 @@ data "aws_iam_policy_document" "sandbox_boundary" {
     sid    = "DenyIAMModifications"
     effect = "Deny"
     actions = [
+      "iam:Activate*",
       "iam:Add*",
       "iam:Attach*",
       "iam:Create*",
       "iam:Deactivate*",
       "iam:Delete*",
       "iam:Detach*",
-      "iam:Enable*",
+      "iam:Disable*",
       "iam:Put*",
       "iam:Remove*",
+      "iam:Reset*",
+      "iam:Set*",
+      "iam:Tag*",
+      "iam:Untag*",
       "iam:Update*",
-      "iam:Upload*",
+      "iam:Upload*"
     ]
     resources = ["*"]
   }
@@ -29,7 +34,6 @@ data "aws_iam_policy_document" "sandbox_boundary" {
     sid    = "AllowOnlyKnownServices"
     effect = "Allow"
     actions = [
-      "acm:*",
       "apigateway:*",
       "cloudfront:*",
       "cloudfront-keyvaluestore:*",
@@ -61,6 +65,7 @@ data "aws_iam_policy_document" "sandbox_boundary" {
       "logs:*",
       "opsworks:*",
       "rds:*",
+      "rds-db:*", # Used to allow IAM to use PAM/IAM-linked auth with RDS databases from tenant IAM roles
       "redshift:*",
       "route53:*",
       "s3:*",
