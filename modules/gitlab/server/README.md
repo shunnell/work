@@ -75,6 +75,8 @@ No requirements.
 | <a name="input_acm_cert_arn"></a> [acm\_cert\_arn](#input\_acm\_cert\_arn) | ACM cert arn for ingress https connection | `string` | n/a | yes |
 | <a name="input_artifacts_bucket"></a> [artifacts\_bucket](#input\_artifacts\_bucket) | Bucket for artifacts | `string` | n/a | yes |
 | <a name="input_backup_bucket"></a> [backup\_bucket](#input\_backup\_bucket) | Bucket for gitlab backup | `string` | n/a | yes |
+| <a name="input_backup_cron_extra_args"></a> [backup\_cron\_extra\_args](#input\_backup\_cron\_extra\_args) | Extra arguments to pass to the backup-utility during cron backup | `string` | `"--skip uploads,artifacts,pages,lfs,terraform_state,registry,packages,ci_secure_files,external_diffs"` | no |
+| <a name="input_backup_cron_schedule"></a> [backup\_cron\_schedule](#input\_backup\_cron\_schedule) | CRON schedule for GitLab backup | `string` | `"0 1 * * *"` | no |
 | <a name="input_chart_version"></a> [chart\_version](#input\_chart\_version) | Version of the GitLab Helm chart to install | `string` | n/a | yes |
 | <a name="input_ci_secure_bucket"></a> [ci\_secure\_bucket](#input\_ci\_secure\_bucket) | Bucket for ci secure | `string` | n/a | yes |
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | Name of the EKS cluster | `string` | n/a | yes |
@@ -103,6 +105,7 @@ No requirements.
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to all resources | `map(string)` | `{}` | no |
 | <a name="input_tf_state_bucket"></a> [tf\_state\_bucket](#input\_tf\_state\_bucket) | Bucket for tf state | `string` | n/a | yes |
 | <a name="input_tmp_backup_bucket"></a> [tmp\_backup\_bucket](#input\_tmp\_backup\_bucket) | Bucket for gitlab tmp backup | `string` | n/a | yes |
+| <a name="input_toolbox_storage"></a> [toolbox\_storage](#input\_toolbox\_storage) | How much storage to allocate to toolbox for backups | `string` | `"150Gi"` | no |
 | <a name="input_uploads_bucket"></a> [uploads\_bucket](#input\_uploads\_bucket) | Bucket for gitlab uploads | `string` | n/a | yes |
 
 ## Outputs

@@ -1,16 +1,5 @@
-# Dummy provider requirement block to pull the arn_parse function's namespace into scope:
-# https://github.com/hashicorp/terraform/issues/35753
-terraform {
-  required_providers {
-    aws = {}
-    time = {
-      source = "hashicorp/time"
-    }
-  }
-}
-
 locals {
-  log_group_names = [for v in var.log_group_arns : trimprefix(provider::aws::arn_parse(trimsuffix(v, ":*")).resource, "log-group:")]
+  log_group_names = [for arn in var.log_group_arns : regex("^arn:aws:logs:\\S*:\\d*:log-group:(\\S+)(:[*])?$", arn)[0]]
 }
 
 resource "aws_cloudwatch_log_subscription_filter" "subscribe_single_log" {

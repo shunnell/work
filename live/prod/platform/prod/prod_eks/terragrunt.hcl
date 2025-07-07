@@ -50,7 +50,7 @@ inputs = {
 
   node_groups = {
     "${local.cluster_name}" = {
-      size = 3
+      size = 1
       # Instance type recommended by OPR3 for prod, to be representative/similar to instances used in their sandbox
       # environments. Can be reassessed/changed/standardized as needed:
       instance_type = "m5.xlarge"

@@ -26,11 +26,12 @@ dependency "cluster" {
 }
 
 inputs = {
-  cluster_name                = dependency.cluster.outputs.cluster_name
-  vpc_id                      = dependency.cluster.outputs.vpc_id
-  nodegroup_security_group_id = dependency.cluster.outputs.node_groups["gitlab-runners"].security_group_id
-
-  account_name = local.account_locals.account
+  cluster_name                        = dependency.cluster.outputs.cluster_name
+  vpc_id                              = dependency.cluster.outputs.vpc_id
+  nodegroup_security_group_id         = dependency.cluster.outputs.node_groups["gitlab-runners"].security_group_id
+  enable_argocd                       = false
+  enable_aws_load_balancer_controller = false
+  account_name                        = local.account_locals.account
 
   k8s_repo_secret_name      = local.repo_secret.name
   k8s_repo_secret_user_key  = local.repo_secret.user_key

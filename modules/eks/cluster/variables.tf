@@ -77,9 +77,7 @@ variable "node_groups" {
   description = "Map of Node Group objects, each of which may"
   type = map(object({
     # TODO if we ever use node autoscaling, this can be broadened to allow either a number (static size) or a tuple/map of min/desired/max:
-    size     = number
-    min_size = optional(number, null) # for increasing size
-    max_size = optional(number, null) # for decreasing size
+    size = number
     # Big enough to deploy infrastructure tooling and get started with tenant deployments:
     # preferably, one of https://docs.aws.amazon.com/ec2/latest/instancetypes/ec2-nitro-instances.html
     instance_type    = optional(string, "t3.xlarge")
@@ -103,24 +101,6 @@ variable "node_groups" {
   validation {
     condition     = alltrue([for _, v in var.node_groups : contains(local.instance_types, v.instance_type)])
     error_message = "Instance type must be one of the supported instance types"
-  }
-  validation {
-    condition = alltrue([
-      for _, v in var.node_groups : (v.min_size == null || v.max_size == null ? true : v.min_size < v.max_size)
-    ])
-    error_message = "Min_Size must be less than Max_Size"
-  }
-  validation {
-    condition = alltrue([
-      for _, v in var.node_groups : (v.min_size == null ? true : v.min_size < v.size)
-    ])
-    error_message = "Min_Size must be less than Size"
-  }
-  validation {
-    condition = alltrue([
-      for _, v in var.node_groups : (v.max_size == null ? true : v.size < v.max_size)
-    ])
-    error_message = "Size must be less than Max_Size"
   }
 }
 

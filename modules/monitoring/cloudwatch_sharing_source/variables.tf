@@ -11,10 +11,6 @@ variable "sink_id" {
   description = "ARN of the CloudWatch OAM::Sink object to share data with (aka the receiver)"
   type        = string
   nullable    = true
-  validation {
-    condition     = var.sink_id == null || can(provider::aws::arn_parse(var.sink_id))
-    error_message = "Must be an ARN or null"
-  }
 }
 
 variable "tags" {

@@ -40,8 +40,8 @@ class ECRVulnerabilities:
         rv = dict()
         for sev in self.severities():
             first_image, all_images = getattr(self, sev)
-            rv[f"{sev.title()} (Latest - Total)"] = len(first_image)
-            rv[f"{sev.title()} (Latest - Unique)"] = len(set(first_image))
+            rv[f"{sev.title()} (Latest version - Total)"] = len(first_image)
+            rv[f"{sev.title()} (Latest version - Unique)"] = len(set(first_image))
             rv[f"{sev.title()} (All versions - Total)"] = len(all_images)
             rv[f"{sev.title()} (All versions - Unique)"] = len(set(all_images))
         return rv

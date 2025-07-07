@@ -180,7 +180,12 @@ class ECRRepository(ECRRepositoryBase):
     @property
     def pull_through_source_uri(self) -> str | None:
         _, pullthrough_config = _registry_settings(self.account)
-        return pullthrough_config.get(self.name.split("/", 1)[0])
+        rv = None
+        for prefix, upstream in pullthrough_config.items():
+            if self.name.startswith(prefix):
+                BespinctlError.invariant(rv is None, f"Repo {self} already has a pull through prefix: {rv}")
+                rv = prefix
+        return rv
 
     @property
     def creation_template(self) -> ECRRepositoryTemplate:

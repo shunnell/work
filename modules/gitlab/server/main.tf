@@ -246,7 +246,7 @@ module "gitlab" {
       toolbox:
         persistence:
           enabled: true
-          size: 150Gi
+          size: ${var.toolbox_storage}
         image:
           repository: "${local.custom_image_repo}/gitlab-toolbox-ee"
         backups:
@@ -254,6 +254,14 @@ module "gitlab" {
             config:
               secret: ${kubernetes_secret.s3cmd_config.metadata[0].name} 
               key: config
+          cron:
+            enabled: true
+            schedule: ${var.backup_cron_schedule}
+            extraArgs: ${var.backup_cron_extra_args}
+            persistance:
+              enabled: true
+              useGenericEphemeralVolume: true
+              size: ${var.toolbox_storage}
       webservice:
         maxReplicas: 3
         maxUnavailable: 1

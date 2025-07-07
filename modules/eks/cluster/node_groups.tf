@@ -47,8 +47,10 @@ locals {
   ]
   node_group_configs = {
     for k, v in var.node_groups : k => {
-      min_size               = coalesce(v.min_size, v.size)
-      max_size               = coalesce(v.max_size, v.size * 2)
+      min_size = 0
+      # A reasonable upper limit until we have clusters that need tons of gear. This shouldn't be made too high, though
+      # in order to prevent mistakes from causing runaway costs:
+      max_size               = 20
       desired_size           = v.size
       instance_types         = [v.instance_type]
       vpc_security_group_ids = [module.node_security_groups[k].id]
@@ -66,14 +68,14 @@ locals {
             volume_size           = v.volume_size
           }
         }
-        xvdb = v.xvdb_volume_size != null ? {
+        xvdb = {
           device_name = "/dev/xvdb"
           ebs = {
             delete_on_termination = true
             encrypted             = true
-            volume_size           = v.xvdb_volume_size
+            volume_size           = coalesce(v.xvdb_volume_size, v.volume_size)
           }
-        } : null
+        }
       }
       # Constant/default values below this point:
       ami_type                       = "BOTTLEROCKET_x86_64"

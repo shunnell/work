@@ -1,5 +1,5 @@
 locals {
-  sso_roles_by_permissionset = { for arn in data.aws_iam_roles.sso_roles.arns : regex(local.sso_role_regex, provider::aws::arn_parse(arn).resource)[0] => arn }
+  sso_roles_by_permissionset = { for arn in data.aws_iam_roles.sso_roles.arns : regex(local.sso_role_regex, arn)[0] => arn }
 }
 
 output "sso_role_arns_by_permissionset_name" {

@@ -150,6 +150,24 @@ variable "tmp_backup_bucket" {
   type        = string
 }
 
+variable "toolbox_storage" {
+  description = "How much storage to allocate to toolbox for backups"
+  type        = string
+  default     = "150Gi"
+}
+
+variable "backup_cron_schedule" {
+  description = "CRON schedule for GitLab backup"
+  type        = string
+  default     = "0 1 * * *"
+}
+
+variable "backup_cron_extra_args" {
+  description = "Extra arguments to pass to the backup-utility during cron backup"
+  type        = string
+  default     = "--skip uploads,artifacts,pages,lfs,terraform_state,registry,packages,ci_secure_files,external_diffs"
+}
+
 variable "rails_s3_secret_name" {
   description = "Rails s3 secret"
   type        = string

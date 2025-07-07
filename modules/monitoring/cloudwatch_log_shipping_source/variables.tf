@@ -4,7 +4,7 @@ variable "log_group_arns" {
   validation {
     # Many things that retrieve the ARNs of CWLGs retrieve "invalid" ARNs ending in :*. We accept either kind for ease
     # of use, and normalize internally.
-    condition     = alltrue([for v in var.log_group_arns : provider::aws::arn_parse(trimsuffix(v, ":*")) != null])
+    condition     = alltrue([for v in var.log_group_arns : can(regex("^arn:aws:logs:\\S*:\\d*:log-group:\\S+$", v))])
     error_message = "Each element must be an ARN, optionally ending with ':*'"
   }
 }
@@ -13,7 +13,7 @@ variable "destination_arn" {
   description = "ARN of the CloudWatch destination resource that will ship selected logs. Can be an account-local Lambda or Firehose or Kinesis stream, or a local or remote CloudWatch log destination."
   type        = string
   validation {
-    condition     = provider::aws::arn_parse(var.destination_arn) != null
+    condition     = can(regex("^arn:aws:logs:\\S*:\\d*:destination:\\S+$", var.destination_arn))
     error_message = "Must be an ARN"
   }
 }

@@ -6,6 +6,7 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import cache
+from json import dumps
 from pathlib import Path
 from typing import Tuple, Iterable, TYPE_CHECKING, Collection
 
@@ -14,6 +15,7 @@ import click
 from arn import Arn
 from arn.iam import RoleArn
 
+from bespin_tools.lib.argument_types import Regex
 from bespin_tools.lib.aws import CLOUD_CITY_ORGANIZATION_ROOT_ACCOUNT
 from bespin_tools.lib.aws.account import Account
 from bespin_tools.lib.aws.arguments import AwsAccounts
@@ -264,3 +266,42 @@ def apply_sandbox_permission_boundary(accounts: Collection[Account], execute: bo
             client.put_role_permissions_boundary(RoleName=role['RoleName'], PermissionsBoundary=str(desired_boundary))
         else:
             info(f"(pass --execute to make changes) {msg}")
+
+def _json_iam_document(document) -> str:
+    return dumps(
+        document,
+        sort_keys=True,
+        # Boto3 returns things with datetimes in 'em:
+        # https://stackoverflow.com/questions/12122007/python-json-encoder-to-support-datetime
+        default=lambda o: o.isoformat() if hasattr(o, 'isoformat') else o
+    )
+
+
+@iam.command()
+@click.option('--accounts', default="all", type=AwsAccounts())
+@click.argument( 'pattern', type=Regex())
+def grep(accounts: Collection[Account], pattern: Regex.Pattern):
+    with BespinctlTable(['Account', 'Entity type', 'Matches', 'Uses', 'Name', 'Arn']) as table:
+        for account in Organization.get_accounts(*accounts):
+            client = account.iam_client()
+            for account, role, _ in tqdm(_roles_and_boundaries([account]), desc="Roles"):
+                if matches := pattern.findall(_json_iam_document(role)):
+                    arn = RoleArn(role['Arn'])
+                    if str(arn).startswith('arn:aws:iam::aws:'):
+                        kind = 'Role (AWS)'
+                    else:
+                        kind = 'Role (Customer)'
+                    table.add_row(account, kind, len(matches), '<unknown>', arn.name, arn)
+            for policy in tqdm(paginate(client.list_policies), desc="Policies"):
+                arn = PolicyArn(policy['Arn'])
+                uses = str(policy['AttachmentCount'])
+                if boundary_uses := policy['PermissionsBoundaryUsageCount']:
+                    uses = f"{uses} ({boundary_uses} as boundary)"
+
+                policy = client.get_policy_version(PolicyArn=str(arn), VersionId=policy['DefaultVersionId'])['PolicyVersion']
+                if matches := pattern.findall(_json_iam_document(policy)):
+                    if str(arn).startswith('arn:aws:iam::aws:'):
+                        kind = 'Policy (AWS)'
+                    else:
+                        kind = 'Policy (Customer)'
+                    table.add_row(account, kind, len(matches), uses, arn.name, arn)
