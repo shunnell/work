@@ -56,3 +56,33 @@ resource "aws_ram_principal_association" "this" {
   principal          = data.aws_organizations_organization.this.arn
   resource_share_arn = aws_ram_resource_share.this.arn
 }
+
+# Tenant/app Records
+resource "aws_route53_record" "tenant" {
+  for_each = var.tenant_records
+
+  zone_id = aws_route53_zone.this.zone_id
+  name    = each.value.name
+  type    = each.value.type
+
+  # Alias Block (only if alias object is set)
+  dynamic "alias" {
+    for_each = try(each.value.alias != null ? [each.value.alias] : [])
+    content {
+      name                   = alias.value.name
+      zone_id                = alias.value.zone_id
+      evaluate_target_health = alias.value.evaluate_target_health
+    }
+  }
+
+  # these will be omitted if alias is provided
+  ttl     = each.value.alias != null ? null : each.value.ttl
+  records = each.value.alias != null ? null : each.value.records
+}
+
+resource "aws_route53_zone_association" "shared" {
+  for_each   = toset(var.shared_vpc_ids)
+  zone_id    = aws_route53_zone.this.zone_id
+  vpc_id     = each.value
+  vpc_region = "us-east-1"
+}

@@ -32,3 +32,25 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "tenant_records" {
+  description = "Map of DNS records to create under this zone"
+  type = map(object({
+    name    = string
+    type    = string
+    ttl     = optional(number, 300)
+    records = optional(list(string), [])
+    alias = optional(object({
+      name                   = string
+      zone_id                = string
+      evaluate_target_health = bool
+    }))
+  }))
+  default = {}
+}
+
+variable "shared_vpc_ids" {
+  description = "List of VPC IDs to associate with this private hosted zone"
+  type        = list(string)
+  default     = []
+}

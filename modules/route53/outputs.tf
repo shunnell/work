@@ -7,3 +7,8 @@ output "profile_id" {
   description = "Route53 Profile ID"
   value       = aws_route53profiles_profile.this.id
 }
+
+output "tenant_record_fqdns" {
+  description = "FQDNs of all tenant records"
+  value       = [for r in aws_route53_record.tenant : "${r.fqdn}"]
+}
