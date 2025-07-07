@@ -1,4 +1,5 @@
 module "argocd" {
+  count        = var.enable_argocd ? 1 : 0
   source       = "../../helm"
   repository   = "${local.image_path_root}/github/argoproj/argo-helm"
   chart        = "argo-cd"
@@ -15,10 +16,8 @@ module "argocd" {
   # NB: if this is found to cause problems due to replacement Argo installs having issues "adopting" pre-existing
   # argo CRD resources, it can be changed, but it smooths out destroy/replace/recreate in the mean time:
   recreate_pods = true
-  timeout       = 1200 # Provisioning AWS NLBs takes ages.
-  depends_on = [
-    module.awslbc,
-  ]
+  timeout       = 1200            # Provisioning AWS NLBs takes ages.
+  depends_on    = [module.awslbc] # Argo needs a load balancer
 
   values = [<<-YAML
     global:

@@ -62,6 +62,8 @@ No requirements.
 | <a name="input_account_name"></a> [account\_name](#input\_account\_name) | Internal name of the AWS account this is in. Used for auto-deploying cluster resources | `string` | n/a | yes |
 | <a name="input_chart_ecr_image_account_id"></a> [chart\_ecr\_image\_account\_id](#input\_chart\_ecr\_image\_account\_id) | AWS Account ID containing chart images to be used by this module. Should not ordinarily be changed from the default (the infra account) | `string` | `"381492150796"` | no |
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | EKS Cluster | `string` | n/a | yes |
+| <a name="input_enable_argocd"></a> [enable\_argocd](#input\_enable\_argocd) | Whether to provision ArgoCD on this cluster | `bool` | `true` | no |
+| <a name="input_enable_aws_load_balancer_controller"></a> [enable\_aws\_load\_balancer\_controller](#input\_enable\_aws\_load\_balancer\_controller) | Whether to provision the AWS load balancer controller (LBC) on this cluster | `bool` | `true` | no |
 | <a name="input_nodegroup_security_group_id"></a> [nodegroup\_security\_group\_id](#input\_nodegroup\_security\_group\_id) | Security group for the LoadBalancer to use | `string` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to the EKS cluster | `map(string)` | `{}` | no |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC ID | `string` | n/a | yes |
@@ -70,5 +72,5 @@ No requirements.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_argocd_server_endpoint"></a> [argocd\_server\_endpoint](#output\_argocd\_server\_endpoint) | TODO update this appropriately to accomodate Ingress resources in addition to LoadBalancer resources. |
+| <a name="output_argocd_server_endpoint"></a> [argocd\_server\_endpoint](#output\_argocd\_server\_endpoint) | AWS load balancer URL for ArgoCD-server if 'enable\_argocd' is true, otherwise null |
 <!-- END_TF_DOCS -->

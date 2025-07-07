@@ -1,9 +1,10 @@
 data "kubernetes_service" "argocd_server" {
+  count      = var.enable_argocd ? 1 : 0
+  depends_on = [module.argocd]
   metadata {
     name      = "argocd-server"
     namespace = kubernetes_namespace.namespaces["argocd"].metadata[0].name
   }
-  depends_on = [module.argocd]
   lifecycle {
     postcondition {
       condition     = length(self.status) == 1 && length(self.spec) == 1
@@ -23,14 +24,15 @@ data "kubernetes_service" "argocd_server" {
 
 # TODO update this appropriately to accomodate Ingress resources in addition to LoadBalancer resources.
 output "argocd_server_endpoint" {
-  value = {
-    load_balancer_hostname = data.kubernetes_service.argocd_server.status[0].load_balancer[0].ingress[0].hostname
-    cluster_ips            = data.kubernetes_service.argocd_server.spec[0].cluster_ips
-    external_ips           = data.kubernetes_service.argocd_server.spec[0].external_ips
-    ports = { for config in data.kubernetes_service.argocd_server.spec[0].port : config.name => {
+  description = "AWS load balancer URL for ArgoCD-server if 'enable_argocd' is true, otherwise null"
+  value = var.enable_argocd ? {
+    load_balancer_hostname = data.kubernetes_service.argocd_server[0].status[0].load_balancer[0].ingress[0].hostname
+    cluster_ips            = data.kubernetes_service.argocd_server[0].spec[0].cluster_ips
+    external_ips           = data.kubernetes_service.argocd_server[0].spec[0].external_ips
+    ports = { for config in data.kubernetes_service.argocd_server[0].spec[0].port : config.name => {
       node_port          = tonumber(config.node_port)
       load_balancer_port = tonumber(config.port)
       pod_port           = tonumber(config.target_port)
     } }
-  }
+  } : null
 }

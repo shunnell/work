@@ -1,4 +1,7 @@
 module "irsa_role" {
+  # FYI, deprecation notices related to the deprecated '.name' property on aws_region.current should be resolved in a
+  # future version of this third party module, tracking issue here:
+  # https://github.com/terraform-aws-modules/terraform-aws-iam/issues/574
   source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
 
   role_name          = var.use_name_as_iam_role_prefix ? null : var.name

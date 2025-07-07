@@ -1,4 +1,5 @@
 module "awslbc_irsa_role" {
+  count                        = var.enable_aws_load_balancer_controller ? 1 : 0
   source                       = "../service_account"
   use_name_as_iam_role_prefix  = true
   name                         = "aws-load-balancer-controller"
@@ -9,6 +10,7 @@ module "awslbc_irsa_role" {
 }
 
 module "awslbc" {
+  count = var.enable_aws_load_balancer_controller ? 1 : 0
   # https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html
   source       = "../../helm"
   release_name = "aws-load-balancer-controller"
@@ -28,7 +30,7 @@ module "awslbc" {
     "backendSecurityGroup" = var.nodegroup_security_group_id
     "defaultTargetType"    = "ip"
 
-    "serviceAccount.name"   = module.awslbc_irsa_role.service_account_name
+    "serviceAccount.name"   = module.awslbc_irsa_role[0].service_account_name
     "serviceAccount.create" = false
   }
 }

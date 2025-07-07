@@ -3,6 +3,24 @@ variable "cluster_name" {
   type        = string
 }
 
+variable "enable_argocd" {
+  type        = bool
+  default     = true
+  description = "Whether to provision ArgoCD on this cluster"
+  validation {
+    condition     = var.enable_argocd ? var.enable_aws_load_balancer_controller : true
+    error_message = "'enable_aws_load_balancer_controller' must be true if 'enable_argocd' is true"
+  }
+}
+
+
+variable "enable_aws_load_balancer_controller" {
+  type        = bool
+  default     = true
+  description = "Whether to provision the AWS load balancer controller (LBC) on this cluster"
+}
+
+
 variable "vpc_id" {
   description = "VPC ID"
   type        = string
