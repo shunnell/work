@@ -7,16 +7,20 @@ terraform {
 }
 
 dependency "shared_services_vpc" {
-  config_path = "../shared_services_vpc/vpc"
+  config_path = "${get_path_to_repo_root()}/network/platform/shared_services_vpc/vpc"
   mock_outputs = {
-    vpc_id                 = "",
-    vpc_name               = "",
+    vpc_id                 = ["vpc-fake1234567890"]
+    vpc_name               = "shared-services-vpc"
     interface_endpoint_ids = {}
   }
 }
 
 dependency "app_alb" {
-  config_path = "../non_prod_ingress_vpc/app_load_balancer"
+  config_path = "${get_path_to_repo_root()}/network/platform/non_prod_ingress_vpc/app_load_balancer"
+  mock_outputs = {
+    dns_name = "app-load-balancer-1234567890.us-east-1.elb.amazonaws.com"
+    zone_id  = "Z1234567890ABCDEF"
+  }
 }
 
 inputs = {

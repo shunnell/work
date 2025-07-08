@@ -13,12 +13,13 @@ dependency "cloudwatch_sharing_target" {
   }
 }
 
-dependency "route53_profile" {
-  config_path = "${get_path_to_repo_root()}/network/platform/route53"
-  mock_outputs = {
-    profile_id = ""
-  }
-}
+# # Removed due to circular dependency
+# dependency "route53_profile" {
+#   config_path = "${get_path_to_repo_root()}/network/platform/route53"
+#   mock_outputs = {
+#     profile_id = ""
+#   }
+# }
 
 locals {
   # Load common variables
