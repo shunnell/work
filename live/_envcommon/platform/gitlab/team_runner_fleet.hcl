@@ -23,7 +23,7 @@ dependency "secret" {
 }
 
 dependency "ecr_repositories" {
-  config_path = "${get_repo_root()}/infra/platform/ecr/repositories"
+  config_path = "${get_repo_root()}/infra/${local.team_name}/ecr/repositories"
   mock_outputs = {
     pull_policy = { arn = "" }
     push_policy = { arn = "" }

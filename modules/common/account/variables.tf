@@ -15,6 +15,11 @@ variable "oam_shared_resource_types" {
   default     = ["AWS::Logs::LogGroup", "AWS::CloudWatch::Metric"]
 }
 
+variable "account_name" {
+  description = "Name of the account"
+  type        = string
+}
+
 variable "tags" {
   description = "Tags to apply to the resources"
   type        = map(string)

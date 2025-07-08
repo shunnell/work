@@ -18,7 +18,7 @@ _REPORT_FIELDS = (
     'Repository',
     'Owner',
     'Deprecated',
-    *(ECRVulnerabilities().to_report_dict().keys())
+    *sorted(ECRVulnerabilities().to_report_dict().keys())
 )
 
 @click.group

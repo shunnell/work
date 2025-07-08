@@ -182,6 +182,12 @@ variable "gitlab_secret_id" {
   type        = string
 }
 
+variable "ses_api_secret_id" {
+  description = "Secrete name for SES API credentials"
+  type        = string
+  default     = "ses-api-config"
+}
+
 variable "tags" {
   description = "Tags to apply to all resources"
   type        = map(string)

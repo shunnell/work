@@ -102,6 +102,7 @@ No requirements.
 | <a name="input_release_name"></a> [release\_name](#input\_release\_name) | Name of the GitLab Helm release | `string` | n/a | yes |
 | <a name="input_s3_secret_name"></a> [s3\_secret\_name](#input\_s3\_secret\_name) | Secret name for s3 config | `string` | `"s3cmd-config"` | no |
 | <a name="input_secret_arn"></a> [secret\_arn](#input\_secret\_arn) | List of secret arns should be allowed for the service account | `list(string)` | n/a | yes |
+| <a name="input_ses_api_secret_id"></a> [ses\_api\_secret\_id](#input\_ses\_api\_secret\_id) | Secrete name for SES API credentials | `string` | `"ses-api-config"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to all resources | `map(string)` | `{}` | no |
 | <a name="input_tf_state_bucket"></a> [tf\_state\_bucket](#input\_tf\_state\_bucket) | Bucket for tf state | `string` | n/a | yes |
 | <a name="input_tmp_backup_bucket"></a> [tmp\_backup\_bucket](#input\_tmp\_backup\_bucket) | Bucket for gitlab tmp backup | `string` | n/a | yes |

@@ -49,8 +49,26 @@ module "gitlab" {
   values = [<<-YAML
     installCertmanager: false
     certmanager-issuer:
-      email: CA-CST-Cloud-City-Platform@state.gov
+      email: "CA-CST-Cloud-City-Platform@state.gov"
     global:
+      smtp:
+        enabled: false # Disable SMTP since we're using SES API
+      email:
+        from: "CA-CST-Cloud-City-Platform@state.gov"
+        reply_to: "CA-CST-Cloud-City-Platform@state.gov"
+      appConfig:
+        serviceAccount:
+          enabled: true
+          name: gitlab-ses-sa
+        extra:
+          volumes:
+            - name: ses-initializer
+              configMap:
+                name: gitlab-ses-initializer
+          volumeMounts:
+            - name: ses-initializer
+              mountPath: /opt/gitlab/embedded/service/gitlab-rails/config/initializers/ses_initializer.rb
+              subPath: ses_initializer.rb
       railsSecrets:
         secret: ${kubernetes_secret.rails_secret.metadata[0].name}
       hosts:

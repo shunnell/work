@@ -38,6 +38,10 @@ data "aws_iam_policy_document" "sandbox_boundary" {
       "cloudfront:*",
       "cloudfront-keyvaluestore:*",
       "cloudwatch:*",
+      "codeartifact:Get*",
+      "codeartifact:Describe*",
+      "codeartifact:List*",
+      "codeartifact:ReadFromRepository",
       "cognito-idp:*",
       "databrew:*",
       "dms:*",
@@ -69,13 +73,44 @@ data "aws_iam_policy_document" "sandbox_boundary" {
       "redshift:*",
       "route53:*",
       "s3:*",
-      "secretsmanager:*",
       "sqs:*",
       "ssm:*",
       "sts:GetServiceBearerToken",
       "waf:*"
     ]
     resources = ["*"]
+  }
+
+  # temporary for OPR to access secrets to remediate RED team issues PTTC 007
+  # We will remove this once we have a more permanent solution in place
+  dynamic "statement" {
+    for_each = var.account_name == "opr" ? [1] : []
+    content {
+      sid    = "AllowTenantSecretsAccess"
+      effect = "Allow"
+      actions = [
+        "secretsmanager:GetSecretValue",
+      ]
+      resources = [
+        "arn:aws:secretsmanager:*:${data.aws_caller_identity.current.account_id}:secret:${var.account_name}/*",
+        "arn:aws:secretsmanager:*:${data.aws_caller_identity.current.account_id}:secret:${var.account_name}-*",
+        "arn:aws:secretsmanager:*:${data.aws_caller_identity.current.account_id}:secret:rds*",
+      ]
+    }
+  }
+
+  dynamic "statement" {
+    for_each = var.account_name != "opr" ? [1] : []
+    content {
+      sid    = "AllowTenantSecretsAccess"
+      effect = "Allow"
+      actions = [
+        "secretsmanager:*",
+      ]
+      resources = [
+        "*"
+      ]
+    }
   }
 }
 

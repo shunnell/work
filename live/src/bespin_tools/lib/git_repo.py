@@ -41,21 +41,30 @@ def empty_dirs(path: Path) -> Iterable[Path]:
 def git_repo_or_none(path: Path | str) -> tuple[git.Repo, Path] | None:
     from bespin_tools.lib.logging import logger # Local import to avoid import loops
 
-    path = Path(path)
+    path = Path(path).resolve()
 
     if path.is_dir():
         try:
             return git_repo_root(path)
         except git.NoSuchPathError as ex:
-            logger.error(f"Could not read path '{path}' to check if it is a git repository; some functionality may be unavailable: {ex}")
+            logger.warning(f"Cannot clean up files in '{path}': could not read path to check if it is a git repository: {ex}")
+        except git.GitCommandError as ex:
+            if 'must be run in a work tree' in str(ex).lower():
+                logger.warning(f"Cannot clean up files in '{path}': no git repo found: {ex}")
+            else:
+                raise
         except git.InvalidGitRepositoryError:
             logger.debug(f"Directory is not a git repo: {path}")
             pass
+    return None
 
 @cache
 def git_repo_root(path: Path | str | None = None) -> tuple[git.Repo, Path]:
+    from bespin_tools.lib.logging import logger # Local import to avoid import loops
+
     if path is None:
         path = __file__
     path = Path(path)
+    logger.debug(f"{path}: checking for git repo...")
     git_repo = git.Repo(path, search_parent_directories=True)
     return git_repo, Path(git_repo.git.rev_parse("--show-toplevel")).resolve()

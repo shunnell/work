@@ -13,13 +13,12 @@ dependency "cloudwatch_sharing_target" {
   }
 }
 
-# # Removed due to circular dependency
-# dependency "route53_profile" {
-#   config_path = "${get_path_to_repo_root()}/network/platform/route53"
-#   mock_outputs = {
-#     profile_id = ""
-#   }
-# }
+dependency "route53_profile" {
+  config_path = "${get_path_to_repo_root()}/network/platform/route53"
+  mock_outputs = {
+    profile_id = ""
+  }
+}
 
 locals {
   # Load common variables
@@ -39,7 +38,5 @@ inputs = {
   gateway_endpoints            = []
   availability_zones           = ["us-east-1a", "us-east-1b", "us-east-1c"]
   log_shipping_destination_arn = dependency.cloudwatch_sharing_target.outputs.cloudwatch_destination_arn
-  enable_dns_profile           = true
-  custom_cidr_range            = null
-  # profile_id                   = dependency.route53_profile.outputs.profile_id
+  profile_id                   = dependency.route53_profile.outputs.profile_id
 }
