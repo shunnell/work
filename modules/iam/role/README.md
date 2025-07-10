@@ -43,6 +43,7 @@ No requirements.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_assume_role_principals"></a> [assume\_role\_principals](#input\_assume\_role\_principals) | Shorthand specification of sts:AssumeRole service or ARN/AWS principals which can assume this role. Info about principals that can assume this role. A set of either service names (ending in .amazonaws.com) or ARNs of 'iam:' or 'sts:' principals that can assume this role. All specified principals will be granted unconditional allow for sts:AssumeRole into this role. If a more specific assume policy is needed (e.g. conditions, denies, string-matches, etc), supply trust\_policy\_json instead. | `set(string)` | `[]` | no |
+| <a name="input_condition_trust_policy"></a> [condition\_trust\_policy](#input\_condition\_trust\_policy) | Condition to apply to the trust policy | <pre>list(object({<br/>    test     = string<br/>    variable = string<br/>    values   = list(string)<br/>  }))</pre> | `[]` | no |
 | <a name="input_description"></a> [description](#input\_description) | Human-readable description of the IAM role | `string` | `""` | no |
 | <a name="input_permissions_boundary_policy_arn"></a> [permissions\_boundary\_policy\_arn](#input\_permissions\_boundary\_policy\_arn) | ARN of an IAM policy to use as a permissions boundary for this role, if any | `string` | `null` | no |
 | <a name="input_policy_arns"></a> [policy\_arns](#input\_policy\_arns) | The associated IAM policy ARNs to attach | `list(string)` | `[]` | no |

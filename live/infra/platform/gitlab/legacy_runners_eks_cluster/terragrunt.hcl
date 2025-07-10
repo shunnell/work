@@ -43,7 +43,7 @@ inputs = {
 
   node_groups = {
     "gitlab-runners" = {
-      size             = 6
+      size             = 8
       instance_type    = "t3.2xlarge"
       xvdb_volume_size = 50
       # Allow runners to use the pull-through cache (in addition to the built-in default "Read Only" ECR access).

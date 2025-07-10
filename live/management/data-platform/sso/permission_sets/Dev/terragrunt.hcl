@@ -14,4 +14,4 @@ inputs = {
   permission_set_name = "Data-Platform_Dev"
   description         = "Allows for developer access to Data-Platform-related resources in workload accounts."
   inline_policy       = file("inline_policy.json")
-} 
+}

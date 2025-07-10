@@ -50,7 +50,10 @@ locals {
       min_size = 0
       # A reasonable upper limit until we have clusters that need tons of gear. This shouldn't be made too high, though
       # in order to prevent mistakes from causing runaway costs:
-      max_size               = 20
+      max_size = 20
+      # Note that these don't always take effect and sometimes need to be updated by hand. If the desired size is the
+      # ONLY change, it gets ignored. If there are other nodegroup updates, it gets honored:
+      # https://github.com/terraform-aws-modules/terraform-aws-eks/issues/1924
       desired_size           = v.size
       instance_types         = [v.instance_type]
       vpc_security_group_ids = [module.node_security_groups[k].id]

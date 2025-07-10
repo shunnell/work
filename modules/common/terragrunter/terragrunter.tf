@@ -170,5 +170,6 @@ module "terragrunter_role" {
   # will try to do that, and adding conditions for "skip assume if already terragrunter" adds complexity.
   assume_role_principals = concat(["arn:aws:iam::${var.iac_account_id}:role/terragrunter"], var.additional_role_assumers)
   policy_arns            = concat([module.terragrunter_policy.policy_arn], var.terragrunter_role_additional_policies)
+  condition_trust_policy = var.condition_trust_policy
   tags                   = var.tags
 }

@@ -71,6 +71,16 @@ variable "permissions_boundary_policy_arn" {
   type        = string
 }
 
+variable "condition_trust_policy" {
+  description = "Condition to apply to the trust policy"
+  type = list(object({
+    test     = string
+    variable = string
+    values   = list(string)
+  }))
+  default = []
+}
+
 variable "tags" {
   description = "Tags to apply to all resources"
   type        = map(string)

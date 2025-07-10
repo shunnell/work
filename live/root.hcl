@@ -13,6 +13,7 @@ locals {
   account_region              = lookup(local.account.locals, "region", local.default_region)
   terragrunter_role_arn       = local.account.locals.terragrunter_role_arn
   infra_terragrunter_role_arn = local.infra.locals.terragrunter_role_arn
+  terragrunter_external_id    = local.infra.locals.terragrunter_external_id
 
   # Common tags for all resources
   common_tags = merge(
@@ -40,7 +41,8 @@ remote_state {
     encrypt        = true
     dynamodb_table = "dos-cloudcity-infra-terraform-locks"
     assume_role = {
-      role_arn = local.infra_terragrunter_role_arn
+      role_arn    = local.infra_terragrunter_role_arn
+      external_id = local.terragrunter_external_id
     }
     # DO NOT ADD 'profile =', not even temporarily without checking it in!
     # If your plan/apply doesn't work without that, the problem needs to be fixed elsewhere; seek help.
@@ -55,13 +57,18 @@ remote_state {
 generate "provider" {
   path      = "provider.tf"
   if_exists = "overwrite_terragrunt"
-  # begin template
-  contents = <<-EOF
+  contents  = <<-EOF
     provider "time" {}
     provider "aws" {
       region = "${local.account_region}"
+      # "Chain" the role assume: first assume infra terragrunter, then assume the target account's terragrunter:
+      assume_role {
+        role_arn = "${local.infra_terragrunter_role_arn}"
+        external_id = "${local.terragrunter_external_id}"
+      }
       assume_role {
         role_arn = "${local.terragrunter_role_arn}"
+        external_id  = "${local.terragrunter_external_id}"
       }
       default_tags {
         tags = ${jsonencode(local.common_tags)}
@@ -78,11 +85,11 @@ generate "provider" {
       region = "${local.account_region}"
       assume_role {
         role_arn = "${local.infra_terragrunter_role_arn}"
+        external_id  = "${local.terragrunter_external_id}"
       }
       default_tags {
         tags = ${jsonencode(local.common_tags)}
       }
     }
   EOF
-  # end template
 }

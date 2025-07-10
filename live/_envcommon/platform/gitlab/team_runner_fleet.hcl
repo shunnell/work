@@ -33,12 +33,11 @@ dependency "ecr_repositories" {
 
 inputs = {
   gitlab_mothership_domain = "gitlab.cloud-city"
-  chart_version            = "0.77.3"
-  # chart_version            = "0.78.1"
-  cluster_name       = dependency.cluster.outputs.cluster_name
-  tenant_name        = local.team_name
-  gitlab_secret_id   = dependency.secret.outputs.secret_id
-  gitlab_certificate = file("${get_repo_root()}/_envcommon/platform/gitlab/gitlab-fullchain-cert.crt")
+  chart_version            = "0.78.1"
+  cluster_name             = dependency.cluster.outputs.cluster_name
+  tenant_name              = local.team_name
+  gitlab_secret_id         = dependency.secret.outputs.secret_id
+  gitlab_certificate       = file("${get_repo_root()}/_envcommon/platform/gitlab/gitlab-fullchain-cert.crt")
   runner_iam_policy_attachments = [
     dependency.ecr_repositories.outputs.pull_policy.arn,
     dependency.ecr_repositories.outputs.push_policy.arn,

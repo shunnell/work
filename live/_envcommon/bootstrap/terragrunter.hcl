@@ -8,4 +8,11 @@ terraform {
 
 inputs = {
   iac_account_id = local.infra.locals.account_id
+  condition_trust_policy = [
+    {
+      test     = "StringEquals"
+      variable = "sts:ExternalId"
+      values   = [local.infra.locals.terragrunter_external_id]
+    }
+  ]
 }

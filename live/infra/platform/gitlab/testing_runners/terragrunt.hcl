@@ -25,7 +25,8 @@ include "runner_fleet" {
 
 inputs = {
   runner_fleet_name_suffix = "testing"
-  scratch_space_size_gb    = 20
+  scratch_space_size_gb    = 50
+  builder_memory           = "3Gi"
   concurrency_pods         = 1 # Keep it scaled way down to not take up too much space.
   read_only_root           = true
 }

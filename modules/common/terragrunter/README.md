@@ -42,6 +42,7 @@ No requirements.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | <a name="input_additional_role_assumers"></a> [additional\_role\_assumers](#input\_additional\_role\_assumers) | Additional principals that should be allowed to assume the terragrunter role | `list(string)` | `[]` | no |
+| <a name="input_condition_trust_policy"></a> [condition\_trust\_policy](#input\_condition\_trust\_policy) | Condition to apply to the trust policy | <pre>list(object({<br/>    test     = string<br/>    variable = string<br/>    values   = list(string)<br/>  }))</pre> | `[]` | no |
 | <a name="input_iac_account_id"></a> [iac\_account\_id](#input\_iac\_account\_id) | AWS Account ID of the account that manages IaC and should be able to assume 'terragrunter' in other accounts | `string` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to the resource | `map(string)` | `{}` | no |
 | <a name="input_terragrunter_role_additional_policies"></a> [terragrunter\_role\_additional\_policies](#input\_terragrunter\_role\_additional\_policies) | Additional policies ARNs to apply to the Terragrunter Role | `list(string)` | `[]` | no |

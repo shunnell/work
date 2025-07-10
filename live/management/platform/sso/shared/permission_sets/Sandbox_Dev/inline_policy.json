@@ -313,8 +313,7 @@
         "iam:TagRole",
         "iam:UntagRole",
         "iam:UpdateAssumeRolePolicy",
-        "iam:UpdateRole",
-        "iam:DeleteRole"
+        "iam:UpdateRole"
       ],
       "Resource": [
         "arn:aws:iam::*:role/sandbox/*",
@@ -326,6 +325,16 @@
           "iam:PermissionsBoundary": "arn:aws:iam::*:policy/platform/SandboxPermissionsBoundary"
         }
       }
+    },
+    {
+      "Sid": "PermitIAMRoleDeletionForSandboxRoles",
+      "Effect": "Allow",
+      "Action": ["iam:DeleteRole"],
+      "Resource": [
+        "arn:aws:iam::*:role/sandbox/*",
+        "arn:aws:iam::*:role/sandbox-*",
+        "arn:aws:iam::*:role/aws-service-role/*/sandbox*"
+      ]
     },
     {
       "Sid": "PermitIAMPolicyModificationsInSandboxPrefixes",

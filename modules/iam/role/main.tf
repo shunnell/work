@@ -9,6 +9,14 @@ data "aws_iam_policy_document" "assume_role_policy" {
         type        = can(regex(local.service_principal_regex, statement.key)) ? "Service" : "AWS"
         identifiers = [statement.key]
       }
+      dynamic "condition" {
+        for_each = var.condition_trust_policy
+        content {
+          test     = condition.value.test
+          variable = condition.value.variable
+          values   = condition.value.values
+        }
+      }
     }
   }
 }

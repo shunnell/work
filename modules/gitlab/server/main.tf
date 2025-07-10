@@ -39,12 +39,6 @@ module "gitlab" {
   namespace     = kubernetes_namespace.gitlab_namespace.metadata[0].name
   chart_version = var.chart_version
   timeout       = 1200 # Provisioning AWS NLBs takes ages.
-  # remove block after upgrade to chart version 9.x
-  set = {
-    # set to 'false' on upgrade to 9.x
-    "prometheus.install"  = true
-    "certmanager.install" = false
-  }
   # ref material: https://gitlab.com/gitlab-org/charts/gitlab/-/blob/master/values.yaml?ref_type=heads
   values = [<<-YAML
     installCertmanager: false

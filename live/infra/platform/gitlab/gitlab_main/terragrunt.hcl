@@ -111,11 +111,10 @@ dependency "secret" {
 }
 
 inputs = {
-  domain        = "gitlab.cloud-city"
-  cluster_name  = dependency.cluster.outputs.cluster_name
-  release_name  = "gitlab-${local.suffix}"
-  chart_version = "8.11.6"
-  # chart_version    = "9.1.1"
+  domain           = "gitlab.cloud-city"
+  cluster_name     = dependency.cluster.outputs.cluster_name
+  release_name     = "gitlab-${local.suffix}"
+  chart_version    = "9.1.1"
   gitlab_secret_id = dependency.secret.outputs.secret_id
   secret_arn = [
     dependency.rds.outputs.aurora_serverless_v2_cluster_master_user_secret[0].secret_arn,

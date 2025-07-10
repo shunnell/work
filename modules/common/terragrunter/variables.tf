@@ -16,6 +16,16 @@ variable "terragrunter_role_additional_policies" {
   default     = []
 }
 
+variable "condition_trust_policy" {
+  description = "Condition to apply to the trust policy"
+  type = list(object({
+    test     = string
+    variable = string
+    values   = list(string)
+  }))
+  default = []
+}
+
 variable "tags" {
   description = "Tags to apply to the resource"
   type        = map(string)

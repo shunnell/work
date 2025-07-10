@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import ctypes
 from functools import cache
-from sys import exc_info
 
 from bespin_tools.lib.logging import warn, error, info, success, debug
 from bespin_tools.lib.util import WINDOWS

@@ -1,22 +1,18 @@
 from __future__ import annotations
 
-import email.utils
 from pathlib import Path
 
 import click
 
 from bespin_tools.lib.aws.organization import Organization
-from bespin_tools.lib.errors import BespinctlError
-from bespin_tools.lib.iac import setup_global_logger_for_terragrunt
 from bespin_tools.lib.git_repo import cloud_city_repos, git_repo_root
+from bespin_tools.lib.iac import setup_global_logger_for_terragrunt
 from bespin_tools.lib.iac.commands import terragrunt as terragrunt_command, terraform as terraform_command
 from bespin_tools.lib.iac.linting import lint_tf_files, lint_terraform_module_docs, lint_hcl_files
-from bespin_tools.lib.logging import attention
 from bespin_tools.lib.util import resolve_file
 from bespin_tools.lib.windows import try_to_fix_windows_max_path_length
 
 INFRA_ACCOUNT_ID = '381492150796'
-TERRAGRUNTER_ROLE = f"arn:aws:iam::{INFRA_ACCOUNT_ID}:role/terragrunter"
 
 @click.group()
 def iac():
@@ -35,7 +31,7 @@ def iac():
     ),
 )
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
-def terragrunt(args):
+def terragrunt(args: tuple[str, ...]):
     """
     Runs terragrunt in an environment that is correctly connected to AWS IAM and has passed several sanity checks
     to ensure that terragrunt functions correctly.
@@ -43,28 +39,14 @@ def terragrunt(args):
     # If users are trying to read help messages or get terragrunt versions, skip IAM setup (it takes time, can fail)
     # and run the subcommand straight away. This helps them easily debug version/installation issues (and is especially
     # necessary if 'terragrunt' is aliased to this subcommand in their shells):
-    skip_role_assume = args == () or any(x in args for x in ('--help', '--version', '-h', '-v'))
+    skip_role_assume = len(args) == 0 or any(x in args for x in ('--help', '--version', '-h', '-v'))
     cmd = terragrunt_command()
 
     if not skip_role_assume:
         infra_account, = Organization.get_accounts(INFRA_ACCOUNT_ID)
-        sts = infra_account.sts_client()
-        identity = sts.get_caller_identity()
-        assert identity['Account'] == INFRA_ACCOUNT_ID, f"Invoked from the wrong account: {identity['Account']}"
-
-        if identity['Arn'].startswith((TERRAGRUNTER_ROLE, f"arn:aws:iam::{INFRA_ACCOUNT_ID}:assumed-role/terragrunter")):
-            attention(f"Already running as infra terragrunter role; no need to assume role: {identity['Arn']}")
-            new_env = infra_account.environment_variables()
-        else:
-            base, prior_role = identity['Arn'].rsplit(':', 1)
-            try:
-                _, addr = prior_role.rsplit('/', 1)
-                email.utils.parseaddr(addr, strict=True)
-                assert addr.endswith('@state.gov')
-            except Exception as ex:
-                raise BespinctlError(f"Unexpected format of bootstrap human user role; must end with an email: {prior_role}") from ex
-            new_env = infra_account.environment_variables(assume_role=(TERRAGRUNTER_ROLE, f'bespinctl.{addr}',))
-        cmd.env.update(new_env)
+        # Put the current user's AWS credentials into the environment for terragrunt/terraform to use when assuming
+        # roles:
+        cmd.env.update(infra_account.environment_variables())
 
     # Prevent foot-guns at apply time unless a user explicitly requested it:
     if '-auto-approve' in args or '--auto-approve' in args:

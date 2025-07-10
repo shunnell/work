@@ -34,7 +34,7 @@ class _Organization(ClientGetter):
         access.
     """
     ALL = Literal[b' \0 ']
-    _CLIENTS_USED = ('sso', 'account', 'sts', 'sso-oidc')
+    _CLIENTS_USED = ('sso', 'account', 'sso-oidc')
 
     # In a cached property rather than set in the constructor so that start_priming_common_client_cache doesn't need to
     # do SSO.

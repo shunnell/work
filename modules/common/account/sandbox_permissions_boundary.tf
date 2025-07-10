@@ -73,6 +73,7 @@ data "aws_iam_policy_document" "sandbox_boundary" {
       "redshift:*",
       "route53:*",
       "s3:*",
+      "ses:*", # OPR3 makes use of SES to send emails.
       "sqs:*",
       "ssm:*",
       "sts:GetServiceBearerToken",
