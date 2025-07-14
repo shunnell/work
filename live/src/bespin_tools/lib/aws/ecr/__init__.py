@@ -69,6 +69,9 @@ class ECRRepositoryArn(Arn):
     REST_PATTERN = re.compile(r"repository/(?P<name>.*)")
     name: str = ""
 
+    def __hash__(self):
+        return hash(str(self))
+
 
 @attr.define(frozen=True, kw_only=True)
 class ECRRepositoryBase:
@@ -119,8 +122,9 @@ class ECRRepositoryTemplate(ECRRepositoryBase):
 
 @attr.define(frozen=True, kw_only=True)
 class ECRRepository(ECRRepositoryBase):
-    arn: ECRRepositoryArn = attr.field(converter=ECRRepositoryArn, hash=False)
+    arn: ECRRepositoryArn = attr.field(converter=ECRRepositoryArn)
     registry: str = attr.field(validator=attr.validators.min_len(10))
+    vulnerabilities: ECRVulnerabilities = attr.field(factory=ECRVulnerabilities, init=False, hash=False)
 
     @cached_property
     @suppress_boto_error("LifecyclePolicyNotFoundException")
@@ -200,10 +204,6 @@ class ECRRepository(ECRRepositoryBase):
                 )
                 template = settings
         return template
-
-    @cached_property
-    def vulnerabilities(self):
-        return ECRVulnerabilities.query(self)
 
     @property
     def is_properly_named(self) -> bool:

@@ -11,7 +11,7 @@ locals {
     "github"     = "github",
     "gitlab"     = "registry.gitlab.com",
     "k8s"        = null,
-    "quay"       = null,
+    "quay"       = null
   }
   repo_stem = "arn:aws:ecr:${data.aws_region.ecr_region.region}:${data.aws_caller_identity.ecr_account.account_id}:repository"
 }

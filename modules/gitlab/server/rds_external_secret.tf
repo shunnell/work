@@ -21,4 +21,3 @@ resource "kubernetes_manifest" "rds_secret" {
   YAML
   )
 }
-

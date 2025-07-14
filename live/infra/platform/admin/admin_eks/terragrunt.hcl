@@ -31,7 +31,7 @@ dependency "cloudwatch_sharing_target" {
 }
 
 dependency "cloud_city_roles" {
-  config_path = "../../cloud_city_roles"
+  config_path = "../../common/account"
   mock_outputs = {
     most_privileged_users = []
   }

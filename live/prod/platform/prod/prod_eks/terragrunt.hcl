@@ -22,7 +22,7 @@ dependency "cloudwatch_sharing_target" {
 }
 
 dependency "cloud_city_roles" {
-  config_path = "../../common/cloud_city_roles"
+  config_path = "../../common/account"
   mock_outputs = {
     most_privileged_users               = []
     sso_role_arns_by_permissionset_name = { "Sandbox_Dev" = "" }

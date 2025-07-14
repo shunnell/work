@@ -29,7 +29,7 @@ dependency "cloudwatch_sharing_target" {
 
 # TODO this should move to common soon, having it individually instantiated is not great.
 dependency "cloud_city_roles" {
-  config_path = "./cloud_city_roles"
+  config_path = "../../common/account"
   mock_outputs = {
     most_privileged_users               = []
     sso_role_arns_by_permissionset_name = { "Sandbox_Dev" = "" }

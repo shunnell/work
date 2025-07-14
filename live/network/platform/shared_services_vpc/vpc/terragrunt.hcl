@@ -50,7 +50,8 @@ inputs = {
     "sts",
     "xray",
     "events",
-    "monitoring"
+    "monitoring",
+    "geo.places"
   ]
   # Disable DNS profile to allow the creation of the VPC endpoints.
   enable_dns_profile = false

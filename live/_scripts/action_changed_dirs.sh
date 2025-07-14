@@ -1,5 +1,6 @@
 #!/bin/bash
-set +x
+set -x
+# set -e
 # perform terragrunt action of list of changed directories from file
 while read TERRA_UNIT_DIR
 do

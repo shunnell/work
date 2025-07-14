@@ -1,9 +1,27 @@
 # Helm module
 
-## Login
+## HELM Pull
 
-```shell
+```bash
+helm pull [chart]
+```
+
+## ECR Login
+
+```bash
 aws ecr get-login-password --region us-east-1 | helm registry login --username AWS --password-stdin 381492150796.dkr.ecr.us-east-1.amazonaws.com
+```
+
+## ECR Push
+
+```bash
+helm push [chart] oci://381492150796.dkr.ecr.us-east-1.amazonaws.com/platform/internal/helm/[group]
+```
+
+## ECR Install
+
+```bash
+helm install [release] oci://381492150796.dkr.ecr.us-east-1.amazonaws.com/platform/internal/helm/[group]/[chart] --version [version]
 ```
 
 <!-- BEGIN_TF_DOCS -->

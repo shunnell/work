@@ -3,7 +3,7 @@ include "root" {
 }
 
 include "baseline" {
-  path = "${get_repo_root()}/_envcommon/platform/common/account/monitoring_baseline.hcl"
+  path = "${get_repo_root()}/_envcommon/platform/common/account/baseline.hcl"
 }
 
 terraform {

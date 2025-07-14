@@ -14,3 +14,5 @@ inputs = {
   description                    = "Secrets used by EKS"
   ignore_changes_to_secret_value = true
 }
+
+# TODO : to be removed

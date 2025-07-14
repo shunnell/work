@@ -40,18 +40,19 @@ No requirements.
 |------|--------|---------|
 | <a name="module_alarms"></a> [alarms](#module\_alarms) | ./eks-automated-monitoring | n/a |
 | <a name="module_argocd"></a> [argocd](#module\_argocd) | ../../helm | n/a |
+| <a name="module_argocd_irsa_role"></a> [argocd\_irsa\_role](#module\_argocd\_irsa\_role) | ../service_account | n/a |
 | <a name="module_awslbc"></a> [awslbc](#module\_awslbc) | ../../helm | n/a |
 | <a name="module_awslbc_irsa_role"></a> [awslbc\_irsa\_role](#module\_awslbc\_irsa\_role) | ../service_account | n/a |
-| <a name="module_external_dns_irsa_role"></a> [external\_dns\_irsa\_role](#module\_external\_dns\_irsa\_role) | ../service_account | n/a |
 | <a name="module_external_secrets"></a> [external\_secrets](#module\_external\_secrets) | ../../helm | n/a |
+| <a name="module_reloader_argocd_app"></a> [reloader\_argocd\_app](#module\_reloader\_argocd\_app) | ../../argocd/application | n/a |
 
 ## Resources
 
 | Name | Type |
 |------|------|
-| [kubernetes_manifest.ebs_sc](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
-| [kubernetes_manifest.ebs_sc_retain](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
 | [kubernetes_namespace.namespaces](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
+| [kubernetes_namespace.reloader](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
+| [kubernetes_storage_class.ebs_sc](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/storage_class) | resource |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [kubernetes_service.argocd_server](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/data-sources/service) | data source |
 
@@ -72,5 +73,7 @@ No requirements.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_argocd_namespace"></a> [argocd\_namespace](#output\_argocd\_namespace) | Namespace of ArgoCD-server if 'enable\_argocd' is true, otherwise null |
 | <a name="output_argocd_server_endpoint"></a> [argocd\_server\_endpoint](#output\_argocd\_server\_endpoint) | AWS load balancer URL for ArgoCD-server if 'enable\_argocd' is true, otherwise null |
+| <a name="output_aws_ecr_service_account"></a> [aws\_ecr\_service\_account](#output\_aws\_ecr\_service\_account) | Service account for use with ArgoCD applications if 'enable\_argocd' is true, otherwise null |
 <!-- END_TF_DOCS -->

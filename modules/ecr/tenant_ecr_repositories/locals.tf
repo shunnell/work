@@ -19,8 +19,8 @@ locals {
   #   Passing the whole list verbatim hits a policy length limit that can't be raised by AWS, so we do a very crude
   #   "compression" pass here.
   legacy_repo_iam_prefixes = var.tenant_name != "platform" ? var.legacy_ecr_repository_names_to_be_migrated : concat(
-    [for prefix in keys(local.pull_through_prefix_to_uri) : "${prefix}/*"],
-    [for repo in var.legacy_ecr_repository_names_to_be_migrated : repo if !anytrue([for prefix in keys(local.pull_through_prefix_to_uri) : startswith(repo, prefix)])]
+    [for prefix in keys(var.pull_through_configurations) : "${prefix}/*"],
+    [for repo in var.legacy_ecr_repository_names_to_be_migrated : repo if !anytrue([for prefix in keys(var.pull_through_configurations) : startswith(repo, prefix)])]
   )
   template_description = "Repositories for Cloud City tenant '${var.tenant_name}'; shared for pull with ${length(var.aws_accounts_with_pull_access)} accounts: ${join(",", var.aws_accounts_with_pull_access)}"
 }

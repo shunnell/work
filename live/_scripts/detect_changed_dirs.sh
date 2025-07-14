@@ -1,5 +1,6 @@
 #!/bin/bash
-set +x
+set -x
+# set -e
 # Detect Terragrunt live folders that changed
 CHANGED_FILES=$(git diff --name-only --ignore-cr-at-eol --ignore-space-at-eol --ignore-space-change --ignore-all-space --ignore-blank-lines --no-color origin/main...HEAD)
 

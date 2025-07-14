@@ -4,7 +4,7 @@ module "external_secrets" {
   chart         = "external-secrets"
   namespace     = kubernetes_namespace.namespaces["external-secrets"].metadata[0].name
   release_name  = "external-secrets"
-  chart_version = "0.18.0-rc1"
+  chart_version = "0.18.2"
   # We need to force it to use the VPC-regional STS endpoint, since it hardcodes the public (inaccessible) STS endpoint
   # by default. The other settable endpoints are configured to be regional as well, for good measure, but only STS was
   # observed to cause issues if not set.
@@ -30,5 +30,5 @@ module "external_secrets" {
   ]
 
   # ESO requires the LBC webhooks to be functioning in order to work:
-  depends_on = [module.awslbc]
+  depends_on = [module.awslbc.status]
 }

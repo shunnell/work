@@ -36,7 +36,7 @@ terragrunt plan -out=tfplan
 
 You may need to login to AWS services first.
 ```shell
-aws sso login --sso-session DoS
+aws sso login --sso-session dos
 ```
 
 ## Creating and Inspecting
@@ -85,33 +85,6 @@ spec:
 **Error: Access Denied**
 Ensure that you have logged into AWS using sso
 
-## Further Work
-
-- Create the folder structer in the [kuberenetes](https://gitlab.cloud-city/cloud-city/platform/gitops/kubernetes) repository.  Read the [docs](https://gitlab.cloud-city/cloud-city/platform/gitops/kubernetes/-/blob/main/README.md) to understand the structure of that repository.
-- [Bootstrap](../bootstrap/README.md) the cluster.
-
-## Resizing Node Group
-
-Changing a node group size requires a few manual steps, or replacing the node group.
-
-### Increasing Size
-
-1. Add `<node_group>.max_size` set to new size.
-1. Apply changes.
-1. Set desired size to new size in AWS Console.
-1. Wait for node group to grow.
-1. Set `<node_group>.size` to new size and remove `<node_group>.max_size`.
-1. Apply changes again.
-
-### Decreasing Size
-
-1. Add `<node_group>.min_size` set to new size.
-1. Apply changes.
-1. Set desired size to new size in AWS Console.
-1. Wait for node group to shrink.
-1. Set `<node_group>.size` to new size and remove `<node_group>.min_size`.
-1. Apply changes again.
-
 # AWS EKS Add-Ons
 
 EKS addons are basically helm charts, installed and pre-configured by AWS with known-working, best-practices-encoding
@@ -150,6 +123,15 @@ resource "aws_eks_addon" "example" {
     }
   })
 }
+```
+
+## For pushing/pulling charts and images
+
+Additional reference.
+```shell
+aws sso login --sso-session dos
+aws ecr get-login-password --region us-east-1 | helm registry login --username AWS --password-stdin 381492150796.dkr.ecr.us-east-1.amazonaws.com
+aws ecr get-login-password --region us-east-1 | podman login --username AWS --password-stdin 381492150796.dkr.ecr.us-east-1.amazonaws.com
 ```
 
 

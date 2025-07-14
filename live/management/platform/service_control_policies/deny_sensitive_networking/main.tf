@@ -140,6 +140,27 @@ resource "aws_organizations_policy" "deny_sensitive_networking" {
         }
       },
 
+      # Deny Non-Private API Gateways
+
+      {
+        Sid    = "DenyNonPrivateAPIGatewayCreation"
+        Effect = "Deny"
+        Action = [
+          "apigateway:CreateRestApi",
+          "apigateway:UpdateRestApi"
+        ]
+        Resource = "*"
+        Condition = {
+          StringNotEquals = {
+            # Must be PRIVATE
+            "apigateway:EndpointConfigurationTypes" = "PRIVATE"
+          }
+          ArnNotLike = {
+            "aws:PrincipalARN" = var.scp_excluded_principals
+          }
+        }
+      },
+
       # Deny Public IPs to all resources (except for the ones in the excluded principals list)
       # This is a blanket deny for all resources, but it is scoped to the actions that would assign public IPs to resources.
       {

@@ -1,7 +1,21 @@
+module "argocd_irsa_role" {
+  count                       = var.enable_argocd ? 1 : 0
+  source                      = "../service_account"
+  use_name_as_iam_role_prefix = true
+  name                        = local.argocd_service_account_name
+  cluster_name                = var.cluster_name
+  namespace                   = kubernetes_namespace.namespaces["argocd"].metadata[0].name
+  create_service_account      = false
+  iam_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly"
+  ]
+  tags = var.tags
+}
+
 module "argocd" {
   count        = var.enable_argocd ? 1 : 0
   source       = "../../helm"
-  repository   = "${local.image_path_root}/github/argoproj/argo-helm"
+  repository   = "https://argoproj.github.io/argo-helm"
   chart        = "argo-cd"
   namespace    = kubernetes_namespace.namespaces["argocd"].metadata[0].name
   release_name = "argocd"
@@ -9,15 +23,14 @@ module "argocd" {
   # docker hub for redis) are intentional. Argo developers do not have a consistent publication practice
   # for their various components, and as such these values represent the places that can be counted upon to have the
   # appropriate, matching, latest versions of everything.
-  chart_version = "8.1.0"
+  chart_version = "8.1.2"
   atomic        = true
   force_update  = true
   # The CRDs/application manifests stick around even if ArgoCD itself is removed, so recreate_pods is safe.
   # NB: if this is found to cause problems due to replacement Argo installs having issues "adopting" pre-existing
   # argo CRD resources, it can be changed, but it smooths out destroy/replace/recreate in the mean time:
   recreate_pods = true
-  timeout       = 1200            # Provisioning AWS NLBs takes ages.
-  depends_on    = [module.awslbc] # Argo needs a load balancer
+  timeout       = 1200 # Provisioning AWS NLBs takes ages. TODO: use Gateway API
 
   values = [<<-YAML
     global:
@@ -42,6 +55,12 @@ module "argocd" {
           service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: prefered_domain=${local.prefered_argocd_dns}
         type: LoadBalancer
         loadBalancerClass: service.k8s.aws/nlb
+    repoServer:
+      serviceAccount:
+        create: true
+        name: ${local.argocd_service_account_name}
+        annotations:
+          "eks.amazonaws.com/role-arn": ${module.argocd_irsa_role[0].iam_role_arn}
     dex:
       image:
         repository: ${local.image_path_root}/github/dexidp/dex
@@ -50,4 +69,6 @@ module "argocd" {
         repository: ${local.image_path_root}/docker/library/redis
     YAML
   ]
+
+  depends_on = [module.awslbc.status]
 }

@@ -1,4 +1,6 @@
-# Kubernetes repo applications
+# DEPRECATED: Kubernetes repo applications
+
+Remove once all EKS clusters no longer use this.
 
 Deploy a bunch of useful things on an EKS cluster to get it started.
 

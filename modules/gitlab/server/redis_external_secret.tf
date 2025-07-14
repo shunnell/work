@@ -20,4 +20,4 @@ resource "kubernetes_manifest" "redis_secret" {
             property: ""
   YAML
   )
-}           
+}

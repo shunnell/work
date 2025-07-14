@@ -55,8 +55,7 @@
         "inspector2:BatchGet*",
         "athena:*",
         "datazone:*",
-        "states:*",
-        "geo:*"
+        "states:*"
       ],
       "Resource": "*"
     },
@@ -66,6 +65,7 @@
       "Action": [
         "geo-places:*",
         "geo-maps:*",
+        "geo-routes:*",
         "geo:*"
       ],
       "Resource": "*"

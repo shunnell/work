@@ -39,7 +39,12 @@ generate "provider_override" {
     provider "aws" {
       region = "${local.vpc_vars.region}"
       assume_role {
+        role_arn = "${local.vpc_vars.infra_terragrunter_role_arn}"
+        external_id = "${local.vpc_vars.terragrunter_external_id}"
+      }
+      assume_role {
         role_arn = "${local.vpc_vars.network_terragrunter_role_arn}"
+        external_id = "${local.vpc_vars.terragrunter_external_id}"
       }
     }
   EOF

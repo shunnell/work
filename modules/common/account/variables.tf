@@ -18,6 +18,7 @@ variable "oam_shared_resource_types" {
 variable "account_name" {
   description = "Name of the account"
   type        = string
+  default     = ""
 }
 
 variable "tags" {

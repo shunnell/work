@@ -1,10 +1,10 @@
 data "kubernetes_service" "argocd_server" {
-  count      = var.enable_argocd ? 1 : 0
-  depends_on = [module.argocd]
+  count = var.enable_argocd ? 1 : 0
   metadata {
     name      = "argocd-server"
     namespace = kubernetes_namespace.namespaces["argocd"].metadata[0].name
   }
+  depends_on = [module.argocd]
   lifecycle {
     postcondition {
       condition     = length(self.status) == 1 && length(self.spec) == 1
@@ -29,10 +29,22 @@ output "argocd_server_endpoint" {
     load_balancer_hostname = data.kubernetes_service.argocd_server[0].status[0].load_balancer[0].ingress[0].hostname
     cluster_ips            = data.kubernetes_service.argocd_server[0].spec[0].cluster_ips
     external_ips           = data.kubernetes_service.argocd_server[0].spec[0].external_ips
-    ports = { for config in data.kubernetes_service.argocd_server[0].spec[0].port : config.name => {
-      node_port          = tonumber(config.node_port)
-      load_balancer_port = tonumber(config.port)
-      pod_port           = tonumber(config.target_port)
-    } }
+    ports = { for config in data.kubernetes_service.argocd_server[0].spec[0].port :
+      config.name => {
+        node_port          = tonumber(config.node_port)
+        load_balancer_port = tonumber(config.port)
+        pod_port           = tonumber(config.target_port)
+      }
+    }
   } : null
+}
+
+output "argocd_namespace" {
+  description = "Namespace of ArgoCD-server if 'enable_argocd' is true, otherwise null"
+  value       = var.enable_argocd ? kubernetes_namespace.namespaces["argocd"].metadata[0].name : null
+}
+
+output "aws_ecr_service_account" {
+  description = "Service account for use with ArgoCD applications if 'enable_argocd' is true, otherwise null"
+  value       = var.enable_argocd ? local.argocd_service_account_name : null
 }

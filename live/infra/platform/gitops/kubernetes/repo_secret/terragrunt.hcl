@@ -25,3 +25,5 @@ inputs = {
   description                    = "Secrets used by ArgoCD to retrieve Kubernetes GitOps repo"
   ignore_changes_to_secret_value = true
 }
+
+# TODO : to be removed

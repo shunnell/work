@@ -40,7 +40,7 @@ stages:
   variables:
     PLAN_REPORT: tfplan.json
   image:
-    name: $CLOUD_CITY_CONTAINER_REGISTRY/github/astral-sh/uv:python3.12-alpine
+    name: $PYTHON_IMAGE
   script:
     - find $CI_PROJECT_DIR -wholename 'tfplan.json'
     - python _scripts/check_plan.py --directory "$CI_PROJECT_DIR" --output "$CI_PROJECT_DIR/$PLAN_REPORT"

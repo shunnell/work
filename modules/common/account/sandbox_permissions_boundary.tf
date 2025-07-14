@@ -58,6 +58,7 @@ data "aws_iam_policy_document" "sandbox_boundary" {
       "emr-serverless:*",
       "events:*",
       "firehose:*",
+      "geo-places:*",
       "glue:*",
       "grafana:*",
       "kafka:*",

@@ -3,10 +3,12 @@ locals {
   admin_vars   = read_terragrunt_config(find_in_parent_folders("dev.hcl")).locals
   network_vars = read_terragrunt_config("${get_path_to_repo_root()}/network/account.hcl").locals
   vpn_vars     = read_terragrunt_config("${get_path_to_repo_root()}/infra/platform/vpn/vpn_vars.hcl").locals
-
+  infra_vars   = read_terragrunt_config("${get_repo_root()}/infra/account.hcl")
   # Extract commonly used variables
   common_identifier             = local.admin_vars.common_identifier
   network_terragrunter_role_arn = local.network_vars.terragrunter_role_arn
+  infra_terragrunter_role_arn   = local.infra_vars.locals.terragrunter_role_arn
+  terragrunter_external_id      = local.infra_vars.locals.terragrunter_external_id
   region                        = local.network_vars.region
 
   # Transit Gateway Non-Prod

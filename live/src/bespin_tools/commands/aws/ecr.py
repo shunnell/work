@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from collections import defaultdict
 from csv import DictWriter
 
@@ -10,6 +11,7 @@ from bespin_tools.lib.aws.account import Account
 from bespin_tools.lib.aws.arguments import AwsAccounts, AwsAccount
 from bespin_tools.lib.aws.ecr import ECRRepository, ECRVulnerabilities
 from bespin_tools.lib.aws.ecr.vulnerabilities import cache_repo_vulnerabilities_parallel
+from bespin_tools.lib.errors import BespinctlError
 from bespin_tools.lib.logging import warn, error, info
 from bespin_tools.lib.tables import BespinctlTable
 from bespin_tools.lib.util import resolve_nonexistent
@@ -117,19 +119,28 @@ def _vuln_report_row(repo: ECRRepository, owner: str, deprecated: bool):
     row.update(repo.vulnerabilities.to_report_dict())
     return row
 
+
 @ecr.command
 @click.option('--account', default="381492150796", type=AwsAccount())
-@click.option('--parallel', type=int, default=5)
-@click.option('--file', type=click.Path(writable=True), required=True)
-def vulnerability_report(account: Account, parallel: int, file: str):
-    file = resolve_nonexistent(file)
+@click.option('--parallel', type=int, default=8)
+@click.option('--file', type=click.Path(writable=True))
+@click.option('--tenant', default="all")
+def vulnerability_report(account: Account, parallel: int, file: str | None, tenant: str):
+    file = os.devnull if file is None else resolve_nonexistent(file)
     repos = tuple(_repos(account))
-    with open(file, 'w', newline='') as csvfile:
+    if tenant != "all":
+        repos = tuple(r for r in repos if r.owner == tenant)
+    BespinctlError.invariant(len(repos) > 0, f"No repos found in account {account} for tenant '{tenant}'")
+
+    rows = []
+    for repo in cache_repo_vulnerabilities_parallel(parallel, repos):
+        rows.append(_vuln_report_row(repo, repo.owner, repo.grandfathered))
+    rows.sort(key=lambda r: (r['Owner'], r['Deprecated'], r['Repository']))
+    with open(file, 'w', newline='') as csvfile, BespinctlTable(_REPORT_FIELDS) as table:
         writer = DictWriter(csvfile, fieldnames=_REPORT_FIELDS)
         writer.writeheader()
-        for repo in cache_repo_vulnerabilities_parallel(parallel, repos):
-            row = _vuln_report_row(repo, repo.owner, repo.grandfathered)
+        for row in rows:
             writer.writerow(row)
-            csvfile.flush()
-
-    info(f"Wrote report for {len(repos)} repos to '{file}'")
+            table.add_row(row)
+    if file != os.devnull:
+        info(f"Wrote report for {len(repos)} repos to '{file}'")

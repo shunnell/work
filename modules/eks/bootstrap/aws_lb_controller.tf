@@ -20,7 +20,7 @@ module "awslbc" {
   repository    = "https://aws.github.io/eks-charts"
   chart         = "aws-load-balancer-controller"
   namespace     = "kube-system"
-  chart_version = "1.13.2"
+  chart_version = "1.13.3"
 
   set = {
     "image.repository"     = "${local.image_path_root}/ecr-public/eks/aws-load-balancer-controller"

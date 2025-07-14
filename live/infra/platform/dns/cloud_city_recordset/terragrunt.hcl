@@ -54,6 +54,12 @@ dependency "pass_dev_argocd" {
   }
 }
 
+dependency "ocam_dev_argocd" {
+  config_path = "${get_repo_root()}/ocam/platform/dev/dev_eks/bootstrap"
+  mock_outputs = {
+    argocd_server_endpoint = { load_balancer_hostname = "" }
+  }
+}
 
 terraform {
   source = "${get_repo_root()}/../modules//dns/recordset"
@@ -72,6 +78,7 @@ inputs = {
     "argocd.opr-staging" = dependency.opr_staging_argocd.outputs.argocd_server_endpoint.load_balancer_hostname
     "argocd.visas-dev"   = dependency.visas_dev_argocd.outputs.argocd_server_endpoint.load_balancer_hostname
     "argocd.pass-dev"    = dependency.pass_dev_argocd.outputs.argocd_server_endpoint.load_balancer_hostname
+    "argocd.ocam-dev"    = dependency.ocam_dev_argocd.outputs.argocd_server_endpoint.load_balancer_hostname
   }
   vpc_associations = [
     dependency.gitlab_vpc.outputs.vpc_id,

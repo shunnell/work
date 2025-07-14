@@ -21,7 +21,7 @@ locals {
   # acount-wide limit of 50 total pull-through-cache rules (each tenant needs 5-7). Some tenants (who look inactive or
   # do not seem to be using images heavily in CICD or EKS) also have their pull-through caches disabled entirely where
   # this file is included.
-  rarely_used_pull_through_upstreams = ["k8s"]
+  rarely_used_pull_through_upstreams = ["k8s", "quay"]
   account_folder_name                = lookup(local.account_folder_overrides, local.team_name, local.team_name)
   account_config                     = read_terragrunt_config("${get_repo_root()}/${local.account_folder_name}/account.hcl").locals
   infra_config                       = read_terragrunt_config("${get_repo_root()}/infra/account.hcl").locals

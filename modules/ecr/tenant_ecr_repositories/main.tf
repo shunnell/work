@@ -13,7 +13,7 @@ module "identity_policy_documents" {
     local.legacy_repo_iam_prefixes,
     ["${var.tenant_name}/internal/*"],
     # Don't let people push to pull-through targets, but let them delete/pull/view/etc.:
-    [for prefix in keys(local.pull_through_prefix_to_uri) : "${var.tenant_name}/${prefix}/*" if each.key != "push"],
+    [for prefix in keys(var.pull_through_configurations) : "${var.tenant_name}/${prefix}/*" if each.key != "push"],
   )
   depends_on = [aws_ecr_repository_creation_template.template]
 }

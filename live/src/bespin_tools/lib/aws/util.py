@@ -35,6 +35,8 @@ if TYPE_CHECKING:
     from types_boto3_s3 import S3Client
     from types_boto3_ecr import ECRClient
     from types_boto3_organizations import OrganizationsClient
+    from types_boto3_inspector2 import Inspector2Client
+
 
 DEFAULT_REGION = 'us-east-1'
 SSO_START_URL = 'https://d-9067e2261c.awsapps.com/start'
@@ -198,6 +200,9 @@ class ClientGetter:
 
     def cloudfront_client(self, **kwargs) -> CloudFrontClient:
         return self._get_client('cloudfront', **kwargs)
+
+    def inspector2_client(self, **kwargs) -> Inspector2Client:
+        return self._get_client('inspector2', **kwargs)
 
     def athena_client(self, **kwargs) -> AthenaClient:
         return self._get_client('athena', **kwargs)
