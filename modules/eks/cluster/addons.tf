@@ -1,4 +1,5 @@
 # See README.md's "AWS EKS Add-Ons" section for info about this file.
+# TODO : setup IRSA for each applicable addon, and remove role/policy from node groups
 locals {
   # Addons passed to the EKS cluster module for installation inside that module:
   cluster_addon_configs = {
@@ -50,8 +51,7 @@ locals {
     amazon-cloudwatch-observability = {
       most_recent = true
     }
-    cert-manager = { # https://github.com/awslabs/cdk-eks-blueprints/blob/main/docs/addons/cert-manager.md
-      most_recent = true
-    }
+    # Why is 'cert-manager' not here?
+    # Refer to '../tooling/cert-manager.tf'
   }
 }

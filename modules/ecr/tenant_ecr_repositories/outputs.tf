@@ -1,16 +1,21 @@
 output "pull_policy" {
-  description = "Metadata relating to the IAM policy that permits pulling this tenant's container images."
+  description = "Metadata relating to the IAM policy that permits pulling this tenant's container images and repositories."
   value       = local.policy_outputs["pull"]
 }
 
 output "push_policy" {
-  description = "Metadata relating to the IAM policy that permits pushing this tenant's container images."
+  description = "Metadata relating to the IAM policy that permits pushing this tenant's container images and repositories."
   value       = local.policy_outputs["push"]
 }
 
 output "view_policy" {
-  description = "Metadata relating to the IAM policy that permits viewing and describing this tenant's container images."
+  description = "Metadata relating to the IAM policy that permits viewing and describing this tenant's container images and repositories."
   value       = local.policy_outputs["view"]
+}
+
+output "delete_policy" {
+  description = "Metadata relating to the IAM policy that permits deleting this tenant's container images and repositories."
+  value       = local.policy_outputs["delete"]
 }
 
 output "repository_arns" {

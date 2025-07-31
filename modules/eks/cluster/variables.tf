@@ -7,7 +7,7 @@ variable "cluster_name" {
   }
 }
 
-variable "kuberenetes_version" {
+variable "kubernetes_version" {
   description = "Kubernetes version to install; change this for existing clusters with care, as upgrades may be disruptive and require changes to cluster workloads"
   type        = string
   default     = "1.32"
@@ -45,17 +45,6 @@ variable "vpc_id" {
   }
 }
 
-variable "cluster_security_group_rules" {
-  description = "Additional custom security group rules for the cluster control plane; should be a list of fields accepted by modules/network/security_group_traffic. Rules required for EKS operation and connection to VPC endpoints are automatically created and should not be specified."
-  type = map(object({
-    protocol = optional(string)
-    type     = string
-    ports    = list(number)
-    target   = string
-    // create_explicit_egress_to_target_security_group intentionally omitted; it is handled automatically internally for the cluster.
-  }))
-}
-
 variable "administrator_role_arns" {
   description = "List of role ARNs that should have full administrator access to the cluster"
   type        = list(string)
@@ -71,36 +60,30 @@ variable "access_entries" {
   default     = {}
 }
 
-# NODEGROUPS
-
 variable "node_groups" {
   description = "Map of Node Group objects, each of which may"
   type = map(object({
     # TODO if we ever use node autoscaling, this can be broadened to allow either a number (static size) or a tuple/map of min/desired/max:
     size = number
-    # Big enough to deploy infrastructure tooling and get started with tenant deployments:
-    # preferably, one of https://docs.aws.amazon.com/ec2/latest/instancetypes/ec2-nitro-instances.html
-    instance_type    = optional(string, "t3.xlarge")
-    volume_size      = optional(number, 20)
-    xvdb_volume_size = optional(number, null) # for EBS volume specified by the AMI
-    labels           = optional(map(string), {})
-    security_group_rules = map(object({
-      protocol = optional(string)
-      type     = string
-      ports    = list(number)
-      target   = string
-      # create_explicit_egress_to_target_security_group intentionally omitted and defaults to false, as the third party
-      # EKS module sets up an all-outbound rule.
-    }))
+    # m5.large is big enough to deploy infrastructure tooling and get started with tenant deployments, tested on
+    # multiple tenants small/ordinary/baseline deployments:
+    instance_type              = optional(string, "m5.large")
+    volume_size                = optional(number, 20)
+    xvdb_volume_size           = optional(number, null) # for EBS volume specified by the AMI
+    labels                     = optional(map(string), {})
     additional_iam_policy_arns = optional(list(string), [])
   }))
   validation {
-    condition     = alltrue([for _, v in var.node_groups : tobool(v.volume_size >= 20)])
+    condition     = alltrue([for _, v in var.node_groups : (v.volume_size >= 20 && coalesce(v.xvdb_volume_size, v.volume_size) >= 20)])
     error_message = "Disk sizes must be greater than, or equal to, 20GB"
   }
   validation {
     condition     = alltrue([for _, v in var.node_groups : contains(local.instance_types, v.instance_type)])
     error_message = "Instance type must be one of the supported instance types"
+  }
+  validation {
+    condition     = alltrue([for k in keys(var.node_groups) : !contains(["all", ""], k)])
+    error_message = "String not allowed as nodegroup name"
   }
 }
 
@@ -109,16 +92,21 @@ variable "cloudwatch_log_shipping_destination_arn" {
   type        = string
 }
 
-# OTHER
+variable "kubernetes_control_plane_allowed_cidrs" {
+  description = "CIDR ranges which can access port 443 on the kubernetes control plane (this is just for kubectl/tf/helm access, not the nodes; node access should be done by referencing the 'node_groups.[*].security_group_id')"
+  type        = set(string)
+  default     = []
+}
+
+variable "legacy_nodegroup_sg_name" {
+  type        = string
+  description = "Whether to keep legacy-naming-scheme SGs around for nodegroups (tenants may have added rules referencing those SGs); should eventually go to 'false' everywhere"
+  nullable    = true
+  default     = null
+}
+
 variable "tags" {
   description = "Tags to apply to the EKS cluster"
   type        = map(string)
   default     = {}
 }
-
-variable "additional_security_group_ids" {
-  description = "List of additional security group IDs to attach to the EKS cluster"
-  type        = list(string)
-  default     = []
-}
-

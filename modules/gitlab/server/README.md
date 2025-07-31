@@ -65,6 +65,7 @@ No requirements.
 | [kubernetes_secret.s3cmd_config](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
 | [kubernetes_storage_class.gitaly_retain](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/storage_class) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
+| [aws_lb.gitlab_lb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/lb) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_secretsmanager_secret_version.gitlab_secret](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/secretsmanager_secret_version) | data source |
 
@@ -114,6 +115,7 @@ No requirements.
 | Name | Description |
 |------|-------------|
 | <a name="output_gitlab_namespace"></a> [gitlab\_namespace](#output\_gitlab\_namespace) | n/a |
+| <a name="output_gitlab_webserver_lb"></a> [gitlab\_webserver\_lb](#output\_gitlab\_webserver\_lb) | AWS load balancer URL for GitLab |
 | <a name="output_priority_class"></a> [priority\_class](#output\_priority\_class) | n/a |
 | <a name="output_rds_secret_name"></a> [rds\_secret\_name](#output\_rds\_secret\_name) | n/a |
 <!-- END_TF_DOCS -->

@@ -39,13 +39,6 @@ output "vpc_id" {
   description = "The cluster's VPC ID"
 }
 
-output "cluster_security_group_id" {
-  # We don't want to surface the "real" main cluster security group as that's internal-use-only. Our secondary group
-  # is what folks should use if they want to e.g. add their own rules to it after the cluster is up.
-  value       = module.cluster_security_group.id
-  description = "ID of the cluster security group"
-}
-
 output "cluster_service_cidr" {
   value       = module.eks.cluster_service_cidr
   description = "The CIDR block where Kubernetes pod and service IP addresses are assigned from"
@@ -54,15 +47,23 @@ output "cluster_service_cidr" {
 output "node_groups" {
   value = {
     for k, _ in var.node_groups : k => {
-      arn          = module.eks.eks_managed_node_groups[k].node_group_arn
-      asg_name     = module.eks.eks_managed_node_groups[k].node_group_autoscaling_group_names[0]
-      iam_role_arn = module.eks.eks_managed_node_groups[k].iam_role_arn
-      # We don't want to surface the "real" main cluster security group as that's internal-use-only. Our secondary group
-      # is what folks should use if they want to e.g. add their own rules to it after the cluster is up.
-      security_group_id = module.node_security_groups[k].id
+      arn               = module.eks.eks_managed_node_groups[k].node_group_arn
+      asg_name          = module.eks.eks_managed_node_groups[k].node_group_autoscaling_group_names[0]
+      iam_role_arn      = module.eks.eks_managed_node_groups[k].iam_role_arn
+      security_group_id = module.node_security_group[k].id
       labels            = module.eks.eks_managed_node_groups[k].node_group_labels
     }
   }
+}
+
+output "shared_node_security_group_id" {
+  value       = module.eks.node_security_group_id
+  description = "ID of the security group shared amongst all nodes, named 'platform/eks/<clustername>/nodes/all'"
+}
+
+output "aws_internal_cluster_egress_rule_ids" {
+  value       = local.aws_generated_egress_rules
+  description = "SG rule IDs of AWS-managed egress rules from the AWS-managed cluster SG; see README.md for more details."
 }
 
 output "oidc_provider" {

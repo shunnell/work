@@ -33,6 +33,13 @@ resource "helm_release" "this" {
   timeout              = var.timeout
   upgrade_install      = var.upgrade_install
 
+  # set = [
+  #   for k, v in var.set : {
+  #     name  = k
+  #     value = v
+  #   }
+  # ]
+
   dynamic "set" {
     for_each = var.set
     content {
@@ -41,6 +48,13 @@ resource "helm_release" "this" {
     }
   }
 
+  # set_list = [
+  #   for k, v in var.set_list : {
+  #     name  = k
+  #     value = v
+  #   }
+  # ]
+
   dynamic "set_list" {
     for_each = var.set_list
     content {
@@ -48,6 +62,13 @@ resource "helm_release" "this" {
       value = set_list.value
     }
   }
+
+  # set_sensitive = [
+  #   for k, v in var.set_sensitive : {
+  #     name  = k
+  #     value = v
+  #   }
+  # ]
 
   dynamic "set_sensitive" {
     for_each = var.set_sensitive

@@ -1,9 +1,10 @@
 resource "aws_security_group" "this" {
-  description = var.description
-  name_prefix = var.name_prefix
-  name        = var.name
-  vpc_id      = var.vpc_id
-  tags        = merge(var.tags, { Name = var.name })
+  description            = var.description
+  name_prefix            = var.name_prefix
+  name                   = var.name
+  vpc_id                 = var.vpc_id
+  tags                   = merge(var.tags, { Name = var.name })
+  revoke_rules_on_delete = var.revoke_rules_on_delete
 }
 
 resource "aws_security_group_rule" "allow_all_outbound" {
@@ -25,5 +26,6 @@ module "rules" {
   security_group_id                               = aws_security_group.this.id
   target                                          = each.value.target
   type                                            = each.value.type
+  protocol                                        = each.value.protocol
   create_explicit_egress_to_target_security_group = !var.allow_all_outbound_traffic
 }

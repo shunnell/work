@@ -68,6 +68,28 @@ def is_account_id(candidate: str) -> bool:
     # Silly regex, trix are for kids!
     return len(candidate) == 12 and all(c.isdigit() for c in candidate)
 
+def assert_account_id(candidate) -> str:
+    BespinctlError.invariant(
+        isinstance(candidate, str) and is_account_id(candidate),
+        f"Expected a string account ID, got {type(candidate)} '{candidate}'"
+    )
+    return candidate
+
+def is_throttling_error(e: ClientError) -> bool:
+    """
+    Determine if a boto3 ClientError is due to throttling / rate limiting
+    """
+    throttling_error_codes = (
+        'ProvisionedThroughputExceededException',
+        'RequestLimitExceeded',
+        'Throttling',
+        'ThrottlingException',
+    )
+
+    if hasattr(e, 'response'):
+        return e.response.get('Error', {}).get('Code', '') in throttling_error_codes
+    return False
+
 @cache
 def _mutate_environment_to_isolate_bespinctl() -> bool:
     """
@@ -212,12 +234,3 @@ class ClientGetter:
 
     def organizations_client(self, **kwargs) -> OrganizationsClient:
         return self._get_client('organizations', **kwargs)
-    
-def is_throttling_error(e: ClientError) -> bool:
-    """
-    Determine if a boto3 ClientError is due to throttling / rate limiting
-    """
-    if hasattr(e, 'response'):
-        return e.response.get('Error', {}).get('Code', '') in ['Throttling', 'ThrottlingException', 'RequestLimitExceeded', 'ProvisionedThroughputExceededException']
-    else:
-        return False

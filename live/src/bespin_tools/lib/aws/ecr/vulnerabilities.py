@@ -44,9 +44,12 @@ class ECRVulnerabilities:
     @cache
     def severities(cls) -> tuple[str, ...]:
         fields = set(attr.fields_dict(cls).keys())
-        expected = {'critical', 'high', 'medium', 'low'}
-        BespinctlError.invariant(expected.intersection(fields) == expected, f"Missing severities: {fields}")
-        return tuple(sorted(expected))
+        expected = ('critical', 'high', 'medium', 'low')
+        BespinctlError.invariant(
+            set(expected).intersection(fields) == set(expected),
+            f"Missing severities: {fields}"
+        )
+        return expected
 
 def _cache_vulnerabilities(repos: list[ECRRepository], client):
     by_name = {r.name: r for r in repos}

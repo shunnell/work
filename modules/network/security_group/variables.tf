@@ -50,6 +50,12 @@ variable "allow_all_outbound_traffic" {
   default     = false
 }
 
+variable "revoke_rules_on_delete" {
+  description = "See Terraform documentation for the parameter of the same name on aws_security_group"
+  type        = bool
+  default     = false
+}
+
 variable "rules" {
   description = "Rules to add to this security group; a list of maps/objects to be supplied as arguments to the 'security_group_traffic' resource."
   type = map(object({

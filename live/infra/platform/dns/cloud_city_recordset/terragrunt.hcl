@@ -47,17 +47,19 @@ dependency "visas_dev_argocd" {
   }
 }
 
-dependency "pass_dev_argocd" {
-  config_path = "${get_repo_root()}/pass/platform/dev/dev_eks/bootstrap"
+dependency "ocam_dev_argocd" {
+  config_path = "${get_repo_root()}/ocam/platform/dev/dev_eks/bootstrap"
   mock_outputs = {
     argocd_server_endpoint = { load_balancer_hostname = "" }
   }
 }
 
-dependency "ocam_dev_argocd" {
-  config_path = "${get_repo_root()}/ocam/platform/dev/dev_eks/bootstrap"
+dependency "gitlab_server" {
+  config_path = "${get_repo_root()}/infra/platform/gitlab/gitlab_main"
   mock_outputs = {
-    argocd_server_endpoint = { load_balancer_hostname = "" }
+    gitlab_webserver_lb = {
+      dns_name = ""
+    }
   }
 }
 
@@ -68,16 +70,11 @@ terraform {
 inputs = {
   domain      = "cloud-city"
   description = "Interim private hosted zone for cloud city resources"
-  a_records = {
-    # TODO once GitLab is on EKS these will not be managed here and should instead be set up by ExternalDNS in EKS:
-    gitlab     = ["172.16.1.103"]
-    "*.gitlab" = ["172.16.1.103"]
-  }
   cname_records = {
+    "gitlab"             = dependency.gitlab_server.outputs.gitlab_webserver_lb.dns_name
     "argocd.opr-dev"     = dependency.opr_dev_argocd.outputs.argocd_server_endpoint.load_balancer_hostname
     "argocd.opr-staging" = dependency.opr_staging_argocd.outputs.argocd_server_endpoint.load_balancer_hostname
     "argocd.visas-dev"   = dependency.visas_dev_argocd.outputs.argocd_server_endpoint.load_balancer_hostname
-    "argocd.pass-dev"    = dependency.pass_dev_argocd.outputs.argocd_server_endpoint.load_balancer_hostname
     "argocd.ocam-dev"    = dependency.ocam_dev_argocd.outputs.argocd_server_endpoint.load_balancer_hostname
   }
   vpc_associations = [

@@ -1,6 +1,8 @@
 module "argocd_irsa_role" {
-  count                       = var.enable_argocd ? 1 : 0
-  source                      = "../service_account"
+  count = var.enable_argocd ? 1 : 0
+
+  source = "../service_account"
+
   use_name_as_iam_role_prefix = true
   name                        = local.argocd_service_account_name
   cluster_name                = var.cluster_name
@@ -13,8 +15,10 @@ module "argocd_irsa_role" {
 }
 
 module "argocd" {
-  count        = var.enable_argocd ? 1 : 0
-  source       = "../../helm"
+  count = var.enable_argocd ? 1 : 0
+
+  source = "../../helm"
+
   repository   = "https://argoproj.github.io/argo-helm"
   chart        = "argo-cd"
   namespace    = kubernetes_namespace.namespaces["argocd"].metadata[0].name
@@ -23,20 +27,19 @@ module "argocd" {
   # docker hub for redis) are intentional. Argo developers do not have a consistent publication practice
   # for their various components, and as such these values represent the places that can be counted upon to have the
   # appropriate, matching, latest versions of everything.
-  chart_version = "8.1.2"
+  chart_version = var.argocd_helm_chart_version
   atomic        = true
   force_update  = true
   # The CRDs/application manifests stick around even if ArgoCD itself is removed, so recreate_pods is safe.
   # NB: if this is found to cause problems due to replacement Argo installs having issues "adopting" pre-existing
   # argo CRD resources, it can be changed, but it smooths out destroy/replace/recreate in the mean time:
   recreate_pods = true
-  timeout       = 1200 # Provisioning AWS NLBs takes ages. TODO: use Gateway API
 
   values = [<<-YAML
     global:
       image:
         repository: "${local.image_path_root}/quay/argoproj/argocd"
-      domain: ${local.prefered_argocd_dns}
+      domain: ${local.argocd_domain_name}
       logging:
         format: json
       addPrometheusAnnotations: true
@@ -45,16 +48,6 @@ module "argocd" {
         kustomize.buildOptions: --enable-helm --load-restrictor LoadRestrictionsNone
       params:
         server.insecure: true
-    server:
-      service:
-        annotations:
-          service.beta.kubernetes.io/aws-load-balancer-type: external
-          service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
-          service.beta.kubernetes.io/aws-load-balancer-attributes: load_balancing.cross_zone.enabled=true
-          service.beta.kubernetes.io/aws-load-balancer-name: argocd-${var.cluster_name}
-          service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: prefered_domain=${local.prefered_argocd_dns}
-        type: LoadBalancer
-        loadBalancerClass: service.k8s.aws/nlb
     repoServer:
       serviceAccount:
         create: true
@@ -69,6 +62,4 @@ module "argocd" {
         repository: ${local.image_path_root}/docker/library/redis
     YAML
   ]
-
-  depends_on = [module.awslbc.status]
 }

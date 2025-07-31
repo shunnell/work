@@ -139,7 +139,8 @@ def _cache_result(func: callable, *, hasher: callable, ttl: timedelta=None, name
             cachefh.seek(0)
             if len(data) == 0 or _ttl_expired(cachefh, ttl):
                 cachefh.truncate(0)
-                debug(f"Priming cache for '{name}': cache is {'empty' if data == '' else 'expired'}")
+                cachefh.seek(0)
+                debug(f"Priming cache for '{name}': cache is {'empty' if len(data) == 0 else 'expired'}")
                 result = func(*args, **kwargs)
                 debug(f"Writing JSON cache result for '{name}': {result}")
                 json.dump(result, cachefh)

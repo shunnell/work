@@ -14,6 +14,16 @@ variable "role_name_prefix" {
   # NB: validation is done in a resource lifecycle condition
 }
 
+variable "role_path" {
+  description = "Path to the role"
+  type        = string
+  default     = "/"
+  validation {
+    condition     = startswith(var.role_path, "/") && endswith(var.role_path, "/") && !strcontains(var.role_path, "//")
+    error_message = "Path must start and end with / and not contain double slashes"
+  }
+}
+
 variable "description" {
   description = "Human-readable description of the IAM role"
   type        = string
@@ -40,7 +50,7 @@ variable "trust_policy_json" {
 }
 
 variable "assume_role_principals" {
-  description = "Shorthand specification of sts:AssumeRole service or ARN/AWS principals which can assume this role. Info about principals that can assume this role. A set of either service names (ending in .amazonaws.com) or ARNs of 'iam:' or 'sts:' principals that can assume this role. All specified principals will be granted unconditional allow for sts:AssumeRole into this role. If a more specific assume policy is needed (e.g. conditions, denies, string-matches, etc), supply trust_policy_json instead."
+  description = "Shorthand specification of sts:AssumeRole service or ARN/AWS principals which can assume this role. A set of either service names (ending in .amazonaws.com), AWS account IDs (for all-principals access), or ARNs of 'iam:' or 'sts:' principals that can assume this role. All specified principals will be granted unconditional allow for sts:AssumeRole into this role. If a more specific assume policy is needed (e.g. conditions, denies, string-matches, etc), supply trust_policy_json instead."
   type        = set(string)
   default     = []
   validation {

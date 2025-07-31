@@ -53,6 +53,7 @@ resource "aws_flow_log" "this" {
 }
 
 module "ship_logs_to_splunk" {
+  count           = var.log_shipping_destination_arn != null ? 1 : 0
   source          = "../../monitoring/cloudwatch_log_shipping_source"
   destination_arn = var.log_shipping_destination_arn
   log_group_arns  = [module.flow_logs_group.cloudwatch_log_group_arn]

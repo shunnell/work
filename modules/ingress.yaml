@@ -1,0 +1,48 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:381492150796:certificate/4e2d8079-0646-4976-bbfb-36d06688ae8d
+    alb.ingress.kubernetes.io/group.name: gitlab-server
+    alb.ingress.kubernetes.io/healthcheck-path: /-/readiness
+    alb.ingress.kubernetes.io/healthcheck-port: traffic-port
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/scheme: internal
+    alb.ingress.kubernetes.io/target-type: ip
+    kubernetes.io/ingress.class: alb
+    kubernetes.io/ingress.provider: aws
+    meta.helm.sh/release-name: gitlab-server
+    meta.helm.sh/release-namespace: gitlab-server
+  creationTimestamp: "2025-06-27T19:22:20Z"
+  finalizers:
+  - group.ingress.k8s.aws/gitlab-server
+  generation: 1
+  labels:
+    app: webservice
+    app.kubernetes.io/managed-by: Helm
+    chart: webservice-9.1.1
+    gitlab.com/webservice-name: default
+    heritage: Helm
+    release: gitlab-server
+  name: gitlab-server-webservice-default
+  namespace: gitlab-server
+  resourceVersion: "4990005"
+  uid: 9a24a418-de00-4049-8f89-694f614ad6e1
+spec:
+  ingressClassName: alb
+  rules:
+  - host: gitlab.cloud-city
+    http:
+      paths:
+      - backend:
+          service:
+            name: gitlab-server-webservice-default
+            port:
+              number: 8181
+        path: /
+        pathType: Prefix
+status:
+  loadBalancer:
+    ingress:
+    - hostname: internal-k8s-gitlabserver-d59137e901-273956927.us-east-1.elb.amazonaws.com

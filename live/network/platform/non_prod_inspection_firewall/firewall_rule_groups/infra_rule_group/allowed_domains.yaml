@@ -1,31 +1,41 @@
 allowed_domains:
+  - .access.redhat.com
+  - .amazonaws.com
+  - .blob.core.usgovcloudapi.net
+  - .blob.core.windows.net
+  - .charts.gitlab.io
+  - .charts.jetstack.io
+  - .charts.jfrog.io
+  - .charts.min.io
+  - .deb.debian.org
+  - .docker.io
+  - .elguardia.net
+  - .gcr.io
+  - .get.helm.sh
+  - .ghcr.io
+  - .github.com
+  - .github.io
   - .gitlab.com
   - .hub.docker.com
-  - .docker.io
+  - .maven.org
+  - .mirrors.mit.edu
+  - .publicregistryfedrampwizio.azurecr.us
+  - .pypi.org
+  - .quay.io
   - .registry.k8s.io
-  - .ghcr.io
-  - .deb.debian.org
   - .registry.npmjs.org
-  - .get.helm.sh
-  - .releases.hashicorp.com
+  - .registry.redhat.io
   - .registry.terraform.io
-  - server-3-171-85-65.iad89.r.cloudfront.net
-  - server-3-171-85-80.iad89.r.cloudfront.net
+  - .releases.hashicorp.com
+  - .wiz-sec.github.io
+  - .wiz.io
+  - .wiz.us
+  - .wizfedramp.azurecr.io
+  - .wizfedramp.azurecr.us
+  - .wizio.azurecr.io
+  - .wiziopublic.azurecr.io
+  - publicregistryfedrampwizio.usgovvirginia.data.azurecr.us
   - server-3-171-85-107.iad89.r.cloudfront.net
   - server-3-171-85-128.iad89.r.cloudfront.net
-  - .pypi.org
-  - .maven.org
-  - .quay.io
-  - .mirrors.mit.edu
-  - .registry.redhat.io
-  - .access.redhat.com
-  - .gcr.io
-  - .charts.jetstack.io
-  - .amazonaws.com
-  - .charts.min.io
-  - .charts.jfrog.io
-  - .github.io
-  - .github.com
-  - .charts.gitlab.io
-  - .elguardia.net
-
+  - server-3-171-85-65.iad89.r.cloudfront.net
+  - server-3-171-85-80.iad89.r.cloudfront.net

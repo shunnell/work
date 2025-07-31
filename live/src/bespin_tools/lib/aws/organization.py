@@ -10,7 +10,7 @@ from botocore.exceptions import ClientError
 from bespin_tools.lib.aws.account import Account
 from bespin_tools.lib.aws.role_credentials import SSORoleCredentials
 from bespin_tools.lib.aws.sso import new_sso_token
-from bespin_tools.lib.aws.util import paginate, is_account_id, ClientGetter, DEFAULT_REGION
+from bespin_tools.lib.aws.util import paginate, is_account_id, ClientGetter, DEFAULT_REGION, assert_account_id
 from bespin_tools.lib.cache import organization_schema_cache, sso_credentials_cache, update_cache_filehandle
 from bespin_tools.lib.errors import BespinctlError
 from bespin_tools.lib.logging import success, warn, error
@@ -34,12 +34,12 @@ class _Organization(ClientGetter):
         access.
     """
     ALL = Literal[b' \0 ']
-    _CLIENTS_USED = ('sso', 'account', 'sso-oidc')
+    _CLIENTS_USED = ('sso', 'sts', 'account', 'sso-oidc')
 
     # In a cached property rather than set in the constructor so that start_priming_common_client_cache doesn't need to
     # do SSO.
     @cached_property
-    def accounts(self) -> Sequence[dict]:
+    def _accounts(self) -> Sequence[dict]:
         with organization_schema_cache() as cachefh:
             try:
                 cache_data = json.load(cachefh)
@@ -76,7 +76,7 @@ class _Organization(ClientGetter):
         )
         accounts = dict()
         if self.ALL in identifiers:
-            accounts = {a['accountId']: a for a in self.accounts}
+            accounts = {a['accountId']: a for a in self._accounts}
         else:
             for identifier in identifiers:  # Dedup and sort for deterministic error messages
                 CloudCityAccountLookupError.invariant(
@@ -106,6 +106,14 @@ class _Organization(ClientGetter):
                     token=self._sso_token,
                 )
             )
+
+    def get_account(self, account_id: str):
+        assert_account_id(account_id)
+        accounts = tuple(self.get_accounts(account_id))
+        BespinctlError.invariant(len(accounts) > 0, f"No AWS account found with ID {account_id}")
+        # Silly, but if a user passes an invalid type we can look up multiple accounts, so check against that:
+        BespinctlError.invariant(len(accounts) < 2,f"Multiple accounts found for ID {account_id}: {accounts}")
+        return accounts[0]
 
     @cached_property
     def _sso_token(self):
@@ -139,9 +147,9 @@ class _Organization(ClientGetter):
             "One and only one of account_id and account_identifier must be set"
         )
         if account_identifier is not None:
-            matches = [a for a in self.accounts if account_identifier.lower() == a['accountName'].lower()]
+            matches = [a for a in self._accounts if account_identifier.lower() == a['accountName'].lower()]
         else:
-            matches = [a for a in self.accounts if a['accountId'] == account_id]
+            matches = [a for a in self._accounts if a['accountId'] == account_id]
 
         CloudCityAccountLookupError.invariant(
             len(matches) <= 1,
@@ -149,8 +157,8 @@ class _Organization(ClientGetter):
         )
 
         if len(matches) == 0:
-            CloudCityAccountLookupError.invariant(len(self.accounts) > 0, "no account data could be retrieved from SSO")
-            info = '\n\t'.join(f'{a["accountName"]} ({a["accountId"]}; {a["roles"]})' for a in self.accounts)
+            CloudCityAccountLookupError.invariant(len(self._accounts) > 0, "no account data could be retrieved from SSO")
+            info = '\n\t'.join(f'{a["accountName"]} ({a["accountId"]}; {a["roles"]})' for a in self._accounts)
             if account_identifier is None:
                 desc = f'account ID {account_id}'
             else:

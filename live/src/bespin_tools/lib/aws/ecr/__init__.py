@@ -16,7 +16,10 @@ from bespin_tools.lib.aws.ecr.vulnerabilities import ECRVulnerabilities
 from bespin_tools.lib.aws.util import paginate
 from bespin_tools.lib.errors import BespinctlError
 from bespin_tools.lib.git_repo import git_repo_root
+from bespin_tools.lib.iac import iac_tenant_names
 from bespin_tools.lib.logging import warn
+
+EXPECTED_PULL_THROUGH_PREFIXES = frozenset(('docker', 'github', 'gitlab', 'k8s', 'quay', 'ecr-public'))
 
 if TYPE_CHECKING:
     from types_boto3_ecr import ECRClient
@@ -210,12 +213,13 @@ class ECRRepository(ECRRepositoryBase):
         parts = self.name.split("/")
         if any(len(p) == 0 for p in parts):
             return False
-        # Proper naming is ':repository/cloud-city/tenant-name/whatever/whatever...'
-        # TODO validate tenant names against known identifiers once those are easily available. They're inconsistent
-        #   between IAC, account name, and terraform/terragrunt identifiers at the moment.
-        if parts[0] == "cloud-city" and len(parts) > 2:
-            return True
-        return False
+        if len(parts) < 3:
+            return False
+        if parts[0] not in iac_tenant_names():
+            return False
+        if parts[1] != 'internal' and parts[1] not in EXPECTED_PULL_THROUGH_PREFIXES:
+            return False
+        return True
 
     @classmethod
     def all_repositories(cls, account: Account):

@@ -32,6 +32,7 @@ No resources.
 | <a name="input_failed_shipments_s3_bucket_arn"></a> [failed\_shipments\_s3\_bucket\_arn](#input\_failed\_shipments\_s3\_bucket\_arn) | See variable of the same name in cloudwatch\_log\_shipping\_destination | `string` | n/a | yes |
 | <a name="input_log_sender_aws_organization_path"></a> [log\_sender\_aws\_organization\_path](#input\_log\_sender\_aws\_organization\_path) | See variable of the same name in cloudwatch\_log\_shipping\_destination | `string` | n/a | yes |
 | <a name="input_tags"></a> [tags](#input\_tags) | Key-value map of tags for the resource | `map(string)` | `{}` | no |
+| <a name="input_vpc_subnet_ids"></a> [vpc\_subnet\_ids](#input\_vpc\_subnet\_ids) | Subnet IDs | `list(string)` | n/a | yes |
 
 ## Outputs
 

@@ -16,7 +16,6 @@ from bespin_tools.lib.errors import BespinctlError
 
 WINDOWS = platform.system().lower().startswith('win')
 
-
 def iterdir(path: Path, topdown=True) -> Iterable[Path]:
     path = resolve_directory(path)
     for root, dirs, files in os.walk(path, topdown=topdown, followlinks=True):
@@ -54,14 +53,23 @@ def resolve_file(path: Path | str) -> Path:
         raise BespinctlError(f"Expected file '{path}' exists but cannot be read: {ex}", exc_info=ex)
     return path
 
-def resolve_directory(path: Path | str) -> Path:
+def resolve_directory(path: Path | str, check_create_ok=True) -> Path:
     path = _check_path(path, True)
     try:
         tuple(path.iterdir())
-        with TemporaryFile(dir = path):
-            ...
+        if check_create_ok:
+            with TemporaryFile(dir = path):
+                ...
     except OSError as ex:
         raise BespinctlError(f"Expected directory '{path}' exists cannot be used (possible permissions issue): {ex}", exc_info=ex)
+    return path
+
+def resolve_readable(path: Path | str) -> Path:
+    path = Path(path).resolve()
+    if path.is_dir():
+        resolve_directory(path, check_create_ok=False)
+    else:
+        resolve_file(path)
     return path
 
 def resolve_executable(path: Path | str) -> Path:

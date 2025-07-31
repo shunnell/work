@@ -1,25 +1,32 @@
-# Rather than using terraform-aws-modules/eks/aws' fields for e.g. node_security_group_additional_rules, we do it
-# externally in our own security groups. This is done because some network access is needed for node groups to launch
-# in the first place, and that access must be set up in other, external Security Groups by ID. Since there's no way
-# to inject access rules "between" the EKS module's creation of its internal SGs and the creation of node groups, we
-# create the needed access rules before the EKS module is instantiated, and then attach our new security groups to node
-# groups and the cluster control plane as "secondary" security groups which add needed access. These groups will be
-# used inside the EKS deployment in addition to the groups/rules needed for EKS internal operations (e.g. nodes will
-# be connected to the cluster control plane via other SGs created inside the module below).
-module "node_security_groups" {
-  source      = "../../network/security_group"
-  for_each    = var.node_groups
-  name_prefix = "${var.cluster_name}-nodes-${each.key}-secondary"
-  vpc_id      = var.vpc_id
-  tags        = var.tags
-  rules       = each.value.security_group_rules
+# The "proper", non-legacy per-nodegroup SG config. See "Node Security Groups" in the README for more info.
+# NB that the legacy SGs are managed in a similarly-named module, "node_security_groups", with an "s". Ugly/confusing,
+# but temporary.
+module "node_security_group" {
+  source                 = "../../network/security_group"
+  for_each               = var.node_groups
+  name                   = "platform/eks/${var.cluster_name}/nodes/${each.key}"
+  vpc_id                 = var.vpc_id
+  tags                   = var.tags
+  revoke_rules_on_delete = true # Forcibly delete it, since tenants might add rules to it externally.
 }
 
+# See the 'Programmatic modification of the AWS-created EKS "Cluster security group"' section of eks/cluster/README.md
+# for details as to what's going on here:
+data "aws_vpc_security_group_rules" "aws_managed_cluster_ruleset" {
+  filter {
+    name   = "group-id"
+    values = [module.eks.cluster_primary_security_group_id]
+  }
+}
 
-module "cluster_security_group" {
-  source      = "../../network/security_group"
-  name_prefix = "${var.cluster_name}-cluster-secondary"
-  vpc_id      = var.vpc_id
-  tags        = var.tags
-  rules       = var.cluster_security_group_rules
+data "aws_vpc_security_group_rule" "aws_managed_cluster_rules" {
+  for_each               = toset(data.aws_vpc_security_group_rules.aws_managed_cluster_ruleset.ids)
+  security_group_rule_id = each.key
+}
+
+locals {
+  aws_generated_egress_rules = [
+    for r in data.aws_vpc_security_group_rule.aws_managed_cluster_rules :
+    r.id if r.is_egress
+  ]
 }

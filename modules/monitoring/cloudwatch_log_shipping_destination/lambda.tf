@@ -3,8 +3,14 @@ module "lambda_role" {
   source                 = "../../iam/role"
   role_name_prefix       = "FSP-${var.destination_name}" # Firehose Splunk Lambda
   assume_role_principals = ["lambda.amazonaws.com"]
-  policy_arns            = ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
-  tags                   = var.tags
+  policy_arns = ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+    #  https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSLambdaVPCAccessExecutionRole.html
+    #  The AWSLambdaBasicExecutionRole did not have sufficient permissions to run inside of a VPC. Received following error
+    #  InvalidParameterValueException: The provided execution role does not have permissions to call CreateNetworkInterface on EC2
+    #  https://docs.aws.amazon.com/aws-managed-policy/latest/reference/AWSLambdaVPCAccessExecutionRole.html was needed.
+    "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+  ]
+  tags = var.tags
 }
 
 # From https://github.com/felipefrizzo/terraform-aws-kinesis-firehose
@@ -32,6 +38,10 @@ resource "aws_lambda_function" "lambda_processor" {
   timeout          = 60 # Recommended by AWS; scary modal in the UI if you set a value lower
   filename         = data.archive_file.transformer_lambda_script.output_path
   source_code_hash = data.archive_file.transformer_lambda_script.output_base64sha256
+  vpc_config {
+    security_group_ids = [module.lambda_security_group.id]
+    subnet_ids         = var.vpc_subnet_ids
+  }
   environment {
     variables = {
       SOURCE_TYPE              = var.log_sourcetype

@@ -228,6 +228,7 @@ apply-terragrunt-changes:
     matrix:
       - TERRA_GROUP_NAME: # get list: `find . -iname "terragrunt.hcl" | awk -F'/' '{printf "          - %s.%s\n", $2, $3}' | sort -u`
           - audit.platform
+          - dev.platform
           - camp.platform
           - data.platform
           - infra.camp

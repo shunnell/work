@@ -143,7 +143,6 @@ def transform(payload: dict) -> str:
                                 "severity": severity,
                                 "content": json_content
                             }
-                     # Keep original message in case match.groups() fails
         else:
             # When event contains plain text
             event = {

@@ -6,7 +6,7 @@ data "aws_caller_identity" "current" {}
 
 data "aws_iam_policy_document" "terragrunter" {
   # See module source documentation for details on included documents:
-  source_policy_documents = [module.iam_fragments.kms_decrypt_restrictions.json]
+  source_policy_documents = [module.iam_fragments.kms_decrypt_restrictions]
   statement {
     sid    = "AllowSpecifics"
     effect = "Allow"
@@ -17,6 +17,8 @@ data "aws_iam_policy_document" "terragrunter" {
       "account:DeleteAlternateContact",
       "account:PutAlternateContact",
       "account:PutContactInformation",
+      "acm:*",
+      "acm-pca:*",
       "application-autoscaling:*",
       "application-signals:*",
       "aps:*",
@@ -58,6 +60,8 @@ data "aws_iam_policy_document" "terragrunter" {
       "rds:*",
       "route53:*",
       "route53profiles:*",
+      "backup:*",
+      "ram:*",
       "s3:*",
       "secretsmanager:*",
       "servicequotas:*",
@@ -70,6 +74,7 @@ data "aws_iam_policy_document" "terragrunter" {
       # The less-scary parts of Organizations: permissions, leaving out the ability to e.g. create/destroy accounts
       # or change organization membership:
       "organizations:AttachPolicy",
+      "organizations:DetachPolicy",
       "organizations:CreatePolicy",
       "organizations:DeletePolicy",
       "organizations:UpdatePolicy",

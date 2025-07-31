@@ -86,10 +86,11 @@ class BaseCommand(ABC, LoggingMixin):
         resolve_directory(Path())  # Assert that cwd exists; if it doesn't, inscrutable errors can occur.
         with self._logger.temporary_level('ERROR') if quiet else nullcontext():
             self._logger.change_prefix(self._logger_prefix(True, *args), append=False)
-            self._logger.info("Starting subprocess")
+            full_command_invocation = (self.path, *args)
+            self._logger.info(f"Starting subprocess: {' '.join(map(str, full_command_invocation))}")
             t0 = monotonic()
             try:
-                subprocess.check_call((self.path, *args), env=self.env, shell=False, cwd=cwd)
+                subprocess.check_call(full_command_invocation, env=self.env, shell=False, cwd=cwd)
                 t0 = round(monotonic() - t0, 2)
                 self._logger.success(f"Subprocess succeeded after {t0}sec")
             except subprocess.CalledProcessError as ex:

@@ -42,7 +42,7 @@ No requirements.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_assume_role_principals"></a> [assume\_role\_principals](#input\_assume\_role\_principals) | Shorthand specification of sts:AssumeRole service or ARN/AWS principals which can assume this role. Info about principals that can assume this role. A set of either service names (ending in .amazonaws.com) or ARNs of 'iam:' or 'sts:' principals that can assume this role. All specified principals will be granted unconditional allow for sts:AssumeRole into this role. If a more specific assume policy is needed (e.g. conditions, denies, string-matches, etc), supply trust\_policy\_json instead. | `set(string)` | `[]` | no |
+| <a name="input_assume_role_principals"></a> [assume\_role\_principals](#input\_assume\_role\_principals) | Shorthand specification of sts:AssumeRole service or ARN/AWS principals which can assume this role. A set of either service names (ending in .amazonaws.com), AWS account IDs (for all-principals access), or ARNs of 'iam:' or 'sts:' principals that can assume this role. All specified principals will be granted unconditional allow for sts:AssumeRole into this role. If a more specific assume policy is needed (e.g. conditions, denies, string-matches, etc), supply trust\_policy\_json instead. | `set(string)` | `[]` | no |
 | <a name="input_condition_trust_policy"></a> [condition\_trust\_policy](#input\_condition\_trust\_policy) | Condition to apply to the trust policy | <pre>list(object({<br/>    test     = string<br/>    variable = string<br/>    values   = list(string)<br/>  }))</pre> | `[]` | no |
 | <a name="input_description"></a> [description](#input\_description) | Human-readable description of the IAM role | `string` | `""` | no |
 | <a name="input_permissions_boundary_policy_arn"></a> [permissions\_boundary\_policy\_arn](#input\_permissions\_boundary\_policy\_arn) | ARN of an IAM policy to use as a permissions boundary for this role, if any | `string` | `null` | no |
@@ -50,6 +50,7 @@ No requirements.
 | <a name="input_policy_json_documents"></a> [policy\_json\_documents](#input\_policy\_json\_documents) | Map of descriptive policy name to JSON strings of policy documents to create and attach to this role (e.g. the output of data.aws\_iam\_policy\_document.whatever.json) | `map(string)` | `{}` | no |
 | <a name="input_role_name"></a> [role\_name](#input\_role\_name) | Name of the IAM role (one of role\_name or role\_name\_prefix must be set) | `string` | `null` | no |
 | <a name="input_role_name_prefix"></a> [role\_name\_prefix](#input\_role\_name\_prefix) | Name of the IAM role  (one of role\_name or role\_name\_prefix must be set) | `string` | `null` | no |
+| <a name="input_role_path"></a> [role\_path](#input\_role\_path) | Path to the role | `string` | `"/"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to all resources | `map(string)` | `{}` | no |
 | <a name="input_trust_policy_json"></a> [trust\_policy\_json](#input\_trust\_policy\_json) | The trust policy of the IAM role; must be a JSON string. Set this if assume\_role\_principals cannot express the trust policy needed. | `string` | `"{}"` | no |
 

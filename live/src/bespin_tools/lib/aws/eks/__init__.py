@@ -2,17 +2,23 @@ from __future__ import annotations
 
 import asyncio
 from collections import defaultdict
-from functools import cached_property, lru_cache
-from typing import Iterable, Literal, Self
+from functools import cached_property, lru_cache, cache
+from typing import Iterable, Literal, Self, Generator, Collection
 
 from aiohttp.client_exceptions import ClientError, ClientResponseError
 
+from bespin_tools.lib import ContainsAll
 from bespin_tools.lib.aws.account import Account
 from bespin_tools.lib.aws.dict_resource import AWSDictResource
 from bespin_tools.lib.aws.util import paginate
 from bespin_tools.lib.errors import BespinctlError
 from bespin_tools.lib.network import probe_url
 from bespin_tools.lib.util import stream_results
+
+
+@cache
+def _cluster_names_for_account(account: Account):
+    yield from paginate(account.eks_client().list_clusters)
 
 
 class EksCluster(AWSDictResource):
@@ -29,30 +35,25 @@ class EksCluster(AWSDictResource):
         return tuple(sorted(paginate(self.account.eks_client().list_addons, clusterName=self.name)))
 
     @classmethod
-    @lru_cache
-    def _cluster_names_for_account(cls, account: Account, *include: str):
-        include = set(include) if len(include) > 0 else None
-        for cluster in paginate(account.eks_client().list_clusters):
-            if include is None:
-                yield cluster
-            elif cluster in include:
-                include.discard(cluster)
-                yield cluster
-        if len(include or ()) > 0:
-            raise BespinctlError(f"Requested clusters not found: '{','.join(sorted(include))}'")
+    def _cluster_names_for_accounts(cls, accounts: Iterable[Account], include: Collection[str]) -> Generator[tuple[str, Account]]:
+        seen = dict()
 
-    @classmethod
-    def _cluster_names_for_accounts(cls, accounts: Iterable[Account], *include: str):
-        seen = set()
         for account in accounts:
-            for cluster in cls._cluster_names_for_account(account, *include):
-                if cluster not in seen:
-                    yield account, cluster
-                    seen.add(cluster)
+            for cluster in _cluster_names_for_account(account):
+                BespinctlError.invariant(
+                    cluster not in seen,
+                    f"Cluster '{cluster}' was already found in account '{seen.get(cluster)}', but another cluster with the same name was found in account '{account}'",
+                )
+
+                if cluster in include:
+                    seen[cluster] = account
+        for cluster in include:
+            BespinctlError.invariant(cluster in seen, f"Requested cluster '{cluster}' not found")
+        yield from seen.items()
 
     @classmethod
     def _raise_notfound(cls, accounts: Iterable[Account], msg: str):
-        available = sorted(s[1] for s in cls._cluster_names_for_accounts(accounts))
+        available = sorted(s[0] for s in cls._cluster_names_for_accounts(accounts, ContainsAll))
         raise BespinctlError(f"{msg}; available choices are: {', '.join(['all'] + available)}")
 
     @classmethod
@@ -90,9 +91,9 @@ class EksCluster(AWSDictResource):
             raise  # Unreachable: to satisfy the linter,
         else:
             account_to_cluster_names = defaultdict(list)
-            for account, cluster_name in cls._cluster_names_for_accounts(
+            for cluster_name, account in cls._cluster_names_for_accounts(
                 accounts,
-        *(() if 'all' in requested else requested)
+                ContainsAll if 'all' in requested else requested,
             ):
                 requested.discard('all')
                 requested.discard(cluster_name)

@@ -4,11 +4,12 @@ import json
 import os
 from collections import defaultdict
 from csv import DictWriter
+from typing import Collection
 
 import click
 
 from bespin_tools.lib.aws.account import Account
-from bespin_tools.lib.aws.arguments import AwsAccounts, AwsAccount
+from bespin_tools.lib.aws.arguments import AwsAccounts, AwsAccount, TenantName
 from bespin_tools.lib.aws.ecr import ECRRepository, ECRVulnerabilities
 from bespin_tools.lib.aws.ecr.vulnerabilities import cache_repo_vulnerabilities_parallel
 from bespin_tools.lib.errors import BespinctlError
@@ -27,17 +28,24 @@ _REPORT_FIELDS = (
 def ecr():
     ...
 
-def _repos(*accounts: Account):
+def _repos(accounts: Account | Collection[Account], tenant: str='all', ignore_no_repos=False):
+    if isinstance(accounts, Account):
+        accounts = [accounts]
     for account in accounts:
-        yield from ECRRepository.all_repositories(account)
+        for repo in ECRRepository.all_repositories(account):
+            if tenant == 'all' or repo.owner == tenant:
+                ignore_no_repos = True
+                yield repo
+    BespinctlError.invariant(ignore_no_repos, f"No repos found in accounts {accounts} for tenant '{tenant}'")
 
 
 @ecr.command
 @click.option('--account', default="381492150796", type=AwsAccount())
+@click.option('--tenant', default="all", type=TenantName())
 @click.option("--execute", is_flag=True, default=False)
-def propagate_creation_template_policies(account: Account, execute: bool):
+def propagate_creation_template_policies(account: Account, tenant: str, execute: bool):
     prefix = "changing repo config" if execute else "would have changed repo config (pass --execute to update)"
-    for repo in _repos(account):
+    for repo in _repos(account, tenant):
         template = repo.creation_template
         if template is None:
             warn(f"{repo.name} has no template; may be grandfathered")
@@ -60,7 +68,7 @@ def propagate_creation_template_policies(account: Account, execute: bool):
 
 @ecr.command
 @click.option('--account', default="381492150796", type=AwsAccount())
-@click.option('--tenant', default="all")
+@click.option('--tenant', default="all", type=TenantName())
 @click.option("--execute", is_flag=True, default=False)
 def delete_pull_through_images(account: Account, tenant: str, execute: bool):
     """
@@ -70,17 +78,16 @@ def delete_pull_through_images(account: Account, tenant: str, execute: bool):
     """
     prefix = "Deleting images in" if execute else "Would have deleted (pass --execute to delete) images in"
     deleted = 0
-    for repo in _repos(account):
-        if tenant == 'all' or repo.owner == tenant:
-            if uri := repo.pull_through_source_uri:
-                click.echo("{}: {} {} (pulled through from {})".format(repo.account, prefix, repo.name, uri))
-                deleted += 1
-                if execute:
-                    repo.client.delete_repository(
-                        repositoryName=repo.name,
-                        registryId=repo.registry,
-                        force=True,
-                    )
+    for repo in _repos(account, tenant):
+        if uri := repo.pull_through_source_uri:
+            click.echo("{}: {} {} (pulled through from {})".format(repo.account, prefix, repo.name, uri))
+            deleted += 1
+            if execute:
+                repo.client.delete_repository(
+                    repositoryName=repo.name,
+                    registryId=repo.registry,
+                    force=True,
+                )
     click.echo(f"{'Deleted' if execute else 'Would have deleted'} {deleted} ECR repositories")
 
 @ecr.command
@@ -97,7 +104,7 @@ def repository_counts(accounts: tuple[Account, ...]):
     sample_result = {'Pulled Through': 0, 'Properly Named': 0, 'Improperly Named': 0}
     results = defaultdict(sample_result.copy)
 
-    for repo in _repos(*accounts):
+    for repo in _repos(accounts, ignore_no_repos=True):
         result = results[repo.account]
         if repo.pull_through_source_uri is not None:
             result['Pulled Through'] += 1
@@ -124,17 +131,18 @@ def _vuln_report_row(repo: ECRRepository, owner: str, deprecated: bool):
 @click.option('--account', default="381492150796", type=AwsAccount())
 @click.option('--parallel', type=int, default=8)
 @click.option('--file', type=click.Path(writable=True))
-@click.option('--tenant', default="all")
+@click.option('--tenant', default="all", type=TenantName())
 def vulnerability_report(account: Account, parallel: int, file: str | None, tenant: str):
     file = os.devnull if file is None else resolve_nonexistent(file)
-    repos = tuple(_repos(account))
-    if tenant != "all":
-        repos = tuple(r for r in repos if r.owner == tenant)
-    BespinctlError.invariant(len(repos) > 0, f"No repos found in account {account} for tenant '{tenant}'")
+    repos = tuple(_repos(account, tenant))
 
     rows = []
+    totals = ECRVulnerabilities().to_report_dict()
     for repo in cache_repo_vulnerabilities_parallel(parallel, repos):
         rows.append(_vuln_report_row(repo, repo.owner, repo.grandfathered))
+        for k, v in rows[-1].items():
+            if k in totals:
+                totals[k] += v
     rows.sort(key=lambda r: (r['Owner'], r['Deprecated'], r['Repository']))
     with open(file, 'w', newline='') as csvfile, BespinctlTable(_REPORT_FIELDS) as table:
         writer = DictWriter(csvfile, fieldnames=_REPORT_FIELDS)
@@ -142,5 +150,7 @@ def vulnerability_report(account: Account, parallel: int, file: str | None, tena
         for row in rows:
             writer.writerow(row)
             table.add_row(row)
+    with BespinctlTable([f"Total: {k}" for k in totals.keys()]) as table:
+        table.add_row(*totals.values())
     if file != os.devnull:
         info(f"Wrote report for {len(repos)} repos to '{file}'")

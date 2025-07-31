@@ -43,7 +43,7 @@ module "gitlab" {
   values = [<<-YAML
     installCertmanager: false
     certmanager-issuer:
-      email: "CA-CST-Cloud-City-Platform@state.gov"
+      email: CA-CST-Cloud-City-Platform@state.gov
     global:
       smtp:
         enabled: false # Disable SMTP since we're using SES API

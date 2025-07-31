@@ -94,6 +94,8 @@ resource "aws_organizations_policy" "deny_sensitive_networking" {
           "ec2:DescribeVpcEndpoints",
           "ec2:DescribeVpcs",
           "ec2:ModifyVpcEndpoint",
+          "iam:GetRole",
+          "pipes:DescribePipe",
         ],
         Resource = [
           "arn:aws:ec2:*:*:carrier-gateway*",

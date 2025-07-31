@@ -1,22 +1,29 @@
 data "aws_region" "current" {}
 
 locals {
-  region                      = data.aws_region.current.region
-  ecr_domain                  = "${var.chart_ecr_image_account_id}.dkr.ecr.${local.region}.amazonaws.com"
-  image_path_root             = "${local.ecr_domain}/platform"
-  internal_helm_path_root     = "${local.image_path_root}/internal/helm"
-  prefered_argocd_dns         = "argocd.${var.cluster_name}.${var.account_name}.cloud-city"
-  external_secrets_repo_root  = "${local.image_path_root}/github/external-secrets"
+  region          = data.aws_region.current.region
+  ecr_domain      = "${var.chart_ecr_image_account_id}.dkr.ecr.${local.region}.amazonaws.com"
+  image_path_root = "${local.ecr_domain}/platform"
+
+  external_secrets_repo_root = "${local.image_path_root}/github/external-secrets"
+
+  argocd_domain_name          = "argocd.${var.root_domain_name}"
   argocd_service_account_name = "argocd-repo-server"
 }
 
 # Dynamically create namespaces
 resource "kubernetes_namespace" "namespaces" {
-  for_each                         = toset(compact([var.enable_argocd ? "argocd" : null, "external-secrets"]))
-  wait_for_default_service_account = true
+  for_each = toset(compact([
+    var.enable_argocd ? "argocd" : null,
+    "external-secrets"
+  ]))
+
   metadata {
-    name = each.value
+    name   = each.value
+    labels = var.tags
   }
+
+  wait_for_default_service_account = true
 }
 
 resource "kubernetes_storage_class" "ebs_sc" {

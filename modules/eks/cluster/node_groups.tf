@@ -26,7 +26,11 @@ data "aws_ec2_instance_types" "cloudcity_supported_ec2_types" {
 }
 
 locals {
-  instance_types = sort(data.aws_ec2_instance_types.cloudcity_supported_ec2_types.instance_types)
+  default_min_size = 0
+  # A reasonable upper limit until we have clusters that need tons of gear. This shouldn't be made too high, though
+  # in order to prevent mistakes from causing runaway costs:
+  default_max_size = 20
+  instance_types   = sort(data.aws_ec2_instance_types.cloudcity_supported_ec2_types.instance_types)
   # Other "fundamental to EKS" policies, like AmazonEKS_CNI_Policy or AmazonEKSWorkerNodePolicy, are always attached
   # inside the module below, and thus don't need to be listed here.
   baseline_node_iam_policies = [
@@ -47,16 +51,19 @@ locals {
   ]
   node_group_configs = {
     for k, v in var.node_groups : k => {
-      min_size = 0
-      # A reasonable upper limit until we have clusters that need tons of gear. This shouldn't be made too high, though
-      # in order to prevent mistakes from causing runaway costs:
-      max_size = 20
+      min_size = local.default_min_size
+      max_size = local.default_max_size
       # Note that these don't always take effect and sometimes need to be updated by hand. If the desired size is the
       # ONLY change, it gets ignored. If there are other nodegroup updates, it gets honored:
       # https://github.com/terraform-aws-modules/terraform-aws-eks/issues/1924
-      desired_size           = v.size
-      instance_types         = [v.instance_type]
-      vpc_security_group_ids = [module.node_security_groups[k].id]
+      desired_size                          = v.size
+      instance_types                        = [v.instance_type]
+      attach_cluster_primary_security_group = false
+      vpc_security_group_ids = concat(
+        [module.node_security_group[k].id],
+        # Legacy only, remove when legacy SG management is no longer needed:
+        [for _, v in module.node_security_groups : v.id]
+      )
       iam_role_additional_policies = { for p in toset(concat(
         v.additional_iam_policy_arns,
         local.baseline_node_iam_policies
@@ -84,13 +91,16 @@ locals {
       ami_type                       = "BOTTLEROCKET_x86_64"
       use_latest_ami_release_version = true
       capacity_type                  = "ON_DEMAND"
-      # use_custom_launch_template   = true # for user data
+      use_custom_launch_template     = true # for user data
       node_repair_config = {
         enabled = true
       }
       update_config = {
         max_unavailable_percentage = var.nodegroup_change_unavailable_percentage
       }
+      tags                 = var.tags
+      launch_template_tags = var.tags
+      iam_role_tags        = var.tags
       bootstrap_extra_args = <<-TOML
       # Ref https://aws.amazon.com/blogs/containers/validating-amazon-eks-optimized-bottlerocket-ami-against-the-cis-benchmark/
       # 3.4

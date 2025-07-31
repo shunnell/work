@@ -80,6 +80,9 @@ resource "kubernetes_manifest" "argocd_helm_app" {
     metadata = {
       name      = local.app_name
       namespace = var.argocd_namespace
+      annotations = {
+        "argocd.argoproj.io/hook" = "${var.app_sync_wave}"
+      }
     }
     spec = {
       project = var.argocd_app_project
@@ -98,7 +101,8 @@ resource "kubernetes_manifest" "argocd_helm_app" {
       }
       syncPolicy = {
         syncOptions = [
-          "ServerSideApply=true"
+          "ServerSideApply=true",
+          "CreateNamespace=${var.create_namespace}"
         ]
         automated = {
           prune    = var.prune

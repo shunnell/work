@@ -24,6 +24,13 @@ variable "aws_ecr_service_account" {
 variable "app_namespace" {
   description = "Namespace that the app will be deployed to."
   type        = string
+  default     = "default"
+}
+
+variable "create_namespace" {
+  description = "Create the namespace with the app rather than separately"
+  type        = bool
+  default     = false
 }
 
 variable "app_name" {
@@ -75,4 +82,10 @@ variable "prune" {
   description = "Prune app: https://argo-cd.readthedocs.io/en/stable/user-guide/auto_sync/#automatic-pruning"
   type        = bool
   default     = true
+}
+
+variable "app_sync_wave" {
+  description = "Order of sync (lower values first for creation & updation and higher values first for deletion). Can be negative, and multiple apps can have the same wave."
+  type        = number
+  default     = 0
 }

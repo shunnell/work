@@ -104,7 +104,7 @@ def get_token(account: Iterable[Account], cluster: str, bare: bool):
         click.echo(json.dumps(token))
 
 @eks.command
-@click.option('--accounts', type=AwsAccounts(), required=True)
+@click.option('--accounts', type=AwsAccounts(), default='all')
 @click.option('--clusters', type=str, default='all')
 @click.option('--file', type=click.Path(writable=True), required=True)
 def generate_kubeconfig(accounts: Collection[Account], clusters: str, file: str):
@@ -116,7 +116,7 @@ def generate_kubeconfig(accounts: Collection[Account], clusters: str, file: str)
 
 
 @eks.command(name='run-command')
-@click.option('--accounts', '--account', type=AwsAccounts(), required=True)
+@click.option('--accounts', '--account', type=AwsAccounts(), default='all')
 @click.option('--clusters', '--cluster', type=str, default='all')
 @click.option('--each-cluster', is_flag=True, default=False)
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)

@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import shlex
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Self
 
 from bespin_tools.lib.logging import LoggingMixin
 from bespin_tools.lib.util import WINDOWS
@@ -20,6 +20,9 @@ class EnvironmentVariables(LoggingMixin, dict):
         with self._logger.temporary_level('ERROR'):
             self.update(self._initial)
         self['GIT_SSL_NO_VERIFY'] = 'true'  # TODO, this is temporary until we give GitLab a real SSL cert.
+
+    def copy(self) -> Self:
+        return type(self)(self._logger, initial=dict(self))
 
     def _printable(self, key):
         if key in self and any(x in key for x in ('PASSWORD', 'TOKEN', 'SECRET', 'ACCESS_KEY')):

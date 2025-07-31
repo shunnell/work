@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 variable "eventbridge_service_name_to_destination_arn" {
   description = "Map of eventbridge service names (without 'aws.' prefix) to log shipment Cloudwatch::Logs::Destination ARNs"
   type        = map(string)

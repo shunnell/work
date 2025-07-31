@@ -6,13 +6,12 @@ import click
 
 from bespin_tools.lib.aws.organization import Organization
 from bespin_tools.lib.git_repo import cloud_city_repos, git_repo_root
-from bespin_tools.lib.iac import setup_global_logger_for_terragrunt
+from bespin_tools.lib.iac import setup_global_logger_for_terragrunt, environment_with_role_assumed
 from bespin_tools.lib.iac.commands import terragrunt as terragrunt_command, terraform as terraform_command
 from bespin_tools.lib.iac.linting import lint_tf_files, lint_terraform_module_docs, lint_hcl_files
 from bespin_tools.lib.util import resolve_file
 from bespin_tools.lib.windows import try_to_fix_windows_max_path_length
 
-INFRA_ACCOUNT_ID = '381492150796'
 
 @click.group()
 def iac():
@@ -43,10 +42,10 @@ def terragrunt(args: tuple[str, ...]):
     cmd = terragrunt_command()
 
     if not skip_role_assume:
-        infra_account, = Organization.get_accounts(INFRA_ACCOUNT_ID)
-        # Put the current user's AWS credentials into the environment for terragrunt/terraform to use when assuming
-        # roles:
-        cmd.env.update(infra_account.environment_variables())
+        # We assume terragrunter "outside" of terragrunt/terraform itself, because terragrunter assumption within
+        # tf/tg (at least on tf 1.11 and tg 0.77) causes credential cache issues on Linux; see comments in root.hcl
+        # for more info.
+        cmd.env.update(environment_with_role_assumed('infra', 'terragrunter'))
 
     # Prevent foot-guns at apply time unless a user explicitly requested it:
     if '-auto-approve' in args or '--auto-approve' in args:

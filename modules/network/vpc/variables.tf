@@ -61,6 +61,7 @@ variable "interface_endpoints" {
     "ssm",
     "ssmmessages",
     "sts",
+    "events"
   ]
 }
 
@@ -76,7 +77,9 @@ variable "gateway_endpoints" {
 
 variable "log_shipping_destination_arn" {
   description = "Cloudwatch::Logs::Destination ARN to ship internally-generated flow logs from CloudWatch logs to Splunk (ARN supplied via the monitoring/cloudwatch_log_shipping_destination module)"
-  type        = string
+  # this should not be value null, except in one rare case where log shipping is turned off. This is currently used for lambda VPC flow logs.
+  type     = string
+  nullable = true
 }
 
 variable "enable_dns_profile" {

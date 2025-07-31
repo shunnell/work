@@ -35,6 +35,7 @@ No requirements.
 |------|--------|---------|
 | <a name="module_firehose_role"></a> [firehose\_role](#module\_firehose\_role) | ../../iam/role | n/a |
 | <a name="module_lambda_role"></a> [lambda\_role](#module\_lambda\_role) | ../../iam/role | n/a |
+| <a name="module_lambda_security_group"></a> [lambda\_security\_group](#module\_lambda\_security\_group) | ../../network/security_group | n/a |
 | <a name="module_write_to_firehose_role"></a> [write\_to\_firehose\_role](#module\_write\_to\_firehose\_role) | ../../iam/role | n/a |
 
 ## Resources
@@ -51,6 +52,7 @@ No requirements.
 | [aws_lambda_function.lambda_processor](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function) | resource |
 | [archive_file.transformer_lambda_script](https://registry.terraform.io/providers/hashicorp/archive/latest/docs/data-sources/file) | data source |
 | [aws_kms_key.aws_s3](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/kms_key) | data source |
+| [aws_subnet.vpc_subnet](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/subnet) | data source |
 
 ## Inputs
 
@@ -69,6 +71,7 @@ No requirements.
 | <a name="input_splunk_hec_token"></a> [splunk\_hec\_token](#input\_splunk\_hec\_token) | String token to be used when identifying this log stream to Splunk | `string` | `"419b5b09-db88-48a0-bd1b-21ab330c0b0d"` | no |
 | <a name="input_splunk_uri"></a> [splunk\_uri](#input\_splunk\_uri) | HTTP/S URI of the Splunk HEC destination to be used | `string` | `"https://casi.state.gov:8088"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Key-value map of tags for the resource | `map(string)` | `{}` | no |
+| <a name="input_vpc_subnet_ids"></a> [vpc\_subnet\_ids](#input\_vpc\_subnet\_ids) | Subnet IDs | `list(string)` | n/a | yes |
 
 ## Outputs
 

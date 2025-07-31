@@ -5,6 +5,7 @@ from click import ParamType
 from bespin_tools.lib.aws.account import Account
 from bespin_tools.lib.aws.organization import Organization
 from bespin_tools.lib.aws.util import is_account_id
+from bespin_tools.lib.iac import iac_tenant_names
 
 
 class AwsAccounts(ParamType):
@@ -56,4 +57,14 @@ class AwsAccount(AwsAccounts):
             return self._query_accounts(ids, param, ctx, max_length=1)[0]
         elif not isinstance(value, Account):
             self.fail(f"Expected a string, but got {type(value)} {value}")
+        return value
+
+class TenantName(ParamType):
+    name = "Cloud City tenant name, or 'all' for all tenants"
+
+    def convert(self, value, param, ctx) -> str:
+        value = value.lower()
+        allowed = iac_tenant_names().union({'all'})
+        if value not in allowed:
+            self.fail(f"Unexpected tenant name '{value}'; should be one of {', '.join(sorted(allowed))}")
         return value

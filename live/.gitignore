@@ -46,8 +46,7 @@ terraform.rc
 .vscode
 
 # Local scripts
-**/*.sh
-!/_scripts/*.sh
+**/_*.sh
 
 # Modules - maybe for ci/cd
 /__modules

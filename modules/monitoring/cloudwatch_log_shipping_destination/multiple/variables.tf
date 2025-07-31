@@ -29,3 +29,17 @@ variable "account_list_mapping" {
   type        = map(string)
   default     = {}
 }
+
+variable "vpc_subnet_ids" {
+  description = "Subnet IDs"
+  type        = list(string)
+  validation {
+    condition     = length(var.vpc_subnet_ids) > 0
+    error_message = "At least 1 subnet ID must be passed"
+  }
+  validation {
+    condition     = alltrue([for s in var.vpc_subnet_ids : startswith(s, "subnet-")])
+    error_message = "All subnet IDs must start with 'subnet-'"
+  }
+}
+

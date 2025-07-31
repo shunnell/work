@@ -6,7 +6,8 @@ locals {
       "arn:aws:codeartifact:us-east-1:381492150796:repository/platform-infra-repo/platform-infra-repository",
       "arn:aws:codeartifact:us-east-1:381492150796:repository/platform-infra-repo/maven-central-store",
       "arn:aws:codeartifact:us-east-1:381492150796:repository/platform-infra-repo/pypi-store",
-    "arn:aws:codeartifact:us-east-1:381492150796:repository/platform-infra-repo/npm-store", ]
+      "arn:aws:codeartifact:us-east-1:381492150796:repository/platform-infra-repo/npm-store",
+    ]
     pull_through = []
   }
 
@@ -34,6 +35,15 @@ data "aws_iam_policy_document" "policy_document" {
       ]
       resources = var.deployer_roles
     }
+  }
+  statement {
+    sid    = "AllowDescribePipeAndGetRole"
+    effect = "Allow"
+    actions = [
+      "pipes:DescribePipe",
+      "iam:GetRole",
+    ]
+    resources = ["*"]
   }
 }
 

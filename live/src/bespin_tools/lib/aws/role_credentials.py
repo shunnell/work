@@ -104,11 +104,13 @@ class SSORoleCredentials(_BaseRoleCredentials):
 @attr.define(kw_only=True)
 class STSRoleCredentials(_BaseRoleCredentials):
     _session_name: str = attr.field()
+    _external_id: str | None = attr.field()
 
     def _get_credentials(self):
-        role_data = self._client.assume_role(
+        role_data = dict(self._client.assume_role(
             RoleArn=self.role,
             RoleSessionName=self._session_name,
-        )
+            ExternalId=self._external_id,
+        ))
         role_creds = role_data.pop('Credentials')
         return {**role_data, **role_creds}

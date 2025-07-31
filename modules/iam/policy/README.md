@@ -11,7 +11,9 @@ No requirements.
 
 ## Modules
 
-No modules.
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_policy"></a> [policy](#module\_policy) | ../modified_policy_document | n/a |
 
 ## Resources
 

@@ -46,6 +46,7 @@ No requirements.
 | <a name="input_description"></a> [description](#input\_description) | Description of the security group's purpose | `string` | `null` | no |
 | <a name="input_name"></a> [name](#input\_name) | Security group name (one of name and name\_prefix must be specified) | `string` | `null` | no |
 | <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | Security group name (one of name and name\_prefix must be specified) | `string` | `null` | no |
+| <a name="input_revoke_rules_on_delete"></a> [revoke\_rules\_on\_delete](#input\_revoke\_rules\_on\_delete) | See Terraform documentation for the parameter of the same name on aws\_security\_group | `bool` | `false` | no |
 | <a name="input_rules"></a> [rules](#input\_rules) | Rules to add to this security group; a list of maps/objects to be supplied as arguments to the 'security\_group\_traffic' resource. | <pre>map(object({<br/>    protocol = optional(string)<br/>    type     = string<br/>    ports    = list(number)<br/>    target   = string<br/>    // create_explicit_egress_to_target_security_group intentionally omitted; it is defaulted based on 'allow_all_outbound_traffic'.<br/>  }))</pre> | `{}` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags | `map(string)` | `{}` | no |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC ID | `string` | n/a | yes |
@@ -54,5 +55,6 @@ No requirements.
 
 | Name | Description |
 |------|-------------|
+| <a name="output_arn"></a> [arn](#output\_arn) | ARN of the Security Group |
 | <a name="output_id"></a> [id](#output\_id) | Security group ID |
 <!-- END_TF_DOCS -->

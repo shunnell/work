@@ -2,5 +2,5 @@ locals {
   # NB: Not using \w+ because some AWS services have dashes (-) in the names:
   service_principal_regex = "^([a-z0-9_-]+[.])+amazonaws[.]com$"
   # We only allow certain kinds of ARNs (sts or iam) and don't allow wildcards in the descriptor either:
-  aws_principal_regex = "^arn:aws:(sts|iam)::\\d+:[^*]+$"
+  aws_principal_regex = "^(\\d{12}|arn:aws:(sts|iam)::\\d{12}:[^*]+)$"
 }

@@ -111,20 +111,24 @@ dependency "secret" {
 }
 
 inputs = {
-  domain           = "gitlab.cloud-city"
-  cluster_name     = dependency.cluster.outputs.cluster_name
-  release_name     = "gitlab-${local.suffix}"
-  chart_version    = "9.1.1"
-  gitlab_secret_id = dependency.secret.outputs.secret_id
+  cluster_name  = dependency.cluster.outputs.cluster_name
+  release_name  = "gitlab-${local.suffix}"
+  chart_version = "9.1.1"
+
+  gitlab_secret_id     = dependency.secret.outputs.secret_id
+  irsa_role            = dependency.irsa_role.outputs.iam_role_arn
+  domain               = "gitlab.cloud-city"
+  backup_cron_schedule = "0 5 * * *" # 1 AM EST
+
   secret_arn = [
     dependency.rds.outputs.aurora_serverless_v2_cluster_master_user_secret[0].secret_arn,
     dependency.redis.outputs.secret_arn
   ]
-  rds_aws_secret          = dependency.rds.outputs.aurora_serverless_master_user_secret_name[0]
-  redis_aws_secret        = dependency.redis.outputs.secret_name
-  rds_endpoint            = dependency.rds.outputs.aurora_serverless_v2_cluster_endpoint
-  redis_endpoint          = dependency.redis.outputs.primary_endpoint_address
-  irsa_role               = dependency.irsa_role.outputs.iam_role_arn
+  rds_aws_secret   = dependency.rds.outputs.aurora_serverless_master_user_secret_name[0]
+  rds_endpoint     = dependency.rds.outputs.aurora_serverless_v2_cluster_endpoint
+  redis_aws_secret = dependency.redis.outputs.secret_name
+  redis_endpoint   = dependency.redis.outputs.primary_endpoint_address
+
   artifacts_bucket        = dependency.s3_buckets.outputs.buckets[0]["${local.prefix}-artifacts-${local.suffix}"].bucket_id
   ci_secure_bucket        = dependency.s3_buckets.outputs.buckets[0]["${local.prefix}-ci-secure-files-${local.suffix}"].bucket_id
   dependency_proxy_bucket = dependency.s3_buckets.outputs.buckets[0]["${local.prefix}-dependency-proxy-${local.suffix}"].bucket_id

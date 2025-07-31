@@ -11,7 +11,7 @@ from bespin_tools.lib.util import WINDOWS
 
 
 @cache
-def terraform():
+def terraform() -> DownloadedCommand:
     """
     Retrieve the command for "terraform", since terragrunt needs it internally.
     """
@@ -22,7 +22,7 @@ def terraform():
     )
 
 @cache
-def terraform_docs():
+def terraform_docs() -> DownloadedCommand:
     """
     Retrieve the command for "terraform-docs"
     """
@@ -43,20 +43,26 @@ def terraform_docs():
 
 
 @cache
-def terragrunt():
-    """
-    Retrieve the command for "terragrunt", automatically downloading it if needed, since it's needed for all our IAC
-    operations.
-    """
+def _terragrunt() -> DownloadedCommand:
+
     suffix = '.exe' if WINDOWS else ''
-    # Prime the terraform cache as well so errors related to terraform are surfaced here rather than from inside
-    # terragrunt in more confusing ways.
-    terraform_cmd = terraform()
-    cmd = DownloadedCommand(
+    rv = DownloadedCommand(
         name='terragrunt',
         source_uri_template='https://github.com/gruntwork-io/{name}/releases/download/v{version}/{name}_{os}_{architecture}' + suffix,
         version_constraints=iac_tool_versions()['terragrunt']
     )
+    # Per Terragrunt docs, this Terraform variable is not safe to set when using Terragrunter:
+    rv.env.pop('TF_PLUGIN_CACHE_DIR', None)
+    return rv
+
+def terragrunt() -> DownloadedCommand:
+    """
+    Retrieve the command for "terragrunt", automatically downloading it if needed, since it's needed for all our IAC
+    operations.
+    """
+    # Prime the terraform cache as well so errors related to terraform are surfaced here rather than from inside
+    # terragrunt in more confusing ways.
+    terraform_cmd = terraform()
 
     # TODO https://terragrunt.gruntwork.io/docs/reference/cli-options/#source-map
     # NB: docs and the internet *say* that 'true' is just as good as '1' for the values on these, but examples
@@ -82,10 +88,11 @@ def terragrunt():
         'TG_PROVIDER_CACHE': True,
         'TG_PROVIDER_CACHE_DIR': terraform_provider_cache(),
     }
+    cmd = _terragrunt()
+    cmd.env = cmd.env.copy()
     cmd.env.update({
         k: str(v).lower() if isinstance(v, bool) else str(v) for k, v in terragrunt_env_vars.items()
     })
-    # Per Terragrunt docs, this Terraform variable is not safe to set when using Terragrunter:
-    cmd.env.pop('TF_PLUGIN_CACHE_DIR', None)
+
 
     return cmd

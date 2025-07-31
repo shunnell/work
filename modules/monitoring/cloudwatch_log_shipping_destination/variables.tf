@@ -8,6 +8,19 @@ variable "destination_name" {
   }
 }
 
+variable "vpc_subnet_ids" {
+  description = "Subnet IDs"
+  type        = list(string)
+  validation {
+    condition     = length(var.vpc_subnet_ids) > 0
+    error_message = "At least 1 subnet ID must be passed"
+  }
+  validation {
+    condition     = alltrue([for s in var.vpc_subnet_ids : startswith(s, "subnet-")])
+    error_message = "All subnet IDs must start with 'subnet-'"
+  }
+}
+
 variable "log_sourcetype" {
   /*
       https://splunk.github.io/splunk-add-on-for-amazon-web-services/DataTypes/#push-based-amazon-kinesis-firehose-data-collection-sourcetypes

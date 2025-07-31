@@ -40,3 +40,6 @@ module-validations.yml
 
 # Mac OS metadate file
 *.DS_Store
+
+# others
+_*.sh

@@ -15,11 +15,24 @@ ephemeral "aws_eks_cluster_auth" "this" {
 }
 
 provider "helm" {
+  # kubernetes = {
+  #   host                   = data.aws_eks_cluster.this.endpoint
+  #   cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
+  #   token                  = ephemeral.aws_eks_cluster_auth.this.token
+  # }
+
   kubernetes {
     host                   = data.aws_eks_cluster.this.endpoint
     cluster_ca_certificate = base64decode(data.aws_eks_cluster.this.certificate_authority[0].data)
     token                  = ephemeral.aws_eks_cluster_auth.this.token
   }
+
+  # registries = [{
+  #   url      = "oci://381492150796.dkr.ecr.us-east-1.amazonaws.com"
+  #   password = sensitive(data.aws_ecr_authorization_token.ecr_token.password)
+  #   username = sensitive(data.aws_ecr_authorization_token.ecr_token.user_name)
+  # }]
+
   registry {
     url      = "oci://381492150796.dkr.ecr.us-east-1.amazonaws.com"
     password = sensitive(data.aws_ecr_authorization_token.ecr_token.password)

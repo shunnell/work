@@ -21,26 +21,37 @@ class Account(ClientGetter):
             return f"{self.account_name} ({self.account_id})"
         return f"{self.account_name} ({self.account_id}:{self.region})"
 
-    def environment_variables(self, region_name: str=None, assume_role: (str, str) = ()) -> EnvironmentVariables:
+    def environment_variables(self, region_name: str=None, **assume_role_kwargs) -> EnvironmentVariables:
         region = self.region if region_name is None else region_name
         env = EnvironmentVariables(str(self))
         env.update({
             'AWS_DEFAULT_REGION': region,
             'DOS_CLOUD_CITY_ACCOUNT_ID': self.account_id,
             'DOS_CLOUD_CITY_ACCOUNT_NAME': self.account_name,
-            **self._creds(*assume_role).environment_kwargs()
+            **self._creds(**assume_role_kwargs).environment_kwargs()
         })
         return env
 
-    def _creds(self, *args):
-        if len(args) == 0:
+    def _creds(self, role=None, session_name=None, external_id=None):
+        if role is session_name is external_id is None:
             return self._role_credentials
         else:
-            return STSRoleCredentials(client=self.sts_client(), account=self.account_id, role=args[0], session_name=args[1])
+            return STSRoleCredentials(
+                client=self.sts_client(),
+                account=self.account_id,
+                role=role,
+                session_name=session_name,
+                external_id=external_id,
+            )
 
-    def _get_client(self, kind: str, assume_role: (str, str) = (), **kwargs):
+    def _get_client(self, kind: str, role=None, session_name=None, external_id=None, **kwargs):
         region = kwargs.pop('region_name', self.region)
-        return super()._get_client(kind, region_name=region, **self._creds(*assume_role).client_kwargs(), **kwargs)
+        return super()._get_client(
+            kind,
+            region_name=region,
+            **self._creds(role=role, session_name=session_name, external_id=external_id).client_kwargs(),
+            **kwargs,
+        )
 
     @cached_property
     def regions(self):

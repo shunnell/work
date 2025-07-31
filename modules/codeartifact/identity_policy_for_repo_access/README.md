@@ -40,7 +40,7 @@ No requirements.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_repositories"></a> [repositories](#input\_repositories) | ARNs for CodeArtifact repositories to which this policy should have access | <pre>object({<br/>    pull = set(string)<br/>    push = set(string)<br/>  })</pre> | <pre>{<br/>  "pull": [],<br/>  "push": []<br/>}</pre> | no |
+| <a name="input_repositories"></a> [repositories](#input\_repositories) | ARNs for CodeArtifact repositories to which this policy should have access | <pre>object({<br/>    pull = optional(set(string), [])<br/>    push = optional(set(string), [])<br/>  })</pre> | <pre>{<br/>  "pull": [],<br/>  "push": []<br/>}</pre> | no |
 
 ## Outputs
 

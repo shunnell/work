@@ -2,9 +2,11 @@ include "root" {
   path = find_in_parent_folders("root.hcl")
 }
 
-locals {
-  vpc_vars     = read_terragrunt_config("../dev_vpc/dev_vpc.hcl").locals
-  cluster_name = "managed-dev-eks"
+include "cluster" {
+  path = "${get_repo_root()}/_envcommon/platform/eks/cluster.hcl"
+  # NB: IVA is special in this regard in that they add several additional CIDRs to their cluster for remote access from
+  # GitLab and elsewhere, so we use the "deep" merge strategy to append those here.
+  merge_strategy = "deep"
 }
 
 dependency "vpc" {
@@ -15,69 +17,27 @@ dependency "vpc" {
   }
 }
 
-dependency "cloudwatch_sharing_target" {
-  config_path = "${get_repo_root()}/logs/platform/monitoring/cloudwatch_to_splunk_shipment_destinations/eks"
-  mock_outputs = {
-    cloudwatch_destination_arn = ""
-  }
-}
-
-dependency "cloud_city_roles" {
-  config_path = "../../common/account"
-  mock_outputs = {
-    most_privileged_users = []
-    sso_role_arns_by_permissionset_name = {
-      "Sandbox_Dev" = ""
-    }
-  }
-}
-
-dependency "vpn_vpc" {
-  config_path = "${get_repo_root()}/infra/platform/network/vpn_vpc"
-  mock_outputs = {
-    vpc_cidr_block = ""
-  }
-}
-
-terraform {
-  source = "${get_repo_root()}/../modules//eks/cluster"
-}
-
 inputs = {
-  cluster_name = local.cluster_name
-  vpc_id       = dependency.vpc.outputs.vpc_id
-  subnet_ids   = [for _, v in dependency.vpc.outputs.private_subnets_by_az : v.subnet_id]
-  administrator_role_arns = concat(
-    dependency.cloud_city_roles.outputs.most_privileged_users,
-    [
-      dependency.cloud_city_roles.outputs.sso_role_arns_by_permissionset_name["Sandbox_Dev"],
-    ]
-  )
+  cluster_name = "managed-dev-eks"
 
-  node_groups = {
-    "${local.cluster_name}" = {
-      size          = 3
-      instance_type = "m5.large"
-      security_group_rules = {
-        "VPN access" = {
-          type   = "ingress"
-          ports  = [443]
-          target = dependency.vpn_vpc.outputs.vpc_cidr_block
-        }
-      }
-    }
-  }
+  # IVA self-serve updated their cluster at some point, so it's on 1.33 even though others are not as of this writing:
+  kubernetes_version = "1.33"
 
-  cloudwatch_log_shipping_destination_arn = dependency.cloudwatch_sharing_target.outputs.cloudwatch_destination_arn
-  additional_security_group_ids = [
-    "sg-0b0ef73aacb226bcc"
+  vpc_id     = dependency.vpc.outputs.vpc_id
+  subnet_ids = values(dependency.vpc.outputs.private_subnets_by_az)[*].subnet_id
+
+  # Extra CIDRs added at IVA's request:
+  kubernetes_control_plane_allowed_cidrs = [
+    dependency.vpn_vpc.outputs.vpc_cidr_block,
+    "172.16.0.0/16",
+    "192.168.247.0/24"
   ]
 
-  cluster_security_group_rules = {
-    "VPN access" = {
-      type   = "ingress"
-      ports  = [443]
-      target = dependency.vpn_vpc.outputs.vpc_cidr_block
+  node_groups = {
+    general = {
+      instance_type = "m5.2xlarge",
+      size          = 3
     }
   }
 }
+

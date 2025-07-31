@@ -2,6 +2,11 @@ include "root" {
   path = find_in_parent_folders("root.hcl")
 }
 
+locals {
+  destination_name = "MultiAccountApplicationLogs"
+  sourcetype       = "aws:applications"
+}
+
 dependency "shipper_substrate" {
   config_path = "../shipper_failure_storage"
   mock_outputs = {
@@ -10,16 +15,20 @@ dependency "shipper_substrate" {
   }
 }
 
+dependency "vpc" {
+  config_path = "../../../dev/dev_vpc/vpc"
+  mock_outputs = {
+    vpc_id                     = ""
+    private_subnets_by_az      = {}
+    endpoint_security_group_id = ""
+  }
+}
+
 dependency "account_list" {
   config_path = "${get_repo_root()}/management/platform/sso/utilities/account_list"
   mock_outputs = {
     accounts = {}
   }
-}
-
-locals {
-  destination_name = "MultiAccountApplicationLogs"
-  sourcetype       = "aws:applications"
 }
 
 terraform {
@@ -33,4 +42,7 @@ inputs = {
   failed_shipments_s3_bucket_arn             = dependency.shipper_substrate.outputs.failed_shipments_s3_bucket_arn
   failed_shipments_cloudwatch_log_group_name = dependency.shipper_substrate.outputs.failed_shipments_cloudwatch_log_group_name
   log_sender_aws_organization_path           = read_terragrunt_config("${get_path_to_repo_root()}/management/account.hcl").locals.bespin_organization_root_id
+  vpc_id                                     = dependency.vpc.outputs.vpc_id
+  vpc_subnet_ids                             = [for _, v in dependency.vpc.outputs.private_subnets_by_az : v.subnet_id]
+  vpc_endpoint_security_group_id             = dependency.vpc.outputs.endpoint_security_group_id
 }

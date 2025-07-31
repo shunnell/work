@@ -18,6 +18,9 @@ pull-through behavior in a given AWS account, the following must all be true:
 3. That instance of `tenant_ecr_repositories` must also list the pull-through client accounts in the 
    `aws_accounts_with_pull_access` variable.
 
+To manually propogate policies:
+```bespinctl aws ecr propagate-creation-template-policies```
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 

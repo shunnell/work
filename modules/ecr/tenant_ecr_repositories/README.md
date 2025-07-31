@@ -78,8 +78,9 @@ No requirements.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_pull_policy"></a> [pull\_policy](#output\_pull\_policy) | Metadata relating to the IAM policy that permits pulling this tenant's container images. |
-| <a name="output_push_policy"></a> [push\_policy](#output\_push\_policy) | Metadata relating to the IAM policy that permits pushing this tenant's container images. |
+| <a name="output_delete_policy"></a> [delete\_policy](#output\_delete\_policy) | Metadata relating to the IAM policy that permits deleting this tenant's container images and repositories. |
+| <a name="output_pull_policy"></a> [pull\_policy](#output\_pull\_policy) | Metadata relating to the IAM policy that permits pulling this tenant's container images and repositories. |
+| <a name="output_push_policy"></a> [push\_policy](#output\_push\_policy) | Metadata relating to the IAM policy that permits pushing this tenant's container images and repositories. |
 | <a name="output_repository_arns"></a> [repository\_arns](#output\_repository\_arns) | Set of repository ARNs (corresponding to individial legacy repos or path prefixes ending in '/*') managed by this module. |
-| <a name="output_view_policy"></a> [view\_policy](#output\_view\_policy) | Metadata relating to the IAM policy that permits viewing and describing this tenant's container images. |
+| <a name="output_view_policy"></a> [view\_policy](#output\_view\_policy) | Metadata relating to the IAM policy that permits viewing and describing this tenant's container images and repositories. |
 <!-- END_TF_DOCS -->
